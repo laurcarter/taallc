@@ -28,7 +28,12 @@ def highlight_and_flag_totals(file_bytes):
 
 
 def clean_flagged_totals(file_bytes):
-    wb = load_workbook(filename=BytesIO(file_bytes), data_only=True)
+    if isinstance(file_bytes, BytesIO):
+        file_obj = file_bytes
+    else:
+        file_obj = BytesIO(file_bytes)
+
+    wb = load_workbook(filename=file_obj, data_only=True)
 
     def remove_parentheses_content(text):
         return re.sub(r'\s*\([^)]*\)', '', text).strip()
@@ -45,6 +50,7 @@ def clean_flagged_totals(file_bytes):
     wb.save(output_stream)
     output_stream.seek(0)
     return output_stream
+
 
 
 # ---------- Streamlit App Flow ----------
