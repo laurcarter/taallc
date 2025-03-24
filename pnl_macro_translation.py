@@ -2,8 +2,13 @@ from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
+
 def run_full_pl_macro(file_bytes):
-    wb = load_workbook(filename=BytesIO(file_bytes))
+    # Ensure the input is BytesIO
+    if not isinstance(file_bytes, BytesIO):
+        file_bytes = BytesIO(file_bytes)
+    
+    wb = load_workbook(filename=file_bytes)
     ws = wb.active
 
     focus_ws = wb.create_sheet(title="Focus")
