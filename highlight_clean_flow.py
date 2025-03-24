@@ -44,13 +44,12 @@ def clean_flagged_totals(file_bytes):
             for cell in row:
                 if cell.value and "Total" in str(cell.value):
                     cell.value = remove_parentheses_content(str(cell.value))
-                    cell.fill = None
+                    cell.fill = PatternFill()  # Reset to default empty fill
 
     output_stream = BytesIO()
     wb.save(output_stream)
     output_stream.seek(0)
     return output_stream
-
 
 
 # ---------- Streamlit App Flow ----------
