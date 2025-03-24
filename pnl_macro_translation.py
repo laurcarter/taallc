@@ -1,14 +1,11 @@
+import openpyxl
+from openpyxl import Workbook, load_workbook
+from openpyxl.styles import PatternFill, Font
 from io import BytesIO
-from openpyxl import load_workbook
-from openpyxl.styles import PatternFill
-
+import re
 
 def run_full_pl_macro(file_bytes):
-    # Ensure the input is BytesIO
-    if not isinstance(file_bytes, BytesIO):
-        file_bytes = BytesIO(file_bytes)
-    
-    wb = load_workbook(filename=file_bytes)
+    wb = load_workbook(filename=BytesIO(file_bytes))
     ws = wb.active
 
     focus_ws = wb.create_sheet(title="Focus")
@@ -19,79 +16,90 @@ def run_full_pl_macro(file_bytes):
 
     for row in ws.iter_rows(min_row=1, max_row=max_row, max_col=max_col):
         for cell in row:
-            focus_ws.cell(row=cell.row, column=cell.column).value = cell.value
-            ssoi_ws.cell(row=cell.row, column=cell.column).value = cell.value
+            focus_ws.cell(row=cell.row, column=cell.column, value=cell.value)
+            ssoi_ws.cell(row=cell.row, column=cell.column, value=cell.value)
 
-    def format_ssoi_ids(sheet):
-        for row in sheet.iter_rows(min_row=1, max_row=max_row, min_col=3, max_col=3):
-            for cell in row:
-                if cell.value is not None:
-                    val = str(cell.value).strip()
-                    if len(val) == 1:
-                        cell.value = f"'0{val}"
-                    elif len(val) > 1:
-                        cell.value = f"'{val}"
-
-    format_ssoi_ids(ssoi_ws)
-
-    def clean_and_parse(sheet, is_focus=True):
-        for row in sheet.iter_rows(min_row=1, max_row=max_row, min_col=1, max_col=1):
-            for cell in row:
-                if cell.value and "(" in str(cell.value):
-                    parts = str(cell.value).split("(")
-                    cell.value = parts[0].strip()
-                    sheet.cell(row=cell.row, column=2).value = parts[1].strip() if len(parts) > 1 else ""
-
-        for row in sheet.iter_rows(min_row=1, max_row=max_row, min_col=2, max_col=2):
-            for cell in row:
-                val = str(cell.value)
-                if "/" in val:
-                    left, right = val.split("/")
-                    if is_focus:
-                        cell.value = left.strip()
-                        sheet.cell(row=cell.row, column=3).value = right.strip()
-                    else:
-                        cell.value = right.strip()
-                        sheet.cell(row=cell.row, column=3).value = left.strip().rstrip(")")
-
-        for col in [2, 3]:
-            for row in sheet.iter_rows(min_row=1, max_row=max_row, min_col=col, max_col=col):
-                for cell in row:
-                    if cell.value:
-                        val = str(cell.value).replace("(", "").replace(")", "").replace("/", "").strip()
-                        cell.value = val
-
-    clean_and_parse(focus_ws, is_focus=True)
-    clean_and_parse(ssoi_ws, is_focus=False)
-
-    def copy_col_b_to_d(source, target):
+    def process_sheet(sheet):
         for row in range(1, max_row + 1):
-            target.cell(row=row, column=4).value = source.cell(row=row, column=2).value
+            a_val = sheet.cell(row=row, column=1).value or ""
+            if "(" in a_val:
+                parts = a_val.split("(", 1)
+                sheet.cell(row=row, column=1).value = parts[0].strip()
+                sheet.cell(row=row, column=2).value = parts[1].strip()
 
-    copy_col_b_to_d(ws, focus_ws)
-    copy_col_b_to_d(ws, ssoi_ws)
+        for row in range(1, max_row + 1):
+            b_val = sheet.cell(row=row, column=2).value or ""
+            if "/" in b_val:
+                parts = b_val.split("/")
+                sheet.cell(row=row, column=2).value = parts[0].strip()
+                sheet.cell(row=row, column=3).value = parts[1].replace(")", "").strip()
+            sheet.cell(row=row, column=2).value = str(sheet.cell(row=row, column=2).value).replace("(", "")
+            sheet.cell(row=row, column=3).value = str(sheet.cell(row=row, column=3).value).replace("/", "").replace(")", "")
 
-    def finalize_layout(sheet):
-        for row in range(5, max_row + 1):
-            sheet.cell(row=row, column=6).value = sheet.cell(row=row, column=3).value
-            sheet.cell(row=row, column=3).value = ""
+    process_sheet(focus_ws)
+    process_sheet(ssoi_ws)
+
+    for row in range(1, max_row + 1):
+        val = ws.cell(row=row, column=2).value
+        focus_ws.cell(row=row, column=5, value=val)
+        ssoi_ws.cell(row=row, column=5, value=val)
+
+    for sheet in [focus_ws, ssoi_ws]:
+        for row in range(1, max_row + 1):
+            sheet.cell(row=row, column=3).value = None
             sheet.cell(row=row, column=4).value = sheet.cell(row=row, column=5).value
-            sheet.cell(row=row, column=5).value = ""
+            sheet.cell(row=row, column=5).value = None
 
+    for sheet in [focus_ws, ssoi_ws]:
         sheet.insert_cols(1, amount=2)
-        sheet.insert_rows(4, amount=3)
-        sheet.cell(row=4, column=3).value = sheet.title
-        sheet.cell(row=4, column=4).value = "Amount"
-        sheet.cell(row=4, column=5).value = "Description"
-        sheet.cell(row=4, column=6).value = "Totals"
 
-    finalize_layout(focus_ws)
-    finalize_layout(ssoi_ws)
+    def rearrange_rows(sheet):
+        for row in range(5, max_row + 1):
+            sheet.cell(row=row, column=5).value = sheet.cell(row=row, column=3).value
+            sheet.cell(row=row, column=4).value = sheet.cell(row=row, column=2).value
+            sheet.cell(row=row, column=3).value = sheet.cell(row=row, column=6).value
+            sheet.cell(row=row, column=2).value = None
+            sheet.cell(row=row, column=6).value = None
 
-    # Skip additional formatting/subtotals for now
-    # You can extend this later if needed
+    rearrange_rows(focus_ws)
+    rearrange_rows(ssoi_ws)
 
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-    return output
+    focus_ws["C4"] = "Focus"
+    focus_ws["D4"] = "Amount"
+    focus_ws["E4"] = "Description"
+    focus_ws["F4"] = "Totals"
+
+    ssoi_ws["C4"] = "SSOI"
+    ssoi_ws["D4"] = "Amount"
+    ssoi_ws["E4"] = "Description"
+    ssoi_ws["F4"] = "Totals"
+
+    black_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
+    white_font = Font(color="FFFFFF")
+
+    for sheet in [focus_ws, ssoi_ws]:
+        for col in range(3, 7):
+            cell = sheet.cell(row=7, column=col)
+            cell.fill = black_fill
+            cell.font = white_font
+
+    # Add comma formatting and set column widths
+    for ws_target in [focus_ws, ssoi_ws]:
+        for col in ['D', 'F']:
+            for row in range(8, max_row + 1):
+                cell = ws_target[f"{col}{row}"]
+                if isinstance(cell.value, (int, float)):
+                    cell.number_format = '#,##0'
+        ws_target.column_dimensions['E'].width = 20
+
+    # Add padding to all single-digit values in column C (as text with leading 0)
+    for ws_target in [focus_ws, ssoi_ws]:
+        for row in range(5, max_row + 1):
+            val = ws_target.cell(row=row, column=3).value
+            if val and isinstance(val, (int, str)) and str(val).isdigit() and len(str(val)) == 1:
+                ws_target.cell(row=row, column=3).value = f"0{val}"
+
+    output_stream = BytesIO()
+    wb.save(output_stream)
+    output_stream.seek(0)
+    return output_stream
