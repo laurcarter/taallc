@@ -68,8 +68,8 @@ if st.session_state.step == 1:
         st.session_state.flagged_cells = flagged
 
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
-        st.session_state.step = 2
-        st.experimental_rerun()
+        if st.button("Next"):
+            st.session_state.step = 2
 
 # Step 2: Show flagged cells
 elif st.session_state.step == 2:
@@ -78,19 +78,20 @@ elif st.session_state.step == 2:
         for sheet, coord, val in st.session_state.flagged_cells:
             st.write(f"- **{sheet}**!{coord} → `{val}`")
 
-        if st.button("Yes, clean these cells"):
-            cleaned_file = clean_flagged_totals(st.session_state.excel_bytes)
-            st.session_state.excel_bytes = cleaned_file
-            st.session_state.step = 3
-            st.experimental_rerun()
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Yes, clean these cells"):
+                cleaned_file = clean_flagged_totals(st.session_state.excel_bytes)
+                st.session_state.excel_bytes = cleaned_file
+                st.session_state.step = 3
+        with col2:
+            if st.button("No, leave them as-is"):
+                st.session_state.step = 3
 
-        if st.button("No, leave them as-is"):
-            st.session_state.step = 3
-            st.experimental_rerun()
     else:
         st.info("No problematic 'Total' cells found. Skipping ahead.")
-        st.session_state.step = 3
-        st.experimental_rerun()
+        if st.button("Continue"):
+            st.session_state.step = 3
 
 # Step 3: Download
 elif st.session_state.step == 3:
@@ -104,4 +105,3 @@ elif st.session_state.step == 3:
     if st.button("Start Over"):
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
-        st.experimental_rerun()
