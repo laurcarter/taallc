@@ -50,9 +50,8 @@ def clean_flagged_totals(file_bytes):
     return output_stream
 
 def perform_pnl_transformation(file_bytes):
-    # Placeholder for actual P&L transformation logic
-    # For now, just return the same file untouched
-    return file_bytes
+    from pnl_macro_translation import run_full_pl_macro
+    return run_full_pl_macro(file_bytes)
 
 # ---------- Streamlit App Flow ----------
 st.set_page_config(page_title="Filing Cleanup Wizard", layout="centered")
