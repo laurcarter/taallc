@@ -54,13 +54,31 @@ def sort_ssoi_sheet(ssoi_ws, max_row):
     for idx, (original_row, _, row_values) in enumerate(rows, start=5):
         for col_idx, value in enumerate(row_values, start=1):
             ssoi_ws.cell(row=idx, column=col_idx).value = value
-
 def sort_focus_sheet(focus_ws, max_row):
-    # Loop through column C starting from the last row to row 8
+    # Step 1: Delete rows with empty values in column C
     for row in range(max_row, 7, -1):  # Start from the bottom to avoid skipping rows
         cell = focus_ws.cell(row=row, column=3)
         if cell.value is None or cell.value == "":  # If the cell in column C is empty
             focus_ws.delete_rows(row)  # Delete the entire row
+    
+    # Step 2: Sort column C starting from row 8 in ascending order
+    # First, collect the data to sort from rows 8 to max_row
+    focus_data = []
+    for row in range(8, max_row + 1):  # Start from row 8
+        c_value = focus_ws.cell(row=row, column=3).value
+        focus_data.append((row, c_value))  # Store the row and the value in column C
+    
+    # Sort the collected data based on the values in column C (ascending)
+    focus_data.sort(key=lambda x: x[1] if x[1] is not None else float('inf'))  # Sort ascending, empty cells come last
+
+    # Step 3: Write the sorted data back into the Focus sheet
+    for idx, (original_row, c_value) in enumerate(focus_data, start=8):
+        focus_ws.cell(row=idx, column=3).value = c_value  # Update column C with sorted values
+        # Update other columns in the sorted order
+        for col in range(1, focus_ws.max_column + 1):  # Iterate through all columns
+            if col != 3:  # Skip column C since it's already updated
+                focus_ws.cell(row=idx, column=col).value = focus_ws.cell(row=original_row, column=col).value
+
 
 
 def run_full_pl_macro(file_bytes):
