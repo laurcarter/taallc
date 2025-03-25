@@ -358,10 +358,10 @@ def run_full_pl_macro(file_bytes):
         ssoi_ws.cell(row=row, column=6).number_format = "#,##0"  # Column F
 
     # Increase the width of column E to double the default width in the Focus sheet
-    focus_ws["E"].width = focus_ws.column_dimensions["E"].width * 2.5
+    focus_ws.column_dimensions["E"].width = focus_ws.column_dimensions["E"].width * 2.5
 
     # Increase the width of column E to double the default width in the SSOI sheet
-    ssoi_ws["E"].width = ssoi_ws.column_dimensions["E"].width * 2.5
+    ssoi_ws.column_dimensions["E"].width = ssoi_ws.column_dimensions["E"].width * 2.5
 
 
     # Ensure to save the workbook after sorting if needed
