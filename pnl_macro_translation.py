@@ -5,6 +5,28 @@ from openpyxl.styles import PatternFill, Font
 
 
 #new 
+from openpyxl import Workbook
+
+def apply_subtotals_and_delete_grand_total(focus_ws, ssoi_ws, max_row):
+    # Apply subtotals in the Focus sheet
+    last_data_row_focus = focus_ws.cell(row=max_row, column=3).value  # Find the last data row for focus sheet
+    focus_ws.auto_filter.ref = f"C7:E{last_data_row_focus}"  # Apply subtotal to the range
+    focus_ws.auto_filter.add_filter_column(2, ['Sum'])  # Specify the column to apply the subtotals to
+    
+    # Apply subtotals in the SSOI sheet
+    last_data_row_ssoi = ssoi_ws.cell(row=max_row, column=3).value  # Find the last data row for ssoi sheet
+    ssoi_ws.auto_filter.ref = f"C7:E{last_data_row_ssoi}"  # Apply subtotal to the range
+    ssoi_ws.auto_filter.add_filter_column(2, ['Sum'])  # Specify the column to apply the subtotals to
+
+    # Delete the grand total row in the Focus sheet
+    if focus_ws.cell(row=last_data_row_focus, column=3).value == "Grand Total":
+        focus_ws.delete_rows(last_data_row_focus)
+
+    # Delete the grand total row in the SSOI sheet
+    if ssoi_ws.cell(row=last_data_row_ssoi, column=3).value == "Grand Total":
+        ssoi_ws.delete_rows(last_data_row_ssoi)
+
+
 def clean_ss01_column(ssoi_ws, max_row):
     # Loop through each cell in column C of the SSOI sheet starting from row 5
     for row in range(5, max_row + 1):
@@ -379,6 +401,9 @@ def run_full_pl_macro(file_bytes):
 
     # Increase the width of column E to double the default width in the SSOI sheet
     ssoi_ws.column_dimensions["E"].width = ssoi_ws.column_dimensions["E"].width * 2.5
+
+    #subtotals
+    apply_subtotals_and_delete_grand_total(focus_ws, ssoi_ws, max_row)
 
 
     # Ensure to save the workbook after sorting if needed
