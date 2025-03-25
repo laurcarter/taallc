@@ -3,36 +3,37 @@ from openpyxl import load_workbook
 from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
-
 def apply_subtotals(focus_ws, ssoi_ws, max_row):
-    # Apply subtotals for both Focus and SSOI sheets
+    # Apply subtotals to both the Focus and SSOI sheets
     apply_subtotals_for_sheet(focus_ws, max_row)
     apply_subtotals_for_sheet(ssoi_ws, max_row)
 
 def apply_subtotals_for_sheet(ws, max_row):
-    current_value = None
-    subtotal_start_row = 8  # Start from row 8 as per your requirement
-    total_sum = 0
-    last_row = max_row
+    current_value = None  # Tracks the current group in column C
+    total_sum = 0  # Tracks the sum of the values in column D for the current group
+    last_row = max_row  # The last row in the sheet
 
-    for row in range(subtotal_start_row, max_row + 1):
-        c_value = ws.cell(row=row, column=3).value  # Column C
-        d_value = ws.cell(row=row, column=4).value  # Column D
+    row_idx = 8  # Start from row 8 as per your description
 
-        # Skip rows where column C is empty
+    while row_idx <= max_row:
+        c_value = ws.cell(row=row_idx, column=3).value  # Get the value in column C
+        d_value = ws.cell(row=row_idx, column=4).value  # Get the value in column D
+
+        # If the value in column C is empty, skip this row
         if c_value is None or c_value == "":
+            row_idx += 1
             continue
 
-        # If a new group starts (new value in column C), insert a subtotal row
+        # If the current value in column C is different from the previous one, insert a subtotal row
         if c_value != current_value:
+            # If we have already encountered a group, insert the total row
             if current_value is not None:
-                # Insert the subtotal row before the new group starts
-                ws.insert_rows(row)
-                ws.cell(row=row, column=3).value = f"{current_value} Total"  # Insert the total label in Column C
-                ws.cell(row=row, column=4).value = total_sum  # Insert the sum in Column D
+                ws.insert_rows(row_idx)
+                ws.cell(row=row_idx, column=3).value = f"{current_value} Total"  # Insert "Total" in column C
+                ws.cell(row=row_idx, column=4).value = total_sum  # Insert the sum in column D
 
                 # Move the row index down because we just inserted a new row
-                row += 1
+                row_idx += 1
 
             # Reset for the new group
             current_value = c_value
@@ -41,6 +42,8 @@ def apply_subtotals_for_sheet(ws, max_row):
             # Add the current value in column D to the running total
             if isinstance(d_value, (int, float)):
                 total_sum += d_value
+
+        row_idx += 1  # Move to the next row
 
     # Handle the last group after the loop ends
     if current_value is not None:
