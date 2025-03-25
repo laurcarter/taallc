@@ -125,8 +125,36 @@ def run_full_pl_macro(file_bytes):
         focus_ws.cell(row=row, column=4).value = original_value
         ssoi_ws.cell(row=row, column=4).value = original_value
 
+# new
+    # Move the entire sheet over by two columns in both Focus and SSOI sheets
+    focus_ws.insert_cols(1, 2)  # Insert two columns at the beginning of the Focus sheet
+    ssoi_ws.insert_cols(1, 2)   # Insert two columns at the beginning of the SSOI sheet
+    
+    # Move data in columns starting from row 5 in the Focus sheet
+    for row in range(5, max_row + 1):
+        focus_ws.cell(row=row, column=3).offset(0, 2).value = focus_ws.cell(row=row, column=3).value
+        focus_ws.cell(row=row, column=3).value = None  # Clear original cell
+    
+        focus_ws.cell(row=row, column=4).offset(0, -1).value = focus_ws.cell(row=row, column=4).value
+        focus_ws.cell(row=row, column=4).value = None  # Clear original cell
+    
+        focus_ws.cell(row=row, column=6).offset(0, -2).value = focus_ws.cell(row=row, column=6).value
+        focus_ws.cell(row=row, column=6).value = None  # Clear original cell
+    
+    # Same process for the SSOI sheet
+    for row in range(5, max_row + 1):
+        ssoi_ws.cell(row=row, column=3).offset(0, 2).value = ssoi_ws.cell(row=row, column=3).value
+        ssoi_ws.cell(row=row, column=3).value = None  # Clear original cell
+    
+        ssoi_ws.cell(row=row, column=4).offset(0, -1).value = ssoi_ws.cell(row=row, column=4).value
+        ssoi_ws.cell(row=row, column=4).value = None  # Clear original cell
+    
+        ssoi_ws.cell(row=row, column=6).offset(0, -2).value = ssoi_ws.cell(row=row, column=6).value
+        ssoi_ws.cell(row=row, column=6).value = None  # Clear original cell
+
+
+    
     output_stream = BytesIO()
     wb.save(output_stream)
     output_stream.seek(0)
-
     return output_stream
