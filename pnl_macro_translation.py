@@ -4,6 +4,41 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
+def apply_subtotals_last_cluster(ws, max_row):
+    # Start from the last row and move upwards
+    row_idx = max_row
+    last_group_value = None
+    total_sum = 0
+    last_row_for_group = None
+
+    # Loop backwards to find the last cluster in column C
+    while row_idx >= 8:
+        c_value = ws.cell(row=row_idx, column=3).value  # Get the value in column C
+
+        if c_value is None or c_value == "":
+            row_idx -= 1
+            continue
+
+        # Check if we are still in the same group of values in column C
+        if c_value == last_group_value or last_group_value is None:
+            d_value = ws.cell(row=row_idx, column=4).value  # Get the value in column D
+            if isinstance(d_value, (int, float)):
+                total_sum += d_value  # Sum the values in column D
+
+            last_row_for_group = row_idx  # Keep track of the last row for this group
+        else:
+            # Once we find a new value in column C, stop and exit the loop
+            break
+        
+        last_group_value = c_value  # Set the current group value
+        row_idx -= 1  # Move up to the previous row
+
+    # If a group was found, insert the total row
+    if last_group_value is not None and last_row_for_group is not None:
+        ws.insert_rows(last_row_for_group + 1)  # Insert a new row below the last value of the group
+        ws.cell(row=last_row_for_group + 1, column=3).value = f"{last_group_value} Total"  # Set the label in column C
+        ws.cell(row=last_row_for_group + 1, column=4).value = total_sum  # Set the sum in column D
+
 def apply_subtotals(focus_ws, ssoi_ws, max_row):
     # Apply subtotals to both the Focus and SSOI sheets
     apply_subtotals_for_sheet(focus_ws, max_row)
@@ -430,6 +465,8 @@ def run_full_pl_macro(file_bytes):
 
     #subtotals
     apply_subtotals(focus_ws, ssoi_ws, max_row)
+    apply_subtotals_last_cluster(focus_ws, max_row)  # For Focus sheet
+    apply_subtotals_last_cluster(ssoi_ws, max_row)   # For SSOI sheet
 
 
 
