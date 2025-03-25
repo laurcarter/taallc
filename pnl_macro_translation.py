@@ -331,6 +331,35 @@ def run_full_pl_macro(file_bytes):
     secondary_sort_ssoi_sheet(ssoi_ws, max_row)
     secondary_sort_focus_sheet(focus_ws, max_row)
 
+        # Define fill color (black) and font color (white)
+    black_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
+    white_font = Font(color="FFFFFF")
+
+    # Fill columns C to F in row 7 with black and change the text color to white in the Focus sheet
+    for col in ["C", "D", "E", "F"]:
+        focus_ws[f"{col}7"].fill = black_fill
+        focus_ws[f"{col}7"].font = white_font
+
+    # Fill columns C to F in row 7 with black and change the text color to white in the SSOI sheet
+    for col in ["C", "D", "E", "F"]:
+        ssoi_ws[f"{col}7"].fill = black_fill
+        ssoi_ws[f"{col}7"].font = white_font
+
+    # Format column D and F in the Focus sheet to show numbers with thousand commas
+    focus_ws["D"].number_format = "#,##0"
+    focus_ws["F"].number_format = "#,##0"
+
+    # Format column D and F in the SSOI sheet to show numbers with thousand commas
+    ssoi_ws["D"].number_format = "#,##0"
+    ssoi_ws["F"].number_format = "#,##0"
+
+    # Increase the width of column E to double the default width in the Focus sheet
+    focus_ws["E"].width = focus_ws.column_dimensions["E"].width * 2.5
+
+    # Increase the width of column E to double the default width in the SSOI sheet
+    ssoi_ws["E"].width = ssoi_ws.column_dimensions["E"].width * 2.5
+
+
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
     wb.save(output_stream)
