@@ -5,65 +5,52 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
 def apply_subtotals(focus_ws, ssoi_ws, max_row):
-    # Apply subtotals in the Focus sheet
-    focus_last_data_row = focus_ws.cell(row=max_row, column=3).row
-    previous_value = None
-    subtotal_row = None
+    # Focus sheet subtotal logic
+    apply_subtotals_for_sheet(focus_ws, max_row)
 
-    for row in range(7, focus_last_data_row + 1):
-        current_value = focus_ws.cell(row=row, column=3).value  # Value in Column C
-        amount = focus_ws.cell(row=row, column=4).value  # Value in Column D
+    # SSOI sheet subtotal logic
+    apply_subtotals_for_sheet(ssoi_ws, max_row)
+
+def apply_subtotals_for_sheet(ws, max_row):
+    # Start from row 8 (as per your requirement)
+    current_value = None
+    subtotal_start_row = 8  # Start from row 8
+    total_sum = 0
+
+    for row in range(subtotal_start_row, max_row + 1):
+        c_value = ws.cell(row=row, column=3).value  # Column C
+        d_value = ws.cell(row=row, column=4).value  # Column D
         
-        # Skip rows where column C is empty
-        if current_value is None or current_value == "":
+        # Skip rows with no value in column C
+        if c_value is None or c_value == "":
             continue
-        
-        # Ensure column D is numeric, otherwise skip
-        if isinstance(amount, (int, float)):
-            amount = float(amount)  # Ensure the value is treated as a float
+
+        # If the value in column C is different from the previous one, insert the subtotal row
+        if c_value != current_value:
+            if current_value is not None:
+                # Insert the subtotal row
+                ws.insert_rows(row)
+                ws.cell(row=row, column=3).value = f"{current_value} Total"  # Insert the total label in Column C
+                ws.cell(row=row, column=4).value = total_sum  # Insert the sum in Column D
+
+                # Move the row index down because we just inserted a new row
+                row += 1
+
+            # Reset for the new group
+            current_value = c_value
+            total_sum = d_value  # Start the sum with the first value of the new group
+
         else:
-            amount = 0  # Treat non-numeric values as 0
-        
-        if current_value != previous_value:  # If the value changes in column C
-            if subtotal_row is not None:
-                # Subtotal calculation (sum of column D)
-                subtotal = sum(focus_ws.cell(r, 4).value if isinstance(focus_ws.cell(r, 4).value, (int, float)) else 0 for r in range(subtotal_row, row))
-                focus_ws.cell(row=row, column=4).value = subtotal
-                focus_ws.cell(row=row, column=5).value = "Subtotal"  # Label for subtotal
-                
-            subtotal_row = row  # Start new subtotal for a different value in column C
+            # Add the current value in column D to the running total
+            if isinstance(d_value, (int, float)):  # Ensure the value is numeric
+                total_sum += d_value
 
-        previous_value = current_value
+    # Handle the last group (after the loop ends)
+    if current_value is not None:
+        ws.insert_rows(max_row + 1)  # Add the subtotal row at the end
+        ws.cell(row=max_row + 1, column=3).value = f"{current_value} Total"
+        ws.cell(row=max_row + 1, column=4).value = total_sum
 
-    # Apply subtotals in the SSOI sheet (similar logic to the Focus sheet)
-    ssoi_last_data_row = ssoi_ws.cell(row=max_row, column=3).row
-    previous_value = None
-    subtotal_row = None
-
-    for row in range(7, ssoi_last_data_row + 1):
-        current_value = ssoi_ws.cell(row=row, column=3).value  # Value in Column C
-        amount = ssoi_ws.cell(row=row, column=4).value  # Value in Column D
-        
-        # Skip rows where column C is empty
-        if current_value is None or current_value == "":
-            continue
-        
-        # Ensure column D is numeric, otherwise skip
-        if isinstance(amount, (int, float)):
-            amount = float(amount)  # Ensure the value is treated as a float
-        else:
-            amount = 0  # Treat non-numeric values as 0
-        
-        if current_value != previous_value:  # If the value changes in column C
-            if subtotal_row is not None:
-                # Subtotal calculation (sum of column D)
-                subtotal = sum(ssoi_ws.cell(r, 4).value if isinstance(ssoi_ws.cell(r, 4).value, (int, float)) else 0 for r in range(subtotal_row, row))
-                ssoi_ws.cell(row=row, column=4).value = subtotal
-                ssoi_ws.cell(row=row, column=5).value = "Subtotal"  # Label for subtotal
-
-            subtotal_row = row  # Start new subtotal for a different value in column C
-
-        previous_value = current_value
 
 
 def clean_ss01_column(ssoi_ws, max_row):
