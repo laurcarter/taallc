@@ -119,8 +119,8 @@ def secondary_sort_focus_sheet(focus_ws, max_row):
     # Create a list to hold rows with their corresponding values from columns C and D
     rows = []
 
-    # Loop through column C starting from row 5
-    for row in range(5, max_row + 1):
+    # Loop through column C starting from row 8 (instead of 5)
+    for row in range(8, max_row + 1):
         c_value = focus_ws.cell(row=row, column=3).value
         d_value = focus_ws.cell(row=row, column=4).value
         
@@ -136,13 +136,13 @@ def secondary_sort_focus_sheet(focus_ws, max_row):
     # Sort rows based on column C (ascending) and column D (descending for same values in C)
     rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
 
-    # Clear the existing values in the sheet starting from row 5
-    for row in range(5, max_row + 1):
+    # Clear the existing values in the sheet starting from row 8
+    for row in range(8, max_row + 1):
         for col in range(1, focus_ws.max_column + 1):
             focus_ws.cell(row=row, column=col).value = None
 
-    # Write the sorted rows back into the sheet
-    new_row_idx = 5
+    # Write the sorted rows back into the sheet starting from row 8
+    new_row_idx = 8
     for _, _, _, row_values in rows:
         for col_idx, value in enumerate(row_values, start=1):
             focus_ws.cell(row=new_row_idx, column=col_idx).value = value
