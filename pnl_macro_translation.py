@@ -4,38 +4,6 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
-def apply_subtotals_for_last_group(ws, max_row):
-    # Start from the last row and go upwards
-    last_row = max_row
-    last_value = ws.cell(row=last_row, column=3).value  # Get the value in column C from the last row
-
-    total_sum = 0  # Variable to accumulate the sum of column D values
-    row_idx = last_row
-
-    # Go upwards through the sheet, starting from the last row, looking for matching values in column C
-    while row_idx >= 8:  # Start from row 8 as specified
-        c_value = ws.cell(row=row_idx, column=3).value
-        d_value = ws.cell(row=row_idx, column=4).value
-
-        # If we find the same value in column C, add the corresponding value in column D to total_sum
-        if c_value == last_value:
-            if isinstance(d_value, (int, float)):
-                total_sum += d_value  # Sum the value in column D
-        else:
-            # If the value in column C changes, stop, as we've processed the entire group
-            break
-
-        # Move up to the previous row
-        row_idx -= 1
-
-    # After finishing the loop, insert a new row below the last row
-    ws.insert_rows(last_row + 1)
-
-    # Set the value in column C to "{last_value} Total" in the newly inserted row
-    ws.cell(row=last_row + 1, column=3).value = f"{last_value} Total"
-
-    # Set the summed value in column D of the newly inserted row
-    ws.cell(row=last_row + 1, column=4).value = total_sum
 
 
 def apply_subtotals(focus_ws, ssoi_ws, max_row):
@@ -464,8 +432,7 @@ def run_full_pl_macro(file_bytes):
 
     #subtotals
     apply_subtotals(focus_ws, ssoi_ws, max_row)
-    apply_subtotals_for_last_group(focus_ws, max_row)  # For Focus sheet
-    apply_subtotals_for_last_group(ssoi_ws, max_row)   # For SSOI sheet
+
 
 
 
