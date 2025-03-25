@@ -20,31 +20,44 @@ def clean_ss01_column(ssoi_ws, max_row):
             
             cell.value = cleaned_value  # Update the cell with the cleaned value
 
+
+# Sorting function for SSOI sheet column C
 def sort_ssoi_sheet(ssoi_ws, max_row):
-    non_empty_cells = []
-    empty_cells = []
+    # Lists to store rows by type
+    numeric_values = []
+    alphanumeric_values = []
+    empty_values = []
     
     # Loop through column C starting from row 5
     for row in range(5, max_row + 1):
         cell = ssoi_ws.cell(row=row, column=3)
-        if cell.value is None or cell.value == "":  # Empty cell
-            empty_cells.append(row)
-        else:  # Non-empty cell
-            non_empty_cells.append((row, cell.value))
+        cell_value = cell.value
+        
+        if cell_value is None or cell_value == "":  # Empty cell
+            empty_values.append((row, cell_value))
+        elif isinstance(cell_value, (int, float)):  # Numeric value
+            numeric_values.append((row, cell_value))
+        elif isinstance(cell_value, str):  # Alphanumeric value
+            numeric_part = ''.join(filter(str.isdigit, cell_value))  # Extract numbers
+            alpha_part = ''.join(filter(str.isalpha, cell_value))  # Extract letters
+            alphanumeric_values.append((row, numeric_part, alpha_part, cell_value))
 
-    # Sort the non-empty cells based on their value (ascending)
-    non_empty_cells.sort(key=lambda x: x[1] if x[1] is not None else "")
+    # Sort numeric values first (ascending)
+    numeric_values.sort(key=lambda x: x[1] if x[1] is not None else "")
 
-    # Place non-empty cells back in column C
-    for idx, (row, value) in enumerate(non_empty_cells, start=5):
-        ssoi_ws.cell(row=row, column=3).value = value
+    # Sort alphanumeric values: first by numeric part, then by alphabet part (ascending)
+    alphanumeric_values.sort(key=lambda x: (x[1], x[2]))
 
-    # Place empty cells at the bottom of column C
-    for i, empty_row in enumerate(empty_cells, start=5 + len(non_empty_cells)):
-        ssoi_ws.cell(row=empty_row, column=3).value = None
+    # Combine the sorted values
+    sorted_rows = numeric_values + alphanumeric_values + empty_values
 
+    # Place the sorted values back in column C
+    for idx, (row, *values) in enumerate(sorted_rows, start=5):
+        ssoi_ws.cell(row=row, column=3).value = values[-1]
 
-
+    # Place empty cells at the bottom
+    for row, _ in empty_values:
+        ssoi_ws.cell(row=row, column=3).value = None
 
 
 
