@@ -23,41 +23,13 @@ def clean_ss01_column(ssoi_ws, max_row):
 
 # Sorting function for SSOI sheet column C
 def sort_ssoi_sheet(ssoi_ws, max_row):
-    # Lists to store rows by type
-    numeric_values = []
-    alphanumeric_values = []
-    empty_values = []
-    
-    # Loop through column C starting from row 5
-    for row in range(5, max_row + 1):
+    # Loop through column C starting from row 5 to find and delete rows with empty cells
+    for row in range(max_row, 4, -1):  # Go from the bottom to the top to avoid skipping rows
         cell = ssoi_ws.cell(row=row, column=3)
-        cell_value = cell.value
-        
-        if cell_value is None or cell_value == "":  # Empty cell
-            empty_values.append((row, cell_value))
-        elif isinstance(cell_value, (int, float)):  # Numeric value
-            numeric_values.append((row, cell_value))
-        elif isinstance(cell_value, str):  # Alphanumeric value
-            numeric_part = ''.join(filter(str.isdigit, cell_value))  # Extract numbers
-            alpha_part = ''.join(filter(str.isalpha, cell_value))  # Extract letters
-            alphanumeric_values.append((row, numeric_part, alpha_part, cell_value))
+        if cell.value is None or cell.value == "":  # If the cell in column C is empty
+            ssoi_ws.delete_rows(row)  # Delete the row
 
-    # Sort numeric values first (ascending)
-    numeric_values.sort(key=lambda x: x[1] if x[1] is not None else "")
 
-    # Sort alphanumeric values: first by numeric part, then by alphabet part (ascending)
-    alphanumeric_values.sort(key=lambda x: (x[1], x[2]))
-
-    # Combine the sorted values
-    sorted_rows = numeric_values + alphanumeric_values + empty_values
-
-    # Place the sorted values back in column C
-    for idx, (row, *values) in enumerate(sorted_rows, start=5):
-        ssoi_ws.cell(row=row, column=3).value = values[-1]
-
-    # Place empty cells at the bottom
-    for row, _ in empty_values:
-        ssoi_ws.cell(row=row, column=3).value = None
 
 
 
