@@ -77,7 +77,50 @@ def run_full_pl_macro(file_bytes):
             sheet.cell(row=row, column=4).value = sheet.cell(row=row, column=5).value
             sheet.cell(row=row, column=5).value = None
 
+        # Shift entire sheet right by two columns
+    for sheet in [focus_ws, ssoi_ws]:
+        sheet.insert_cols(1, amount=2)
+
+    # Rearrange data starting from row 5
+    for sheet in [focus_ws, ssoi_ws]:
+        for row in range(5, max_row + 1):
+            # Move column C to E, D to C, F to D
+            c_val = sheet.cell(row=row, column=3).value
+            d_val = sheet.cell(row=row, column=4).value
+            f_val = sheet.cell(row=row, column=6).value
+
+            sheet.cell(row=row, column=5, value=c_val)  # C → E
+            sheet.cell(row=row, column=3, value=d_val)  # D → C
+            sheet.cell(row=row, column=4, value=f_val)  # F → D
+
+            # Clear original cells
+            sheet.cell(row=row, column=2).value = None
+            sheet.cell(row=row, column=6).value = None
+
+    # Add leading zero to single-digit values in SSOI column C (now col 3)
+    for row in range(5, max_row + 1):
+        val = ssoi_ws.cell(row=row, column=3).value
+        if isinstance(val, (int, str)):
+            val_str = str(val).strip()
+            if val_str.isdigit() and len(val_str) == 1:
+                ssoi_ws.cell(row=row, column=3, value=f"0{val_str}")
+
+    # Sort SSOI by column C ascending
+    ssoi_data = []
+    for row in ssoi_ws.iter_rows(min_row=5, max_row=max_row, min_col=3, max_col=5, values_only=True):
+        ssoi_data.append(row)
+
+    ssoi_data.sort(key=lambda x: (str(x[0]) if x[0] is not None else ""))
+
+    for idx, (col_c, col_d, col_e) in enumerate(ssoi_data, start=5):
+        ssoi_ws.cell(row=idx, column=3, value=col_c)
+        ssoi_ws.cell(row=idx, column=4, value=col_d)
+        ssoi_ws.cell(row=idx, column=5, value=col_e)
+
+
     output_stream = BytesIO()
     wb.save(output_stream)
     output_stream.seek(0)
     return output_stream
+
+
