@@ -4,6 +4,20 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
+def delete_blank_rows(ws, max_row):
+    # Start from row 8 and go downwards
+    row_idx = 8
+
+    while row_idx <= max_row:
+        c_value = ws.cell(row=row_idx, column=3).value  # Get the value from column C
+        d_value = ws.cell(row=row_idx, column=4).value  # Get the value from column D
+
+        # If both columns C and D are blank, delete the row
+        if (c_value is None or c_value == "") and (d_value is None or d_value == ""):
+            ws.delete_rows(row_idx)  # Delete the current row
+            max_row -= 1  # Decrease max_row because we just deleted a row
+        else:
+            row_idx += 1  # Move to the next row if not both columns are blank
 
 
 def apply_subtotals(focus_ws, ssoi_ws, max_row):
@@ -432,10 +446,13 @@ def run_full_pl_macro(file_bytes):
 
     #subtotals
     apply_subtotals(focus_ws, ssoi_ws, max_row)
-
-
-
-
+    
+    # Call this function for both sheets
+    delete_blank_rows(focus_ws, max_row)  # For Focus sheet
+    delete_blank_rows(ssoi_ws, max_row)   # For SSOI sheet
+    
+    
+    
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
