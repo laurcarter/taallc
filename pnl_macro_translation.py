@@ -151,26 +151,24 @@ def run_full_pl_macro(file_bytes):
         ssoi_ws.cell(row=row, column=6).offset(0, -2).value = ssoi_ws.cell(row=row, column=6).value
         ssoi_ws.cell(row=row, column=6).value = None  # Clear original cell
 # new
-    # Add leading zeros to all single-digit numbers in column C of SSOI sheet
-    for row in range(5, max_row + 1):
-        val = str(ssoi_ws.cell(row=row, column=3).value).strip()  # Get the value from column C
-        if val.isdigit() and len(val) == 1:  # Check if it's a single-digit number
-            ssoi_ws.cell(row=row, column=3).value = f"0{val}"  # Add leading zero
     
-    # Sort columns C to E using the updated values in column C for the SSOI sheet
-    # Extract data from columns C to E
-    ssoi_data = []
-    for row in ssoi_ws.iter_rows(min_row=5, max_row=max_row, min_col=3, max_col=5, values_only=True):
-        ssoi_data.append(row)
-    
-    # Sort by the values in column C (ascending)
-    ssoi_data.sort(key=lambda x: (str(x[0]) if x[0] is not None else ""))
-    
-    # Write sorted data back into the SSOI sheet
-    for idx, (col_c, col_d, col_e) in enumerate(ssoi_data, start=5):
-        ssoi_ws.cell(row=idx, column=3, value=col_c)
-        ssoi_ws.cell(row=idx, column=4, value=col_d)
-        ssoi_ws.cell(row=idx, column=5, value=col_e)
+# Sort columns C to E using the updated values in column C for the SSOI sheet
+# First, extract data from columns C to E starting from row 5
+ssoi_data = []
+for row in range(5, max_row + 1):
+    c_value = ssoi_ws.cell(row=row, column=3).value
+    d_value = ssoi_ws.cell(row=row, column=4).value
+    e_value = ssoi_ws.cell(row=row, column=5).value
+    ssoi_data.append((c_value, d_value, e_value))
+
+# Sort by the first element in the tuple (column C) in ascending order
+ssoi_data.sort(key=lambda x: x[0] if x[0] is not None else "")
+
+# Now write the sorted data back into columns C, D, and E
+for idx, (col_c, col_d, col_e) in enumerate(ssoi_data, start=5):
+    ssoi_ws.cell(row=idx, column=3, value=col_c)
+    ssoi_ws.cell(row=idx, column=4, value=col_d)
+    ssoi_ws.cell(row=idx, column=5, value=col_e)
 
 
     
