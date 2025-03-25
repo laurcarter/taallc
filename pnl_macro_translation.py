@@ -33,9 +33,10 @@ def apply_subtotals_last_cluster(ws, max_row):
         last_group_value = c_value  # Set the current group value
         row_idx -= 1  # Move up to the previous row
 
-    # If a group was found, insert the total row
+    # If a group was found, insert the total row below the last row of the group
     if last_group_value is not None and last_row_for_group is not None:
-        ws.insert_rows(last_row_for_group + 1)  # Insert a new row below the last value of the group
+        # Insert a new row directly below the last row of the group
+        ws.insert_rows(last_row_for_group + 1)
         ws.cell(row=last_row_for_group + 1, column=3).value = f"{last_group_value} Total"  # Set the label in column C
         ws.cell(row=last_row_for_group + 1, column=4).value = total_sum  # Set the sum in column D
 
