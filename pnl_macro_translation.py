@@ -5,26 +5,39 @@ from openpyxl.styles import PatternFill, Font
 
 
 #new 
-from openpyxl import Workbook
+from openpyxl.styles import PatternFill, Font
 
 def apply_subtotals_and_delete_grand_total(focus_ws, ssoi_ws, max_row):
-    # Apply subtotals in the Focus sheet
-    last_data_row_focus = focus_ws.cell(row=max_row, column=3).value  # Find the last data row for focus sheet
-    focus_ws.auto_filter.ref = f"C7:E{last_data_row_focus}"  # Apply subtotal to the range
-    focus_ws.auto_filter.add_filter_column(2, ['Sum'])  # Specify the column to apply the subtotals to
-    
-    # Apply subtotals in the SSOI sheet
-    last_data_row_ssoi = ssoi_ws.cell(row=max_row, column=3).value  # Find the last data row for ssoi sheet
-    ssoi_ws.auto_filter.ref = f"C7:E{last_data_row_ssoi}"  # Apply subtotal to the range
-    ssoi_ws.auto_filter.add_filter_column(2, ['Sum'])  # Specify the column to apply the subtotals to
+    # Set background color and font style for columns C to F in row 7 (focus and ssoi)
+    for ws in [focus_ws, ssoi_ws]:
+        # Fill columns C to F in row 7 with black background and white text
+        for col in ['C', 'D', 'E', 'F']:
+            cell = ws[f"{col}7"]
+            cell.fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
+            cell.font = Font(color="FFFFFF")
 
-    # Delete the grand total row in the Focus sheet
-    if focus_ws.cell(row=last_data_row_focus, column=3).value == "Grand Total":
+    # Format columns D and F for number format with commas
+    for ws in [focus_ws, ssoi_ws]:
+        for col in ['D', 'F']:
+            for row in range(8, max_row + 1):
+                cell = ws.cell(row=row, column=ws[col].column)
+                if isinstance(cell.value, (int, float)):
+                    cell.number_format = "#,##0"
+
+    # Increase the width of column E in both Focus and SSOI sheets
+    for ws in [focus_ws, ssoi_ws]:
+        ws.column_dimensions['E'].width = 2.5 * ws.column_dimensions['E'].width  # Adjusting width
+
+    # Handle grand total row deletion in Focus sheet
+    last_data_row_focus = focus_ws.cell(row=max_row, column=3).row
+    if focus_ws.cell(last_data_row_focus, 3).value == "Grand Total":
         focus_ws.delete_rows(last_data_row_focus)
 
-    # Delete the grand total row in the SSOI sheet
-    if ssoi_ws.cell(row=last_data_row_ssoi, column=3).value == "Grand Total":
+    # Handle grand total row deletion in SSOI sheet
+    last_data_row_ssoi = ssoi_ws.cell(row=max_row, column=3).row
+    if ssoi_ws.cell(last_data_row_ssoi, 3).value == "Grand Total":
         ssoi_ws.delete_rows(last_data_row_ssoi)
+
 
 
 def clean_ss01_column(ssoi_ws, max_row):
