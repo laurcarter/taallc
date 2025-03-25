@@ -55,6 +55,30 @@ def sort_ssoi_sheet(ssoi_ws, max_row):
         for col_idx, value in enumerate(row_values, start=1):
             ssoi_ws.cell(row=idx, column=col_idx).value = value
 
+def sort_focus_sheet(focus_ws, max_row):
+    # Create a list to store the rows with their values in column C
+    focus_data = []
+    
+    # Loop through column C starting from row 8
+    for row in range(8, max_row + 1):
+        c_value = focus_ws.cell(row=row, column=3).value
+        if c_value is not None:  # Only add rows with non-empty values in column C
+            focus_data.append((row, c_value))  # Store the row number and the value in column C
+    
+    # Sort the rows by the value in column C (ascending order)
+    focus_data.sort(key=lambda x: x[1])
+
+    # Write the sorted data back to the Focus sheet
+    for idx, (row, value) in enumerate(focus_data, start=8):
+        focus_ws.cell(row=row, column=3).value = value  # Sort column C
+        # Make sure the entire row moves with the sorted value in column C
+        for col in range(1, 7):  # Adjust this if you need to cover more columns
+            focus_ws.cell(row=row, column=col).value = focus_ws.cell(row=focus_data[idx][0], column=col).value
+
+    # Now clear the remaining unsorted rows from row 8 downwards in column C (if any)
+    for row in range(len(focus_data) + 8, max_row + 1):
+        focus_ws.cell(row=row, column=3).value = None  # Clear unsorted rows
+
 
 
 def run_full_pl_macro(file_bytes):
@@ -226,6 +250,10 @@ def run_full_pl_macro(file_bytes):
     # Shift everything below row 4 down by 3 rows in both sheets
     focus_ws.insert_rows(4, amount=3)  # Insert 3 rows at row 4 in focus_ws
     ssoi_ws.insert_rows(4, amount=3)   # Insert 3 rows at row 4 in ssoi_ws
+
+    # Call the sort_focus_sheet function after the rest of the operations in the macro
+    sort_focus_sheet(focus_ws, max_row)
+
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
