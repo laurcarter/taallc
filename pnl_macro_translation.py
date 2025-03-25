@@ -61,31 +61,32 @@ def sort_focus_sheet(focus_ws, max_row):
         cell = focus_ws.cell(row=row, column=3)
         if cell.value is None or cell.value == "":  # If the cell in column C is empty
             focus_ws.delete_rows(row)  # Delete the entire row
-    
-    # Step 2: Sort column C starting from row 8 in ascending order
-    # First, collect the data to sort from rows 8 to max_row
-    focus_data = []
-    for row in range(8, max_row + 1):  # Start from row 8
-        c_value = focus_ws.cell(row=row, column=3).value
-        
-        # Convert values to float if possible, otherwise use float('inf') for non-numeric values
-        try:
-            c_value = float(c_value) if c_value is not None else float('inf')
-        except ValueError:
-            c_value = float('inf')  # Handle non-numeric values as larger than any number
-        
-        focus_data.append((row, c_value))  # Store the row and the value in column C
-    
-    # Sort the collected data based on the values in column C (ascending)
-    focus_data.sort(key=lambda x: x[1])  # Sort ascending, empty cells come last
 
-    # Step 3: Write the sorted data back into the Focus sheet
-    for idx, (original_row, c_value) in enumerate(focus_data, start=8):
-        focus_ws.cell(row=idx, column=3).value = c_value  # Update column C with sorted values
-        # Update other columns in the sorted order
-        for col in range(1, focus_ws.max_column + 1):  # Iterate through all columns
-            if col != 3:  # Skip column C since it's already updated
-                focus_ws.cell(row=idx, column=col).value = focus_ws.cell(row=original_row, column=col).value
+    # Step 2: Create a list to hold rows with their corresponding values in column C
+    rows = []
+
+    # Step 3: Loop through column C starting from row 8
+    for row in range(8, max_row + 1):
+        cell = focus_ws.cell(row=row, column=3)
+        if cell.value is not None:
+            c_value = str(cell.value).strip()
+            
+            # Append the entire row with its value in column C
+            rows.append((row, c_value, [focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)]))
+
+    # Step 4: Sort rows based on the value in column C (ascending)
+    # First, sort numeric values (no letters), then alphanumeric
+    rows.sort(key=lambda x: (int(x[1]) if x[1].isdigit() else float('inf'), x[1]))
+
+    # Step 5: Clear the existing values in the Focus sheet starting from row 8
+    for row in range(8, max_row + 1):
+        for col in range(1, focus_ws.max_column + 1):
+            focus_ws.cell(row=row, column=col).value = None
+
+    # Step 6: Write the sorted rows back into the Focus sheet
+    for idx, (original_row, _, row_values) in enumerate(rows, start=8):
+        for col_idx, value in enumerate(row_values, start=1):
+            focus_ws.cell(row=idx, column=col_idx).value = value
 
 
 
