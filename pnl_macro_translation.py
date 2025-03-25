@@ -101,8 +101,8 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
         rows.append((row, c_value, d_value))
 
     # Sort the rows by column C (ascending order), then by column D (descending order)
-    # If values in column C are the same, sort by column D in descending order
-    rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", 0))  # Sorting logic
+    # Handle the case where column D might contain strings or None
+    rows.sort(key=lambda x: (x[1], float(x[2]) if isinstance(x[2], (int, float)) else float('-inf')))
 
     # Write the sorted rows back to the sheet
     for idx, (row, c_value, d_value) in enumerate(rows, start=5):
