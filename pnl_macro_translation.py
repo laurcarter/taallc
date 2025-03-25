@@ -5,7 +5,13 @@ from io import BytesIO
 import re
 
 def run_full_pl_macro(file_bytes):
-    wb = load_workbook(filename=BytesIO(file_bytes))
+    # Ensure file_bytes is a BytesIO object
+    if isinstance(file_bytes, BytesIO):
+        file_obj = file_bytes
+    else:
+        file_obj = BytesIO(file_bytes)
+
+    wb = load_workbook(filename=file_obj)
     ws = wb.active
 
     # Create Focus and SSOI worksheets
