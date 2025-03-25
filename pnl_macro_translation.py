@@ -15,7 +15,6 @@ def apply_subtotals_for_sheet(ws, max_row):
     last_row = max_row  # The last row in the sheet
 
     row_idx = 8  # Start from row 8 as per your description
-
     while row_idx <= max_row:
         c_value = ws.cell(row=row_idx, column=3).value  # Get the value in column C
         d_value = ws.cell(row=row_idx, column=4).value  # Get the value in column D
@@ -25,16 +24,13 @@ def apply_subtotals_for_sheet(ws, max_row):
             row_idx += 1
             continue
 
-        # If the current value in column C is different from the previous one, insert a subtotal row
+        # If the current value in column C is different from the previous one, we need to calculate the subtotal for the last group
         if c_value != current_value:
-            # If we have already encountered a group, insert the total row
+            # If we have already encountered a group, place the total in the last row of the previous group
             if current_value is not None:
-                ws.insert_rows(row_idx)
-                ws.cell(row=row_idx, column=3).value = f"{current_value} Total"  # Insert "Total" in column C
-                ws.cell(row=row_idx, column=4).value = total_sum  # Insert the sum in column D
-
-                # Move the row index down because we just inserted a new row
-                row_idx += 1
+                # Place the subtotal on the last occurrence of the previous value
+                ws.cell(row=row_idx - 1, column=3).value = f"{current_value} Total"  # Insert "Total" in column C
+                ws.cell(row=row_idx - 1, column=4).value = total_sum  # Insert the sum in column D
 
             # Reset for the new group
             current_value = c_value
@@ -46,11 +42,11 @@ def apply_subtotals_for_sheet(ws, max_row):
 
         row_idx += 1  # Move to the next row
 
-    # Handle the last group after the loop ends (ensure the final group is processed)
+    # After the loop finishes, we need to insert the total for the last group found
     if current_value is not None:
-        ws.insert_rows(last_row + 1)  # Add the subtotal row at the end
-        ws.cell(row=last_row + 1, column=3).value = f"{current_value} Total"
-        ws.cell(row=last_row + 1, column=4).value = total_sum
+        ws.cell(row=row_idx - 1, column=3).value = f"{current_value} Total"
+        ws.cell(row=row_idx - 1, column=4).value = total_sum
+
 
 
 def clean_ss01_column(ssoi_ws, max_row):
