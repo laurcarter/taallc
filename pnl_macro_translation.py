@@ -55,17 +55,6 @@ def sort_ssoi_sheet(ssoi_ws, max_row):
         for col_idx, value in enumerate(row_values, start=1):
             ssoi_ws.cell(row=idx, column=col_idx).value = value
 
-18A	3739.61	Dues and Subscriptions
-18A	804.5	Software
-18A	311.01	Bond
-18A	212.29	Office Supplies
-18A	209.02	Federal Express
-18A	142.55	Bank Service Charges
-18A	43.36	Printing and Reproduction
-18A	5.5	Postage and Delivery
-18A	209.02	Federal Express
-18A	43.36	Printing and Reproduction
-
 
             
 def sort_focus_sheet(focus_ws, max_row):
