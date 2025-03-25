@@ -119,7 +119,11 @@ def run_full_pl_macro(file_bytes):
         focus_ws.cell(row=row, column=3).value = None
         ssoi_ws.cell(row=row, column=3).value = None
 
-
+    # Copy Column B from original sheet to Column D in both Focus and SSOI sheets
+    for row in range(1, max_row + 1):
+        original_value = ws.cell(row=row, column=2).value
+        focus_ws.cell(row=row, column=4).value = original_value
+        ssoi_ws.cell(row=row, column=4).value = original_value
 
     output_stream = BytesIO()
     wb.save(output_stream)
