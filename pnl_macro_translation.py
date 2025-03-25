@@ -4,50 +4,38 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
-def apply_subtotals_last_cluster(ws, max_row):
-    # Start from the bottom and iterate upwards to find the last row with values in column C
-    row_idx = max_row
-    last_group_value = None
-    total_sum = 0
-    last_row_for_group = None
+def apply_subtotals_for_last_group(ws, max_row):
+    # Start from the last row and go upwards
+    last_row = max_row
+    last_value = ws.cell(row=last_row, column=3).value  # Get the value in column C from the last row
 
-    # Loop backwards to find the last cluster in column C
-    while row_idx >= 8:
-        c_value = ws.cell(row=row_idx, column=3).value  # Get the value in column C
+    total_sum = 0  # Variable to accumulate the sum of column D values
+    row_idx = last_row
 
-        if c_value is None or c_value == "":
-            row_idx -= 1
-            continue
-
-        # If we find a new group in column C, we stop (this means we're at the end of the last cluster)
-        if c_value != last_group_value:
-            # If we have a current group, insert the total row before we move to the next group
-            if last_group_value is not None:
-                # Insert a new row directly below the last row of the group
-                ws.insert_rows(last_row_for_group + 1)
-                ws.cell(row=last_row_for_group + 1, column=3).value = f"{last_group_value} Total"  # Insert Total in column C
-                ws.cell(row=last_row_for_group + 1, column=4).value = total_sum  # Insert sum in column D
-
-                # Reset total sum for the next group
-                total_sum = 0
-            
-        # Add the value in column D to the total sum
+    # Go upwards through the sheet, starting from the last row, looking for matching values in column C
+    while row_idx >= 8:  # Start from row 8 as specified
+        c_value = ws.cell(row=row_idx, column=3).value
         d_value = ws.cell(row=row_idx, column=4).value
-        if isinstance(d_value, (int, float)):
-            total_sum += d_value  # Add to the sum for the current group
 
-        # Update the last row for the group
-        last_group_value = c_value
-        last_row_for_group = row_idx  # Remember the last row for the group
+        # If we find the same value in column C, add the corresponding value in column D to total_sum
+        if c_value == last_value:
+            if isinstance(d_value, (int, float)):
+                total_sum += d_value  # Sum the value in column D
+        else:
+            # If the value in column C changes, stop, as we've processed the entire group
+            break
 
         # Move up to the previous row
         row_idx -= 1
 
-    # After the loop ends, we will insert the total for the last group
-    if last_group_value is not None:
-        ws.insert_rows(last_row_for_group + 1)  # Add the subtotal row below the last group
-        ws.cell(row=last_row_for_group + 1, column=3).value = f"{last_group_value} Total"  # Label in column C
-        ws.cell(row=last_row_for_group + 1, column=4).value = total_sum  # Sum in column D
+    # After finishing the loop, insert a new row below the last row
+    ws.insert_rows(last_row + 1)
+
+    # Set the value in column C to "{last_value} Total" in the newly inserted row
+    ws.cell(row=last_row + 1, column=3).value = f"{last_value} Total"
+
+    # Set the summed value in column D of the newly inserted row
+    ws.cell(row=last_row + 1, column=4).value = total_sum
 
 
 def apply_subtotals(focus_ws, ssoi_ws, max_row):
@@ -476,8 +464,9 @@ def run_full_pl_macro(file_bytes):
 
     #subtotals
     apply_subtotals(focus_ws, ssoi_ws, max_row)
-    apply_subtotals_last_cluster(focus_ws, max_row)  # For Focus sheet
-    apply_subtotals_last_cluster(ssoi_ws, max_row)   # For SSOI sheet
+    apply_subtotals_for_last_group(focus_ws, max_row)  # For Focus sheet
+    apply_subtotals_for_last_group(ssoi_ws, max_row)   # For SSOI sheet
+
 
 
 
