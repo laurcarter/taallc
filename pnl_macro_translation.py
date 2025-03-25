@@ -1,6 +1,8 @@
 import openpyxl
-from openpyxl import load_workbook
+from openpyxl import Workbook, load_workbook
+from openpyxl.styles import PatternFill, Font
 from io import BytesIO
+import re
 
 def run_full_pl_macro(file_bytes):
     # Ensure file_bytes is a BytesIO object
