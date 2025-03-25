@@ -124,6 +124,10 @@ def secondary_sort_focus_sheet(focus_ws, max_row):
         c_value = focus_ws.cell(row=row, column=3).value
         d_value = focus_ws.cell(row=row, column=4).value
         
+        # Skip rows where column C is empty
+        if c_value is None or c_value == "":
+            continue
+
         # Ensure column D is treated as a numeric value if possible
         if isinstance(d_value, (int, float)):
             d_value = float(d_value)  # Ensure the value is treated as a float
