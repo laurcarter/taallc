@@ -20,34 +20,29 @@ def clean_ss01_column(ssoi_ws, max_row):
             
             cell.value = cleaned_value  # Update the cell with the cleaned value
 
-
 def sort_ssoi_sheet(ssoi_ws, max_row):
-    # Step 1: Identify numeric values (without letters) in column C
-    numeric_rows = []
-    non_numeric_rows = []
+    non_empty_cells = []
+    empty_cells = []
     
-    # Loop through each row starting from row 5
+    # Loop through column C starting from row 5
     for row in range(5, max_row + 1):
         cell = ssoi_ws.cell(row=row, column=3)
-        c_value = cell.value
-        
-        # Check if the value is numeric and does not contain any letters
-        if isinstance(c_value, (int, float)):
-            numeric_rows.append((row, c_value))  # Save row and value
-        else:
-            non_numeric_rows.append((row, c_value))  # Save non-numeric rows
-    
-    # Step 2: Clear the content of column C to avoid overwriting
-    for row in range(5, max_row + 1):
-        ssoi_ws.cell(row=row, column=3).value = None
-    
-    # Step 3: Put numeric values at the top of column C
-    for idx, (row, value) in enumerate(numeric_rows, start=5):
-        ssoi_ws.cell(row=idx, column=3, value=value)
-    
-    # Step 4: Place the non-numeric values below the numeric ones
-    for idx, (row, value) in enumerate(non_numeric_rows, start=len(numeric_rows) + 5):
-        ssoi_ws.cell(row=idx, column=3, value=value)
+        if cell.value is None or cell.value == "":  # Empty cell
+            empty_cells.append(row)
+        else:  # Non-empty cell
+            non_empty_cells.append((row, cell.value))
+
+    # Sort the non-empty cells based on their value (ascending)
+    non_empty_cells.sort(key=lambda x: x[1] if x[1] is not None else "")
+
+    # Place non-empty cells back in column C
+    for idx, (row, value) in enumerate(non_empty_cells, start=5):
+        ssoi_ws.cell(row=row, column=3).value = value
+
+    # Place empty cells at the bottom of column C
+    for i, empty_row in enumerate(empty_cells, start=5 + len(non_empty_cells)):
+        ssoi_ws.cell(row=empty_row, column=3).value = None
+
 
 
 
