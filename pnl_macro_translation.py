@@ -90,14 +90,14 @@ def sort_focus_sheet(focus_ws, max_row):
         for col_idx, value in enumerate(row_values, start=1):
             focus_ws.cell(row=idx, column=col_idx).value = value
 
-def secondary_sort_focus_sheet(focus_ws, max_row):
-    # Create a list to hold rows and their corresponding values from column C and D
+def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
+    # Create a list to hold rows and their corresponding values from columns C and D
     rows = []
 
     # Loop through column C starting from row 5
     for row in range(5, max_row + 1):
-        c_value = focus_ws.cell(row=row, column=3).value
-        d_value = focus_ws.cell(row=row, column=4).value
+        c_value = ssoi_ws.cell(row=row, column=3).value
+        d_value = ssoi_ws.cell(row=row, column=4).value
         rows.append((row, c_value, d_value))
 
     # Sort the rows by column C (ascending order), then by column D (descending order)
@@ -106,8 +106,9 @@ def secondary_sort_focus_sheet(focus_ws, max_row):
 
     # Write the sorted rows back to the sheet
     for idx, (row, c_value, d_value) in enumerate(rows, start=5):
-        focus_ws.cell(row=row, column=3).value = c_value  # Column C
-        focus_ws.cell(row=row, column=4).value = d_value  # Column D
+        ssoi_ws.cell(row=row, column=3).value = c_value  # Column C
+        ssoi_ws.cell(row=row, column=4).value = d_value  # Column D
+
 
 
 
