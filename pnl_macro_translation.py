@@ -21,6 +21,35 @@ def clean_ss01_column(ssoi_ws, max_row):
             cell.value = cleaned_value  # Update the cell with the cleaned value
 
 
+def sort_ssoi_sheet(ssoi_ws, max_row):
+    # Step 1: Identify numeric values (without letters) in column C
+    numeric_rows = []
+    non_numeric_rows = []
+    
+    # Loop through each row starting from row 5
+    for row in range(5, max_row + 1):
+        cell = ssoi_ws.cell(row=row, column=3)
+        c_value = cell.value
+        
+        # Check if the value is numeric and does not contain any letters
+        if isinstance(c_value, (int, float)):
+            numeric_rows.append((row, c_value))  # Save row and value
+        else:
+            non_numeric_rows.append((row, c_value))  # Save non-numeric rows
+    
+    # Step 2: Clear the content of column C to avoid overwriting
+    for row in range(5, max_row + 1):
+        ssoi_ws.cell(row=row, column=3).value = None
+    
+    # Step 3: Put numeric values at the top of column C
+    for idx, (row, value) in enumerate(numeric_rows, start=5):
+        ssoi_ws.cell(row=idx, column=3, value=value)
+    
+    # Step 4: Place the non-numeric values below the numeric ones
+    for idx, (row, value) in enumerate(non_numeric_rows, start=len(numeric_rows) + 5):
+        ssoi_ws.cell(row=idx, column=3, value=value)
+
+
 
 
 
@@ -176,7 +205,9 @@ def run_full_pl_macro(file_bytes):
     # Clean the SSOI column C before sorting
     clean_ss01_column(ssoi_ws, max_row)
 
-
+    # Now, call the sort function to sort the SSOI sheet based on column C
+    sort_ssoi_sheet(ssoi_ws, max_row)
+    
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
     wb.save(output_stream)
