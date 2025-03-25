@@ -94,7 +94,17 @@ def run_full_pl_macro(file_bytes):
             if val:
                 # Ensure val is a string before calling replace()
                 val = str(val)
-                sheet.cell(row=row, column=3).value = val.replace("/", "").replace(")", "")    
+                sheet.cell(row=row, column=3).value = val.replace("/", "").replace(")", "")
+
+    # Wipe out column B of the SSOI sheet
+    for row in range(1, max_row + 1):
+        ssoi_ws.cell(row=row, column=2).value = None
+    
+    # Copy Column C from Focus sheet to Column B in SSOI sheet
+    for row in range(1, max_row + 1):
+        focus_value = focus_ws.cell(row=row, column=3).value
+        ssoi_ws.cell(row=row, column=2).value = focus_value
+
 
     output_stream = BytesIO()
     wb.save(output_stream)
