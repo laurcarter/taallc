@@ -28,8 +28,14 @@ def sort_ss01_column(ssoi_ws, max_row):
         d_value = ssoi_ws.cell(row=row, column=4).value
         e_value = ssoi_ws.cell(row=row, column=5).value
 
-        # Classify c_value (column C)
+        # Ensure c_value is a string before applying the regex
         if isinstance(c_value, str):
+            c_value = str(c_value)  # Convert to string if it's not
+        else:
+            c_value = str(c_value)  # Ensure even non-string values are treated as strings
+
+        # Classify c_value (column C)
+        if c_value.startswith("'"):
             # Check if it has a number with letters (alphanumeric)
             match = re.match(r"(\d+)([a-zA-Z]+)?", c_value)
             if match:
@@ -52,6 +58,7 @@ def sort_ss01_column(ssoi_ws, max_row):
         ssoi_ws.cell(row=idx, column=3, value=c_value)
         ssoi_ws.cell(row=idx, column=4, value=d_value)
         ssoi_ws.cell(row=idx, column=5, value=e_value)
+
 
 
 def run_full_pl_macro(file_bytes):
