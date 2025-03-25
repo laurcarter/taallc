@@ -172,22 +172,6 @@ def run_full_pl_macro(file_bytes):
     # Clean the SSOI column C before sorting
     clean_ss01_column(ssoi_ws, max_row)
     
-    # Now proceed to sort the data as required (sorting part already exists)
-    ssoi_data = []
-    for row in range(5, max_row + 1):
-        c_value = ssoi_ws.cell(row=row, column=3).value
-        d_value = ssoi_ws.cell(row=row, column=4).value
-        e_value = ssoi_ws.cell(row=row, column=5).value
-        ssoi_data.append((c_value, d_value, e_value))
-    
-    # Sort by the first element in the tuple (column C) in ascending order
-    ssoi_data.sort(key=lambda x: x[0] if x[0] is not None else "")
-    
-    # Now write the sorted data back into columns C, D, and E
-    for idx, (col_c, col_d, col_e) in enumerate(ssoi_data, start=5):
-        ssoi_ws.cell(row=idx, column=3, value=col_c)
-        ssoi_ws.cell(row=idx, column=4, value=col_d)
-        ssoi_ws.cell(row=idx, column=5, value=col_e)
 
 
     # Ensure to save the workbook after sorting if needed
