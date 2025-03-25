@@ -20,7 +20,6 @@ def clean_ss01_column(ssoi_ws, max_row):
             
             cell.value = cleaned_value  # Update the cell with the cleaned value
 
-def sort_ss01_column(ssoi_ws, max_row):
 
 
 
@@ -177,8 +176,6 @@ def run_full_pl_macro(file_bytes):
     # Clean the SSOI column C before sorting
     clean_ss01_column(ssoi_ws, max_row)
 
-    # Sort the SSOI sheet based on column C (numeric first, then alphanumeric)
-    sort_ss01_column(ssoi_ws, max_row)
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
