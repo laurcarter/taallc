@@ -98,16 +98,23 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
     for row in range(5, max_row + 1):
         c_value = ssoi_ws.cell(row=row, column=3).value
         d_value = ssoi_ws.cell(row=row, column=4).value
+        
+        # Check if the value in column D is numeric, otherwise treat it as lowest value
+        if isinstance(d_value, (int, float)):
+            d_value = float(d_value)  # Ensure the value is treated as a float
+        else:
+            d_value = float('-inf')  # Non-numeric values will be treated as the lowest possible
+        
         rows.append((row, c_value, d_value))
 
     # Sort the rows by column C (ascending order), then by column D (descending order)
-    # Handle the case where column D might contain strings or None
-    rows.sort(key=lambda x: (x[1], float(x[2]) if isinstance(x[2], (int, float)) else float('-inf')))
+    rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
 
     # Write the sorted rows back to the sheet
     for idx, (row, c_value, d_value) in enumerate(rows, start=5):
         ssoi_ws.cell(row=row, column=3).value = c_value  # Column C
         ssoi_ws.cell(row=row, column=4).value = d_value  # Column D
+
 
 
 
