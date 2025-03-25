@@ -71,7 +71,8 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
     # Step 2: Sort each group by column D (descending order)
     for key in grouped_rows:
         # Sort each group by column D, largest number first
-        grouped_rows[key].sort(key=lambda x: x[1][3] if isinstance(x[1][3], (int, float)) else float('-inf'), reverse=True)
+        # First, clean up column D values, strip out non-numeric parts, and ensure we are sorting by number
+        grouped_rows[key].sort(key=lambda x: (try_parse_numeric(x[1][3]), x[1][3]), reverse=True)
 
     # Step 3: Write the sorted rows back into the sheet
     current_row = 5  # Start writing from row 5
@@ -80,6 +81,18 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
             for col_idx, value in enumerate(row_values, start=1):
                 ssoi_ws.cell(row=current_row, column=col_idx).value = value
             current_row += 1
+
+def try_parse_numeric(value):
+    """ Helper function to cleanly parse numbers and ignore non-numeric parts """
+    if isinstance(value, (int, float)):  # Already a number
+        return value
+    # If it's a string, attempt to extract the numeric part
+    try:
+        numeric_value = float(''.join([char for char in str(value) if char.isdigit() or char == '.']))
+        return numeric_value
+    except ValueError:
+        return float('-inf')  # Return a very low value if it's not a valid number
+
 
             
 def sort_focus_sheet(focus_ws, max_row):
