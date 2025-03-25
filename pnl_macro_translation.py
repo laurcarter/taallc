@@ -205,13 +205,28 @@ def run_full_pl_macro(file_bytes):
     
         ssoi_ws.cell(row=row, column=6).offset(0, -2).value = ssoi_ws.cell(row=row, column=6).value
         ssoi_ws.cell(row=row, column=6).value = None  # Clear original cell
-# new
+        
     # Clean the SSOI column C before sorting
     clean_ss01_column(ssoi_ws, max_row)
 
     # Now, call the sort function to sort the SSOI sheet based on column C
     sort_ssoi_sheet(ssoi_ws, max_row)
+# new
+    # Add column titles in row 4
+    focus_ws["C4"] = "Focus"
+    focus_ws["D4"] = "Amount"
+    focus_ws["E4"] = "Description"
+    focus_ws["F4"] = "Totals"
     
+    ssoi_ws["C4"] = "SSOI"
+    ssoi_ws["D4"] = "Amount"
+    ssoi_ws["E4"] = "Description"
+    ssoi_ws["F4"] = "Totals"
+    
+    # Shift everything below row 4 down by 3 rows in both sheets
+    focus_ws.insert_rows(4, amount=3)  # Insert 3 rows at row 4 in focus_ws
+    ssoi_ws.insert_rows(4, amount=3)   # Insert 3 rows at row 4 in ssoi_ws
+
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
     wb.save(output_stream)
