@@ -41,7 +41,57 @@ def run_full_pl_macro(file_bytes):
     # Apply the NumberFormat for column C in the SSOI sheet (mimic Excel's "@")
     ssoi_ws.column_dimensions['C'].number_format = '@'
 
-    # Save the workbook into an output stream
+    # *** NEW CODE START ***
+    # Copy the formatted values back to column C and delete the temporary column D
+    for row in range(1, max_row + 1):
+        ssoi_ws.cell(row=row, column=3, value=ssoi_ws.cell(row=row, column=4).value)
+    
+    # Delete the temporary column D (column 4)
+    ssoi_ws.delete_cols(4)
+    
+    # *** NEW CODE END ***
+
+    # Delimit Column A by '(' and extract to Column B (both sheets)
+    for sheet in [focus_ws, ssoi_ws]:
+        for row in range(1, max_row + 1):
+            val = sheet.cell(row=row, column=1).value
+            if val and '(' in str(val):
+                parts = str(val).split('(', 1)
+                sheet.cell(row=row, column=1).value = parts[0].strip()
+                sheet.cell(row=row, column=2).value = parts[1].strip()
+
+    # Delimit Column B by '/' and process (Focus and SSOI)
+    for row in range(1, max_row + 1):
+        # Focus Sheet: Left part to B, Right part to C
+        val = focus_ws.cell(row=row, column=2).value
+        if val and '/' in str(val):
+            parts = str(val).split('/')
+            focus_ws.cell(row=row, column=2).value = parts[0].strip().replace("(", "")
+            focus_ws.cell(row=row, column=3).value = parts[1].strip().replace(")", "").replace("/", "")
+
+        # SSOI Sheet: Right part to B, Left part to C, strip ')' if present
+        val = ssoi_ws.cell(row=row, column=2).value
+        if val and '/' in str(val):
+            parts = str(val).split('/')
+            right = parts[1].strip().replace(")", "")
+            left = parts[0].strip().replace("(", "")
+            ssoi_ws.cell(row=row, column=2).value = right
+            ssoi_ws.cell(row=row, column=3).value = left
+
+    # Strip out the opening parenthesis in Column B for both sheets
+    for sheet in [focus_ws, ssoi_ws]:
+        for row in range(1, max_row + 1):
+            val = sheet.cell(row=row, column=2).value
+            if val:
+                sheet.cell(row=row, column=2).value = val.replace("(", "")
+
+    # Strip out the slash and closing parenthesis in Column C for both sheets
+    for sheet in [focus_ws, ssoi_ws]:
+        for row in range(1, max_row + 1):
+            val = sheet.cell(row=row, column=3).value
+            if val:
+                sheet.cell(row=row, column=3).value = val.replace("/", "").replace(")", "")
+
     output_stream = BytesIO()
     wb.save(output_stream)
     output_stream.seek(0)
