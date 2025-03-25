@@ -116,7 +116,7 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
         ssoi_ws.cell(row=row, column=4).value = d_value  # Column D
 
 def secondary_sort_focus_sheet(focus_ws, max_row):
-    # Create a list to hold rows and their corresponding values from columns C and D
+    # Create a list to hold rows with their corresponding values from columns C and D
     rows = []
 
     # Loop through column C starting from row 5
@@ -124,42 +124,29 @@ def secondary_sort_focus_sheet(focus_ws, max_row):
         c_value = focus_ws.cell(row=row, column=3).value
         d_value = focus_ws.cell(row=row, column=4).value
         
-        # Check if the value in column D is numeric, otherwise treat it as the lowest value
+        # Ensure column D is treated as a numeric value if possible
         if isinstance(d_value, (int, float)):
             d_value = float(d_value)  # Ensure the value is treated as a float
         else:
             d_value = float('-inf')  # Non-numeric values will be treated as the lowest possible
         
-        rows.append((row, c_value, d_value))
+        # Append the entire row along with values from column C and D
+        rows.append((row, c_value, d_value, [focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)]))
 
-    # Sort the rows first by column C (ascending order)
+    # Sort rows based on column C (ascending) and column D (descending for same values in C)
     rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
 
-    # Now, we need to group rows by the same values in column C
-    grouped_rows = []
-    current_group = []
+    # Clear the existing values in the sheet starting from row 5
+    for row in range(5, max_row + 1):
+        for col in range(1, focus_ws.max_column + 1):
+            focus_ws.cell(row=row, column=col).value = None
 
-    for i, (row, c_value, d_value) in enumerate(rows):
-        if i == 0 or c_value == rows[i - 1][1]:  # If the current value is the same as the previous one
-            current_group.append((row, c_value, d_value))  # Add to current group
-        else:
-            # If the value changes, sort the current group by column D in descending order
-            grouped_rows.append(sorted(current_group, key=lambda x: -x[2]))  # Sort by column D (descending)
-            current_group = [(row, c_value, d_value)]  # Start a new group
-
-    # Don't forget to sort the last group
-    if current_group:
-        grouped_rows.append(sorted(current_group, key=lambda x: -x[2]))  # Sort the last group
-
-    # Write the sorted rows back to the sheet
+    # Write the sorted rows back into the sheet
     new_row_idx = 5
-    for group in grouped_rows:
-        for row, c_value, d_value in group:
-            focus_ws.cell(row=new_row_idx, column=3).value = c_value  # Column C
-            focus_ws.cell(row=new_row_idx, column=4).value = d_value  # Column D
-            new_row_idx += 1
-
-
+    for _, _, _, row_values in rows:
+        for col_idx, value in enumerate(row_values, start=1):
+            focus_ws.cell(row=new_row_idx, column=col_idx).value = value
+        new_row_idx += 1
 
 
 
