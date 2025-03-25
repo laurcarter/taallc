@@ -333,7 +333,7 @@ def run_full_pl_macro(file_bytes):
     secondary_sort_ssoi_sheet(ssoi_ws, max_row)
     secondary_sort_focus_sheet(focus_ws, max_row)
 
-        # Define fill color (black) and font color (white)
+    # Define fill color (black) and font color (white)
     black_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
     white_font = Font(color="FFFFFF")
 
@@ -353,8 +353,9 @@ def run_full_pl_macro(file_bytes):
         focus_ws.cell(row=row, column=6).number_format = "#,##0"  # Column F
 
     # Format column D and F in the SSOI sheet to show numbers with thousand commas
-    ssoi_ws["D"].number_format = "#,##0"
-    ssoi_ws["F"].number_format = "#,##0"
+    for row in range(1, max_row + 1):
+        ssoi_ws.cell(row=row, column=4).number_format = "#,##0"  # Column D
+        ssoi_ws.cell(row=row, column=6).number_format = "#,##0"  # Column F
 
     # Increase the width of column E to double the default width in the Focus sheet
     focus_ws["E"].width = focus_ws.column_dimensions["E"].width * 2.5
