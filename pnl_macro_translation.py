@@ -53,9 +53,49 @@ def run_full_pl_macro(file_bytes):
             parts = str(val).split('/')
             focus_ws.cell(row=row, column=2).value = parts[0].strip().replace("(", "")
             focus_ws.cell(row=row, column=3).value = parts[1].strip().replace(")", "").replace("/", "")
-
-
             sheet.cell(row=row, column=5).value = None
+
+    # Copy Column B from original sheet to Column E in Focus and SSOI
+    for row in range(1, max_row + 1):
+        val = ws.cell(row=row, column=2).value
+        focus_ws.cell(row=row, column=5, value=val)
+        ssoi_ws.cell(row=row, column=5, value=val)
+    
+    # Clear C and D
+    for sheet in [focus_ws, ssoi_ws]:
+        for row in range(1, max_row + 1):
+            sheet.cell(row=row, column=3).value = None
+            sheet.cell(row=row, column=4).value = None
+    
+    # Move column E over to column D in both sheets
+    for sheet in [focus_ws, ssoi_ws]:
+        for row in range(1, max_row + 1):
+            sheet.cell(row=row, column=4).value = sheet.cell(row=row, column=5).value
+            sheet.cell(row=row, column=5).value = None
+    
+    # Insert two columns at the beginning (A:B) for both sheets
+    for sheet in [focus_ws, ssoi_ws]:
+        sheet.insert_cols(1, amount=2)
+    
+    # Move data starting from row 5 for Focus and SSOI sheets
+    for sheet in [focus_ws, ssoi_ws]:
+        for row in range(5, max_row + 1):
+            # Move data as per the rearranging logic
+            c_val = sheet.cell(row=row, column=3).value
+            d_val = sheet.cell(row=row, column=4).value
+            f_val = sheet.cell(row=row, column=6).value
+    
+            if c_val is not None and c_val != "":
+                sheet.cell(row=row, column=5, value=c_val)  # C → E
+            if d_val is not None and d_val != "":
+                sheet.cell(row=row, column=3, value=d_val)  # D → C
+            if f_val is not None and f_val != "":
+                sheet.cell(row=row, column=4, value=f_val)  # F → D
+    
+            # Clear original cells
+            sheet.cell(row=row, column=2).value = None
+            sheet.cell(row=row, column=6).value = None
+
 
 
     output_stream = BytesIO()
