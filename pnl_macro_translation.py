@@ -96,8 +96,8 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
     # Create a list to hold rows and their corresponding values from columns C and D
     rows = []
 
-    # Loop through column C starting from row 5
-    for row in range(5, max_row + 1):
+    # Loop through column C starting from row 8
+    for row in range(8, max_row + 1):
         c_value = ssoi_ws.cell(row=row, column=3).value
         d_value = ssoi_ws.cell(row=row, column=4).value
         
@@ -114,16 +114,11 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
         # Append the entire row along with values from column C and D
         rows.append((row, c_value, d_value, [ssoi_ws.cell(row=row, column=col).value for col in range(1, ssoi_ws.max_column + 1)]))
 
-    # Sort the rows by column C (ascending order), then by column D (descending for same values in C)
+    # Sort the rows based on column C (ascending), then by column D (descending for same values in C)
     rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
 
-    # Clear the existing values in the sheet starting from row 5
-    for row in range(5, max_row + 1):
-        for col in range(1, ssoi_ws.max_column + 1):
-            ssoi_ws.cell(row=row, column=col).value = None
-
-    # Write the sorted rows back into the sheet starting from row 5
-    new_row_idx = 5
+    # Write the sorted rows back to the sheet
+    new_row_idx = 8  # Start writing from row 8
     for _, _, _, row_values in rows:
         for col_idx, value in enumerate(row_values, start=1):
             ssoi_ws.cell(row=new_row_idx, column=col_idx).value = value
