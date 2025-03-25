@@ -54,6 +54,33 @@ def sort_ssoi_sheet(ssoi_ws, max_row):
     for idx, (original_row, _, row_values) in enumerate(rows, start=5):
         for col_idx, value in enumerate(row_values, start=1):
             ssoi_ws.cell(row=idx, column=col_idx).value = value
+
+def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
+    # Step 1: Group the rows by the values in column C
+    grouped_rows = {}
+    
+    for row in range(5, max_row + 1):
+        cell_c = ssoi_ws.cell(row=row, column=3).value
+        if cell_c is not None:
+            if cell_c not in grouped_rows:
+                grouped_rows[cell_c] = []
+            # Append the entire row with its value in column D as the secondary sort key
+            row_data = [ssoi_ws.cell(row=row, column=col).value for col in range(1, ssoi_ws.max_column + 1)]
+            grouped_rows[cell_c].append((row, row_data))
+
+    # Step 2: Sort each group by column D (descending order)
+    for key in grouped_rows:
+        # Sort each group by column D, largest number first
+        grouped_rows[key].sort(key=lambda x: x[1][3] if isinstance(x[1][3], (int, float)) else float('-inf'), reverse=True)
+
+    # Step 3: Write the sorted rows back into the sheet
+    current_row = 5  # Start writing from row 5
+    for key in grouped_rows:
+        for row, row_values in grouped_rows[key]:
+            for col_idx, value in enumerate(row_values, start=1):
+                ssoi_ws.cell(row=current_row, column=col_idx).value = value
+            current_row += 1
+
             
 def sort_focus_sheet(focus_ws, max_row):
     # Step 1: Delete rows with empty values in column C
@@ -262,6 +289,9 @@ def run_full_pl_macro(file_bytes):
 
     # Call the sort_focus_sheet function after the rest of the operations in the macro
     sort_focus_sheet(focus_ws, max_row)
+
+    # After sorting column C (done by previous functions), call this function for secondary sorting
+    secondary_sort_ssoi_sheet(ssoi_ws, max_row)
 
 
     # Ensure to save the workbook after sorting if needed
