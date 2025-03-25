@@ -348,8 +348,9 @@ def run_full_pl_macro(file_bytes):
         ssoi_ws[f"{col}7"].font = white_font
 
     # Format column D and F in the Focus sheet to show numbers with thousand commas
-    focus_ws["D"].number_format = "#,##0"
-    focus_ws["F"].number_format = "#,##0"
+    for row in range(1, max_row + 1):
+        focus_ws.cell(row=row, column=4).number_format = "#,##0"  # Column D
+        focus_ws.cell(row=row, column=6).number_format = "#,##0"  # Column F
 
     # Format column D and F in the SSOI sheet to show numbers with thousand commas
     ssoi_ws["D"].number_format = "#,##0"
