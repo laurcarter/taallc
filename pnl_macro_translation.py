@@ -3,6 +3,7 @@ from openpyxl import load_workbook
 from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
+
 def apply_subtotals(focus_ws, ssoi_ws, max_row):
     # Apply subtotals to both the Focus and SSOI sheets
     apply_subtotals_for_sheet(focus_ws, max_row)
@@ -45,7 +46,7 @@ def apply_subtotals_for_sheet(ws, max_row):
 
         row_idx += 1  # Move to the next row
 
-    # Handle the last group after the loop ends
+    # Handle the last group after the loop ends (ensure the final group is processed)
     if current_value is not None:
         ws.insert_rows(last_row + 1)  # Add the subtotal row at the end
         ws.cell(row=last_row + 1, column=3).value = f"{current_value} Total"
