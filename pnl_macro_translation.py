@@ -2,6 +2,24 @@ import openpyxl
 from openpyxl import load_workbook
 from io import BytesIO
 
+#new 
+def clean_ss01_column(ssoi_ws, max_row):
+    # Loop through each cell in column C of the SSOI sheet starting from row 5
+    for row in range(5, max_row + 1):
+        cell = ssoi_ws.cell(row=row, column=3)
+        cell_value = str(cell.value)  # Ensure cell value is a string
+        
+        # Check if the value starts with an apostrophe and then handle it
+        if cell_value.startswith("'"):
+            # Remove the apostrophe and any leading zeros
+            cleaned_value = cell_value.lstrip("'0")
+            
+            # If the cleaned value is empty, set the value to '0', otherwise just the cleaned value
+            if cleaned_value == "":
+                cleaned_value = "0"
+            
+            cell.value = cleaned_value  # Update the cell with the cleaned value
+
 def run_full_pl_macro(file_bytes):
     # Ensure file_bytes is a BytesIO object
     if isinstance(file_bytes, BytesIO):
@@ -151,8 +169,10 @@ def run_full_pl_macro(file_bytes):
         ssoi_ws.cell(row=row, column=6).offset(0, -2).value = ssoi_ws.cell(row=row, column=6).value
         ssoi_ws.cell(row=row, column=6).value = None  # Clear original cell
 # new
-  # Sort columns C to E using the updated values in column C for the SSOI sheet
-    # First, extract data from columns C to E starting from row 5
+    # Clean the SSOI column C before sorting
+    clean_ss01_column(ssoi_ws, max_row)
+    
+    # Now proceed to sort the data as required (sorting part already exists)
     ssoi_data = []
     for row in range(5, max_row + 1):
         c_value = ssoi_ws.cell(row=row, column=3).value
@@ -161,14 +181,15 @@ def run_full_pl_macro(file_bytes):
         ssoi_data.append((c_value, d_value, e_value))
     
     # Sort by the first element in the tuple (column C) in ascending order
-    ssoi_data.sort(key=lambda x: str(x[0]) if x[0] is not None else "")
+    ssoi_data.sort(key=lambda x: x[0] if x[0] is not None else "")
     
     # Now write the sorted data back into columns C, D, and E
     for idx, (col_c, col_d, col_e) in enumerate(ssoi_data, start=5):
         ssoi_ws.cell(row=idx, column=3, value=col_c)
         ssoi_ws.cell(row=idx, column=4, value=col_d)
         ssoi_ws.cell(row=idx, column=5, value=col_e)
-    
+
+
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
     wb.save(output_stream)
