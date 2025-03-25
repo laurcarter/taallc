@@ -1,6 +1,8 @@
 import openpyxl
 from openpyxl import load_workbook
 from io import BytesIO
+from openpyxl.styles import PatternFill, Font
+
 
 #new 
 def clean_ss01_column(ssoi_ws, max_row):
