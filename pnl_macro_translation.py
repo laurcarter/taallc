@@ -184,4 +184,6 @@ def run_full_pl_macro(file_bytes):
 
     # Save the result into a BytesIO object and return
     output_stream = BytesIO()
-    wb.save
+    wb.save(output_stream)
+    output_stream.seek(0)
+    return output_stream
