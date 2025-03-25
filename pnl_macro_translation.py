@@ -101,21 +101,33 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
         c_value = ssoi_ws.cell(row=row, column=3).value
         d_value = ssoi_ws.cell(row=row, column=4).value
         
-        # Check if the value in column D is numeric, otherwise treat it as lowest value
+        # Skip rows where column C is empty
+        if c_value is None or c_value == "":
+            continue
+        
+        # Check if the value in column D is numeric, otherwise treat it as the lowest value
         if isinstance(d_value, (int, float)):
             d_value = float(d_value)  # Ensure the value is treated as a float
         else:
             d_value = float('-inf')  # Non-numeric values will be treated as the lowest possible
         
-        rows.append((row, c_value, d_value))
+        # Append the entire row along with values from column C and D
+        rows.append((row, c_value, d_value, [ssoi_ws.cell(row=row, column=col).value for col in range(1, ssoi_ws.max_column + 1)]))
 
-    # Sort the rows by column C (ascending order), then by column D (descending order)
+    # Sort the rows by column C (ascending order), then by column D (descending for same values in C)
     rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
 
-    # Write the sorted rows back to the sheet
-    for idx, (row, c_value, d_value) in enumerate(rows, start=5):
-        ssoi_ws.cell(row=row, column=3).value = c_value  # Column C
-        ssoi_ws.cell(row=row, column=4).value = d_value  # Column D
+    # Clear the existing values in the sheet starting from row 5
+    for row in range(5, max_row + 1):
+        for col in range(1, ssoi_ws.max_column + 1):
+            ssoi_ws.cell(row=row, column=col).value = None
+
+    # Write the sorted rows back into the sheet starting from row 5
+    new_row_idx = 5
+    for _, _, _, row_values in rows:
+        for col_idx, value in enumerate(row_values, start=1):
+            ssoi_ws.cell(row=new_row_idx, column=col_idx).value = value
+        new_row_idx += 1
 
 def secondary_sort_focus_sheet(focus_ws, max_row):
     # Create a list to hold rows with their corresponding values from columns C and D
