@@ -29,40 +29,31 @@ def sort_ssoi_sheet(ssoi_ws, max_row):
         if cell.value is None or cell.value == "":  # If the cell in column C is empty
             ssoi_ws.delete_rows(row)  # Delete the row
 
-    # Create lists to hold rows with numeric values and alphanumeric values
-    numeric_rows = []
-    alphanumeric_rows = []
-    
+    # Create a list to hold rows with their corresponding values in column C
+    rows = []
+
     # Loop through column C starting from row 5
     for row in range(5, max_row + 1):
         cell = ssoi_ws.cell(row=row, column=3)
         if cell.value is not None:
             c_value = str(cell.value).strip()
             
-            # Check if the value is a number (no letters attached)
-            if c_value.isdigit():
-                numeric_rows.append((row, c_value))  # Add row and value to numeric list
-            else:
-                # Check for alphanumeric (numeric + letters) values
-                if any(char.isalpha() for char in c_value):
-                    alphanumeric_rows.append((row, c_value))  # Add to alphanumeric list
+            # Append the entire row with its value in column C
+            rows.append((row, c_value, [ssoi_ws.cell(row=row, column=col).value for col in range(1, ssoi_ws.max_column + 1)]))
 
-    # Sort numeric rows by the numeric value (ascending)
-    numeric_rows.sort(key=lambda x: int(x[1]))  # Sort by the number only (no letters)
+    # Sort rows based on the value in column C (ascending)
+    # First, sort numeric values (no letters), then alphanumeric
+    rows.sort(key=lambda x: (int(x[1]) if x[1].isdigit() else float('inf'), x[1]))
 
-    # Sort alphanumeric rows by the numeric part first (ascending), and then by the alphabetic part
-    alphanumeric_rows.sort(key=lambda x: (int(''.join(filter(str.isdigit, x[1]))), x[1]))
-
-    # Combine the sorted rows
-    sorted_rows = numeric_rows + alphanumeric_rows
-
-    # Clear column C before writing back the sorted rows
+    # Clear the existing values in the sheet starting from row 5
     for row in range(5, max_row + 1):
-        ssoi_ws.cell(row=row, column=3).value = None
+        for col in range(1, ssoi_ws.max_column + 1):
+            ssoi_ws.cell(row=row, column=col).value = None
 
-    # Write the sorted values back to column C
-    for idx, (row, value) in enumerate(sorted_rows, start=5):
-        ssoi_ws.cell(row=idx, column=3).value = value
+    # Write the sorted rows back into the sheet
+    for idx, (original_row, _, row_values) in enumerate(rows, start=5):
+        for col_idx, value in enumerate(row_values, start=1):
+            ssoi_ws.cell(row=idx, column=col_idx).value = value
 
 
 
