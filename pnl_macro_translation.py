@@ -1,43 +1,52 @@
 import openpyxl
 from openpyxl import load_workbook
 from io import BytesIO
-
-
-#new 
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
-def apply_subtotals_and_delete_grand_total(focus_ws, ssoi_ws, max_row):
-    # Set background color and font style for columns C to F in row 7 (focus and ssoi)
-    for ws in [focus_ws, ssoi_ws]:
-        # Fill columns C to F in row 7 with black background and white text
-        for col in ['C', 'D', 'E', 'F']:
-            cell = ws[f"{col}7"]
-            cell.fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
-            cell.font = Font(color="FFFFFF")
+def apply_subtotals(focus_ws, ssoi_ws, max_row):
+    # Apply subtotals in the Focus sheet
+    focus_last_data_row = focus_ws.cell(row=max_row, column=3).row
+    previous_value = None
+    subtotal_row = None
 
-    # Format columns D and F for number format with commas
-    for ws in [focus_ws, ssoi_ws]:
-        for col in ['D', 'F']:
-            col_idx = column_index_from_string(col)  # Convert column letter to column index
-            for row in range(8, max_row + 1):
-                cell = ws.cell(row=row, column=col_idx)
-                if isinstance(cell.value, (int, float)):
-                    cell.number_format = "#,##0"
+    for row in range(7, focus_last_data_row + 1):
+        current_value = focus_ws.cell(row=row, column=3).value  # Value in Column C
+        amount = focus_ws.cell(row=row, column=4).value  # Value in Column D
+        
+        if current_value != previous_value:  # Check if the value changes in column C
+            # If we were already working with a group of rows, insert the subtotal
+            if subtotal_row is not None:
+                # Subtotal calculation (sum of column D)
+                subtotal = sum(focus_ws.cell(r, 4).value for r in range(subtotal_row, row))
+                focus_ws.cell(row=row, column=4).value = subtotal
+                focus_ws.cell(row=row, column=5).value = "Subtotal"  # Label for subtotal
+                
+            subtotal_row = row  # Start new subtotal for a different value in column C
 
-    # Increase the width of column E in both Focus and SSOI sheets
-    for ws in [focus_ws, ssoi_ws]:
-        ws.column_dimensions['E'].width = 2.5 * ws.column_dimensions['E'].width  # Adjusting width
+        previous_value = current_value
 
-    # Handle grand total row deletion in Focus sheet
-    last_data_row_focus = focus_ws.cell(row=max_row, column=3).row
-    if focus_ws.cell(last_data_row_focus, 3).value == "Grand Total":
-        focus_ws.delete_rows(last_data_row_focus)
+    # Apply subtotals in the SSOI sheet (similar logic to the Focus sheet)
+    ssoi_last_data_row = ssoi_ws.cell(row=max_row, column=3).row
+    previous_value = None
+    subtotal_row = None
 
-    # Handle grand total row deletion in SSOI sheet
-    last_data_row_ssoi = ssoi_ws.cell(row=max_row, column=3).row
-    if ssoi_ws.cell(last_data_row_ssoi, 3).value == "Grand Total":
-        ssoi_ws.delete_rows(last_data_row_ssoi)
+    for row in range(7, ssoi_last_data_row + 1):
+        current_value = ssoi_ws.cell(row=row, column=3).value  # Value in Column C
+        amount = ssoi_ws.cell(row=row, column=4).value  # Value in Column D
+        
+        if current_value != previous_value:  # Check if the value changes in column C
+            # If we were already working with a group of rows, insert the subtotal
+            if subtotal_row is not None:
+                # Subtotal calculation (sum of column D)
+                subtotal = sum(ssoi_ws.cell(r, 4).value for r in range(subtotal_row, row))
+                ssoi_ws.cell(row=row, column=4).value = subtotal
+                ssoi_ws.cell(row=row, column=5).value = "Subtotal"  # Label for subtotal
+
+            subtotal_row = row  # Start new subtotal for a different value in column C
+
+        previous_value = current_value
+
 
 
 def clean_ss01_column(ssoi_ws, max_row):
@@ -416,7 +425,8 @@ def run_full_pl_macro(file_bytes):
     ssoi_ws.column_dimensions["E"].width = ssoi_ws.column_dimensions["E"].width * 2.5
 
     #subtotals
-    apply_subtotals_and_delete_grand_total(focus_ws, ssoi_ws, max_row)
+    apply_subtotals(focus_ws, ssoi_ws, max_row)
+
 
 
     # Ensure to save the workbook after sorting if needed
