@@ -115,6 +115,30 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
         ssoi_ws.cell(row=row, column=3).value = c_value  # Column C
         ssoi_ws.cell(row=row, column=4).value = d_value  # Column D
 
+def secondary_sort_focus_sheet(focus_ws, max_row):
+    # Create a list to hold rows and their corresponding values from columns C and D
+    rows = []
+
+    # Loop through column C starting from row 5
+    for row in range(5, max_row + 1):
+        c_value = focus_ws.cell(row=row, column=3).value
+        d_value = focus_ws.cell(row=row, column=4).value
+        
+        # Check if the value in column D is numeric, otherwise treat it as the lowest value
+        if isinstance(d_value, (int, float)):
+            d_value = float(d_value)  # Ensure the value is treated as a float
+        else:
+            d_value = float('-inf')  # Non-numeric values will be treated as the lowest possible
+        
+        rows.append((row, c_value, d_value))
+
+    # Sort the rows by column C (ascending order), then by column D (descending order)
+    rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
+
+    # Write the sorted rows back to the sheet
+    for idx, (row, c_value, d_value) in enumerate(rows, start=5):
+        focus_ws.cell(row=row, column=3).value = c_value  # Column C
+        focus_ws.cell(row=row, column=4).value = d_value  # Column D
 
 
 
@@ -294,7 +318,7 @@ def run_full_pl_macro(file_bytes):
 
     # After sorting column C (done by previous functions), call this function for secondary sorting
     secondary_sort_ssoi_sheet(ssoi_ws, max_row)
-
+    secondary_sort_focus_sheet(focus_ws, max_row)
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
