@@ -87,14 +87,27 @@ def run_full_pl_macro(file_bytes):
             c_val = sheet.cell(row=row, column=3).value
             d_val = sheet.cell(row=row, column=4).value
             f_val = sheet.cell(row=row, column=6).value
-
-            sheet.cell(row=row, column=5, value=c_val)  # C → E
-            sheet.cell(row=row, column=3, value=d_val)  # D → C
-            sheet.cell(row=row, column=4, value=f_val)  # F → D
-
+    
+            # Only move data if it's not empty
+            if c_val is not None and c_val != "":
+                sheet.cell(row=row, column=5, value=c_val)  # C → E
+            else:
+                sheet.cell(row=row, column=5, value=None)  # Leave E empty if C is empty
+    
+            if d_val is not None and d_val != "":
+                sheet.cell(row=row, column=3, value=d_val)  # D → C
+            else:
+                sheet.cell(row=row, column=3, value=None)  # Leave C empty if D is empty
+    
+            if f_val is not None and f_val != "":
+                sheet.cell(row=row, column=4, value=f_val)  # F → D
+            else:
+                sheet.cell(row=row, column=4, value=None)  # Leave D empty if F is empty
+    
             # Clear original cells
             sheet.cell(row=row, column=2).value = None
             sheet.cell(row=row, column=6).value = None
+
 
     # Add leading zero to single-digit values in SSOI column C (now col 3)
     for row in range(5, max_row + 1):
