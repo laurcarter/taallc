@@ -83,14 +83,18 @@ def run_full_pl_macro(file_bytes):
         for row in range(1, max_row + 1):
             val = sheet.cell(row=row, column=2).value
             if val:
+                # Ensure val is a string before calling replace()
+                val = str(val)
                 sheet.cell(row=row, column=2).value = val.replace("(", "")
-
+    
     # Strip out the slash and closing parenthesis in Column C for both sheets
     for sheet in [focus_ws, ssoi_ws]:
         for row in range(1, max_row + 1):
             val = sheet.cell(row=row, column=3).value
             if val:
-                sheet.cell(row=row, column=3).value = val.replace("/", "").replace(")", "")
+                # Ensure val is a string before calling replace()
+                val = str(val)
+                sheet.cell(row=row, column=3).value = val.replace("/", "").replace(")", "")    
 
     output_stream = BytesIO()
     wb.save(output_stream)
