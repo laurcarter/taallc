@@ -69,16 +69,17 @@ def sort_focus_sheet(focus_ws, max_row):
     focus_data.sort(key=lambda x: x[1])
 
     # Write the sorted data back to the Focus sheet
-    for idx, (row, value) in enumerate(focus_data, start=8):
-        focus_ws.cell(row=row, column=3).value = value  # Sort column C
+    for idx, (row, value) in enumerate(focus_data):
         # Make sure the entire row moves with the sorted value in column C
-        for col in range(1, 7):  # Adjust this if you need to cover more columns
+        focus_ws.cell(row=row, column=3).value = value  # Sort column C
+        
+        # Now move the entire row: columns 1 to 6 (adjust if you have more columns)
+        for col in range(1, 7):
             focus_ws.cell(row=row, column=col).value = focus_ws.cell(row=focus_data[idx][0], column=col).value
 
     # Now clear the remaining unsorted rows from row 8 downwards in column C (if any)
     for row in range(len(focus_data) + 8, max_row + 1):
         focus_ws.cell(row=row, column=3).value = None  # Clear unsorted rows
-
 
 
 def run_full_pl_macro(file_bytes):
