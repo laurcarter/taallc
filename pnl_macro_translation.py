@@ -5,30 +5,28 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
 def apply_subtotals(focus_ws, ssoi_ws, max_row):
-    # Focus sheet subtotal logic
+    # Apply subtotals for both Focus and SSOI sheets
     apply_subtotals_for_sheet(focus_ws, max_row)
-
-    # SSOI sheet subtotal logic
     apply_subtotals_for_sheet(ssoi_ws, max_row)
 
 def apply_subtotals_for_sheet(ws, max_row):
-    # Start from row 8 (as per your requirement)
     current_value = None
-    subtotal_start_row = 8  # Start from row 8
+    subtotal_start_row = 8  # Start from row 8 as per your requirement
     total_sum = 0
+    last_row = max_row
 
     for row in range(subtotal_start_row, max_row + 1):
         c_value = ws.cell(row=row, column=3).value  # Column C
         d_value = ws.cell(row=row, column=4).value  # Column D
-        
-        # Skip rows with no value in column C
+
+        # Skip rows where column C is empty
         if c_value is None or c_value == "":
             continue
 
-        # If the value in column C is different from the previous one, insert the subtotal row
+        # If a new group starts (new value in column C), insert a subtotal row
         if c_value != current_value:
             if current_value is not None:
-                # Insert the subtotal row
+                # Insert the subtotal row before the new group starts
                 ws.insert_rows(row)
                 ws.cell(row=row, column=3).value = f"{current_value} Total"  # Insert the total label in Column C
                 ws.cell(row=row, column=4).value = total_sum  # Insert the sum in Column D
@@ -38,19 +36,17 @@ def apply_subtotals_for_sheet(ws, max_row):
 
             # Reset for the new group
             current_value = c_value
-            total_sum = d_value  # Start the sum with the first value of the new group
-
+            total_sum = d_value if isinstance(d_value, (int, float)) else 0  # Start sum with first value of the new group
         else:
             # Add the current value in column D to the running total
-            if isinstance(d_value, (int, float)):  # Ensure the value is numeric
+            if isinstance(d_value, (int, float)):
                 total_sum += d_value
 
-    # Handle the last group (after the loop ends)
+    # Handle the last group after the loop ends
     if current_value is not None:
-        ws.insert_rows(max_row + 1)  # Add the subtotal row at the end
-        ws.cell(row=max_row + 1, column=3).value = f"{current_value} Total"
-        ws.cell(row=max_row + 1, column=4).value = total_sum
-
+        ws.insert_rows(last_row + 1)  # Add the subtotal row at the end
+        ws.cell(row=last_row + 1, column=3).value = f"{current_value} Total"
+        ws.cell(row=last_row + 1, column=4).value = total_sum
 
 
 def clean_ss01_column(ssoi_ws, max_row):
