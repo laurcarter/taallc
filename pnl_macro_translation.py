@@ -1,11 +1,11 @@
 import openpyxl
 from openpyxl import load_workbook
 from io import BytesIO
-from openpyxl.styles import PatternFill, Font
 
 
 #new 
 from openpyxl.styles import PatternFill, Font
+from openpyxl.utils import column_index_from_string
 
 def apply_subtotals_and_delete_grand_total(focus_ws, ssoi_ws, max_row):
     # Set background color and font style for columns C to F in row 7 (focus and ssoi)
@@ -19,8 +19,9 @@ def apply_subtotals_and_delete_grand_total(focus_ws, ssoi_ws, max_row):
     # Format columns D and F for number format with commas
     for ws in [focus_ws, ssoi_ws]:
         for col in ['D', 'F']:
+            col_idx = column_index_from_string(col)  # Convert column letter to column index
             for row in range(8, max_row + 1):
-                cell = ws.cell(row=row, column=ws[col].column)
+                cell = ws.cell(row=row, column=col_idx)
                 if isinstance(cell.value, (int, float)):
                     cell.number_format = "#,##0"
 
@@ -37,7 +38,6 @@ def apply_subtotals_and_delete_grand_total(focus_ws, ssoi_ws, max_row):
     last_data_row_ssoi = ssoi_ws.cell(row=max_row, column=3).row
     if ssoi_ws.cell(last_data_row_ssoi, 3).value == "Grand Total":
         ssoi_ws.delete_rows(last_data_row_ssoi)
-
 
 
 def clean_ss01_column(ssoi_ws, max_row):
