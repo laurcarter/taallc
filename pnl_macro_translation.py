@@ -54,6 +54,7 @@ def sort_ssoi_sheet(ssoi_ws, max_row):
     for idx, (original_row, _, row_values) in enumerate(rows, start=5):
         for col_idx, value in enumerate(row_values, start=1):
             ssoi_ws.cell(row=idx, column=col_idx).value = value
+            
 def sort_focus_sheet(focus_ws, max_row):
     # Step 1: Delete rows with empty values in column C
     for row in range(max_row, 7, -1):  # Start from the bottom to avoid skipping rows
@@ -66,10 +67,17 @@ def sort_focus_sheet(focus_ws, max_row):
     focus_data = []
     for row in range(8, max_row + 1):  # Start from row 8
         c_value = focus_ws.cell(row=row, column=3).value
+        
+        # Convert values to float if possible, otherwise use float('inf') for non-numeric values
+        try:
+            c_value = float(c_value) if c_value is not None else float('inf')
+        except ValueError:
+            c_value = float('inf')  # Handle non-numeric values as larger than any number
+        
         focus_data.append((row, c_value))  # Store the row and the value in column C
     
     # Sort the collected data based on the values in column C (ascending)
-    focus_data.sort(key=lambda x: x[1] if x[1] is not None else float('inf'))  # Sort ascending, empty cells come last
+    focus_data.sort(key=lambda x: x[1])  # Sort ascending, empty cells come last
 
     # Step 3: Write the sorted data back into the Focus sheet
     for idx, (original_row, c_value) in enumerate(focus_data, start=8):
