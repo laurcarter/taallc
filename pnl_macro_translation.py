@@ -93,8 +93,9 @@ def sort_focus_sheet(focus_ws, max_row):
             focus_ws.cell(row=idx, column=col_idx).value = value
 
 def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
-    # Create a list to hold rows and their corresponding values from columns C and D
-    rows = []
+    # Create lists to hold rows with numeric values in column C and those with alphanumeric values
+    numeric_rows = []
+    alphanumeric_rows = []
 
     # Loop through column C starting from row 8
     for row in range(8, max_row + 1):
@@ -110,16 +111,25 @@ def secondary_sort_ssoi_sheet(ssoi_ws, max_row):
             d_value = float(d_value)  # Ensure the value is treated as a float
         else:
             d_value = float('-inf')  # Non-numeric values will be treated as the lowest possible
-        
-        # Append the entire row along with values from column C and D
-        rows.append((row, c_value, d_value, [ssoi_ws.cell(row=row, column=col).value for col in range(1, ssoi_ws.max_column + 1)]))
 
-    # Sort the rows based on column C (ascending), then by column D (descending for same values in C)
-    rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
+        # Separate numeric values (without letters) and alphanumeric values (with letters)
+        if str(c_value).replace('.', '', 1).isdigit():  # Check if it's a number (allowing for decimal points)
+            numeric_rows.append((row, c_value, d_value, [ssoi_ws.cell(row=row, column=col).value for col in range(1, ssoi_ws.max_column + 1)]))
+        else:
+            alphanumeric_rows.append((row, c_value, d_value, [ssoi_ws.cell(row=row, column=col).value for col in range(1, ssoi_ws.max_column + 1)]))
+
+    # Sort the numeric rows in ascending order based on column C
+    numeric_rows.sort(key=lambda x: x[1])
+
+    # Sort the alphanumeric rows in ascending order based on column C and descending for D values
+    alphanumeric_rows.sort(key=lambda x: (x[1], -x[2]))
+
+    # Combine numeric rows and alphanumeric rows
+    all_sorted_rows = numeric_rows + alphanumeric_rows
 
     # Write the sorted rows back to the sheet
     new_row_idx = 8  # Start writing from row 8
-    for _, _, _, row_values in rows:
+    for _, _, _, row_values in all_sorted_rows:
         for col_idx, value in enumerate(row_values, start=1):
             ssoi_ws.cell(row=new_row_idx, column=col_idx).value = value
         new_row_idx += 1
