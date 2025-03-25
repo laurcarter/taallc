@@ -21,43 +21,7 @@ def clean_ss01_column(ssoi_ws, max_row):
             cell.value = cleaned_value  # Update the cell with the cleaned value
 
 def sort_ss01_column(ssoi_ws, max_row):
-    # Extract data from columns C, D, and E starting from row 5
-    ssoi_data = []
-    for row in range(5, max_row + 1):
-        c_value = ssoi_ws.cell(row=row, column=3).value
-        d_value = ssoi_ws.cell(row=row, column=4).value
-        e_value = ssoi_ws.cell(row=row, column=5).value
 
-        # Ensure c_value is a string before applying the regex
-        if isinstance(c_value, str):
-            c_value = str(c_value)  # Convert to string if it's not
-        else:
-            c_value = str(c_value)  # Ensure even non-string values are treated as strings
-
-        # Classify c_value (column C)
-        if c_value.startswith("'"):
-            # Check if it has a number with letters (alphanumeric)
-            match = re.match(r"(\d+)([a-zA-Z]+)?", c_value)
-            if match:
-                number_part = int(match.group(1))  # Extract the numeric part
-                letter_part = match.group(2) if match.group(2) else ""  # Extract letter part, if any
-                ssoi_data.append((number_part, letter_part, c_value, d_value, e_value, 'alphanumeric'))
-            else:
-                ssoi_data.append((float('inf'), "", c_value, d_value, e_value, 'empty'))  # Empty cells come last
-        elif isinstance(c_value, (int, float)):
-            # Handle pure numeric cells
-            ssoi_data.append((c_value, "", str(c_value), d_value, e_value, 'numeric'))
-        else:
-            ssoi_data.append((float('inf'), "", "", "", "", 'empty'))  # Handle empty or unexpected data
-
-    # Sort by number part first, letter part second (if alphanumeric), then by type (numeric first, empty last)
-    ssoi_data.sort(key=lambda x: (x[0], x[1], x[5]))
-
-    # Write the sorted data back into columns C, D, and E
-    for idx, (number_part, letter_part, c_value, d_value, e_value, _) in enumerate(ssoi_data, start=5):
-        ssoi_ws.cell(row=idx, column=3, value=c_value)
-        ssoi_ws.cell(row=idx, column=4, value=d_value)
-        ssoi_ws.cell(row=idx, column=5, value=e_value)
 
 
 
