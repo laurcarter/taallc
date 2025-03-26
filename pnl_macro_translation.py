@@ -4,6 +4,7 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
+
 def apply_focus_subtotals(focus_ws, max_row):
     # Initialize variables for income and expense sums
     income_sum = 0
@@ -14,6 +15,10 @@ def apply_focus_subtotals(focus_ws, max_row):
     # Track the last income and expense row
     last_income_row = None
     last_expense_row = None
+
+    # Define the light green and red color fills
+    light_green_fill = PatternFill(start_color="D9F2D7", end_color="D9F2D7", fill_type="solid")
+    light_red_fill = PatternFill(start_color="F9E2D6", end_color="F9E2D6", fill_type="solid")
 
     # Loop through the rows starting from row 8
     for row_idx in range(8, max_row + 1):
@@ -35,13 +40,19 @@ def apply_focus_subtotals(focus_ws, max_row):
                     last_income_row = row_idx
                     income_section_exists = True
                     # Apply green color to income subtotal rows
-                    focus_ws.range(f"C{row_idx}:F{row_idx}").interior.color = (217, 242, 208)  # Light green
+                    focus_ws.cell(row=row_idx, column=3).fill = light_green_fill
+                    focus_ws.cell(row=row_idx, column=4).fill = light_green_fill
+                    focus_ws.cell(row=row_idx, column=5).fill = light_green_fill
+                    focus_ws.cell(row=row_idx, column=6).fill = light_green_fill
                 else:
                     expense_sum += d_value if isinstance(d_value, (int, float)) else 0
                     last_expense_row = row_idx
                     expense_section_exists = True
                     # Apply red color to expense subtotal rows
-                    focus_ws.range(f"C{row_idx}:F{row_idx}").interior.color = (250, 226, 214)  # Light red
+                    focus_ws.cell(row=row_idx, column=3).fill = light_red_fill
+                    focus_ws.cell(row=row_idx, column=4).fill = light_red_fill
+                    focus_ws.cell(row=row_idx, column=5).fill = light_red_fill
+                    focus_ws.cell(row=row_idx, column=6).fill = light_red_fill
         else:
             # Handle regular income/expense rows based on the value in column C
             if isinstance(c_value, (int, float)):
@@ -50,13 +61,19 @@ def apply_focus_subtotals(focus_ws, max_row):
                     last_income_row = row_idx
                     income_section_exists = True
                     # Apply green color to income rows
-                    focus_ws.range(f"C{row_idx}:F{row_idx}").interior.color = (217, 242, 208)  # Light green
+                    focus_ws.cell(row=row_idx, column=3).fill = light_green_fill
+                    focus_ws.cell(row=row_idx, column=4).fill = light_green_fill
+                    focus_ws.cell(row=row_idx, column=5).fill = light_green_fill
+                    focus_ws.cell(row=row_idx, column=6).fill = light_green_fill
                 else:
                     expense_sum += d_value if isinstance(d_value, (int, float)) else 0
                     last_expense_row = row_idx
                     expense_section_exists = True
                     # Apply red color to expense rows
-                    focus_ws.range(f"C{row_idx}:F{row_idx}").interior.color = (250, 226, 214)  # Light red
+                    focus_ws.cell(row=row_idx, column=3).fill = light_red_fill
+                    focus_ws.cell(row=row_idx, column=4).fill = light_red_fill
+                    focus_ws.cell(row=row_idx, column=5).fill = light_red_fill
+                    focus_ws.cell(row=row_idx, column=6).fill = light_red_fill
 
     # After looping, check if there were any income or expense rows and apply final sums
     if income_section_exists:
