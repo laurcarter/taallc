@@ -5,6 +5,7 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
 
+
 def apply_focus_subtotals(focus_ws, max_row):
     # Initialize variables for income and expense sums
     income_sum = 0
@@ -44,10 +45,10 @@ def apply_focus_subtotals(focus_ws, max_row):
                 focus_ws.insert_rows(row_idx)
                 focus_ws.cell(row=row_idx, column=3).value = f"{current_value} Total"  # Insert "Total" in column C
                 focus_ws.cell(row=row_idx, column=4).value = total_sum  # Insert the sum in column D
-                focus_ws.cell(row=row_idx, column=3).fill = light_green_fill if current_value < 4000 else light_red_fill
-                focus_ws.cell(row=row_idx, column=4).fill = light_green_fill if current_value < 4000 else light_red_fill
-                focus_ws.cell(row=row_idx, column=5).fill = light_green_fill if current_value < 4000 else light_red_fill
-                focus_ws.cell(row=row_idx, column=6).fill = light_green_fill if current_value < 4000 else light_red_fill
+                focus_ws.cell(row=row_idx, column=3).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
+                focus_ws.cell(row=row_idx, column=4).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
+                focus_ws.cell(row=row_idx, column=5).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
+                focus_ws.cell(row=row_idx, column=6).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
 
                 # Move the row index down because we just inserted a new row
                 row_idx += 1
@@ -67,10 +68,10 @@ def apply_focus_subtotals(focus_ws, max_row):
         focus_ws.insert_rows(row_idx)
         focus_ws.cell(row=row_idx, column=3).value = f"{current_value} Total"
         focus_ws.cell(row=row_idx, column=4).value = total_sum
-        focus_ws.cell(row=row_idx, column=3).fill = light_green_fill if current_value < 4000 else light_red_fill
-        focus_ws.cell(row=row_idx, column=4).fill = light_green_fill if current_value < 4000 else light_red_fill
-        focus_ws.cell(row=row_idx, column=5).fill = light_green_fill if current_value < 4000 else light_red_fill
-        focus_ws.cell(row=row_idx, column=6).fill = light_green_fill if current_value < 4000 else light_red_fill
+        focus_ws.cell(row=row_idx, column=3).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
+        focus_ws.cell(row=row_idx, column=4).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
+        focus_ws.cell(row=row_idx, column=5).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
+        focus_ws.cell(row=row_idx, column=6).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
 
     # Calculate and display the total sums
     if income_section_exists:
