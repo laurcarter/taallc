@@ -112,17 +112,6 @@ elif st.session_state.step == 3:
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
         st.session_state.step = 4
 
-# Step 4: Show highlights and continue
-elif st.session_state.step == 4:
-    st.subheader("🟨 Review Highlighted Cells")
-    highlighted_file, flagged = highlight_and_flag_totals(st.session_state.excel_bytes)
-
-    if flagged:
-        for sheet, coord, val in flagged:
-            st.write(f"- **{sheet}**!{coord} → `{val}`")
-
-    if st.button("Continue"):
-        st.session_state.step = 5
 
 # Step 5: Select File for Download (or download processed file)
 elif st.session_state.step == 5:
