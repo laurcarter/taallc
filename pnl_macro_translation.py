@@ -564,6 +564,20 @@ def run_full_pl_macro(file_bytes):
     # You can now use income_sum and expense_sum in your further calculations
     apply_income_expense_totals(focus_ws, max_row)
 
+    # Find the row with "NET INCOME" in column E
+    net_income_row = None
+    for row in range(8, max_row + 1):
+        if focus_ws.cell(row=row, column=5).value == "NET INCOME":
+            net_income_row = row
+            break
+    
+    # If "NET INCOME" is found, check for blank rows above it
+    if net_income_row:
+        # Loop through the rows above "NET INCOME"
+        for row in range(net_income_row - 1, 7, -1):  # Start from one row above the "NET INCOME" row and go upwards
+            # Check if both columns E and F are blank
+            if focus_ws.cell(row=row, column=5).value is None and focus_ws.cell(row=row, column=6).value is None:
+                focus_ws.delete_rows(row)  # Delete the row if both columns E and F are blank
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
