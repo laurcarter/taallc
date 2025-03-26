@@ -52,6 +52,60 @@ def clean_flagged_totals(file_bytes):
 def perform_pnl_transformation(file_bytes):
     from pnl_macro_translation import run_full_pl_macro
     return run_full_pl_macro(file_bytes)
+import streamlit as st
+from io import BytesIO
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+import re
+
+# ---------- Utility Functions ----------
+yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+
+def highlight_and_flag_totals(file_bytes):
+    wb = load_workbook(filename=BytesIO(file_bytes), data_only=True)
+    flagged_cells = []
+
+    for ws in wb.worksheets:
+        max_row = ws.max_row
+        for row in ws.iter_rows(min_row=1, max_row=max_row, min_col=1, max_col=8):
+            for cell in row:
+                value = str(cell.value) if cell.value else ""
+                if "Total" in value and "(" in value and ")" in value:
+                    cell.fill = yellow_fill
+                    flagged_cells.append((ws.title, cell.coordinate, value))
+
+    output_stream = BytesIO()
+    wb.save(output_stream)
+    output_stream.seek(0)
+    return output_stream, flagged_cells
+
+def clean_flagged_totals(file_bytes):
+    if isinstance(file_bytes, BytesIO):
+        file_obj = file_bytes
+    else:
+        file_obj = BytesIO(file_bytes)
+
+    wb = load_workbook(filename=file_obj, data_only=True)
+
+    def remove_parentheses_content(text):
+        return re.sub(r'\s*\([^)]*\)', '', text).strip()
+
+    for ws in wb.worksheets:
+        max_row = ws.max_row
+        for row in ws.iter_rows(min_row=1, max_row=max_row, min_col=1, max_col=8):
+            for cell in row:
+                if cell.value and "Total" in str(cell.value):
+                    cell.value = remove_parentheses_content(str(cell.value))
+                    cell.fill = PatternFill()  # Reset to default empty fill
+
+    output_stream = BytesIO()
+    wb.save(output_stream)
+    output_stream.seek(0)
+    return output_stream
+
+def perform_pnl_transformation(file_bytes):
+    from pnl_macro_translation import run_full_pl_macro
+    return run_full_pl_macro(file_bytes)
 
 # ---------- Streamlit App Flow ----------
 st.set_page_config(page_title="Filing Cleanup Wizard", layout="centered")
@@ -74,7 +128,7 @@ if st.session_state.step == 1:
         st.session_state.flagged_cells = flagged
 
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
-        if st.button("Next"):
+        if st.button("Continue"):
             st.session_state.step = 2
 
 # Step 2: Show flagged cells
@@ -108,8 +162,20 @@ elif st.session_state.step == 3:
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
         st.session_state.step = 4
 
-# Step 4: Download Final Output
+# Step 4: Show highlights and continue
 elif st.session_state.step == 4:
+    st.subheader("🟨 Review Highlighted Cells")
+    highlighted_file, flagged = highlight_and_flag_totals(st.session_state.excel_bytes)
+
+    if flagged:
+        for sheet, coord, val in flagged:
+            st.write(f"- **{sheet}**!{coord} → `{val}`")
+
+    if st.button("Continue"):
+        st.session_state.step = 5
+
+# Step 5: Select File for Download (or download processed file)
+elif st.session_state.step == 5:
     st.subheader("✅ Final Step: Download Processed File")
     st.download_button(
         label="Download Final Excel",
@@ -120,3 +186,4 @@ elif st.session_state.step == 4:
     if st.button("Start Over"):
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
+
