@@ -4,6 +4,80 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
+def apply_focus_subtotals(focus_ws, max_row):
+    # Initialize variables for income and expense sums
+    income_sum = 0
+    expense_sum = 0
+    income_section_exists = False
+    expense_section_exists = False
+
+    # Track the last income and expense row
+    last_income_row = None
+    last_expense_row = None
+
+    # Loop through the rows starting from row 8
+    for row_idx in range(8, max_row + 1):
+        c_value = focus_ws.cell(row=row_idx, column=3).value
+        d_value = focus_ws.cell(row=row_idx, column=4).value
+
+        # Skip rows where the value in column C is empty or not numeric
+        if c_value is None or c_value == "":
+            continue
+
+        # If it's a subtotal row (contains "Total")
+        if "Total" in str(c_value):
+            subtotal_value = str(c_value).replace("Total", "").strip()
+            if subtotal_value.isdigit():
+                subtotal_value = float(subtotal_value)
+                # Check if the value is less than 4000 for income or greater than or equal for expense
+                if subtotal_value < 4000:
+                    income_sum += d_value if isinstance(d_value, (int, float)) else 0
+                    last_income_row = row_idx
+                    income_section_exists = True
+                    # Apply green color to income subtotal rows
+                    focus_ws.range(f"C{row_idx}:F{row_idx}").interior.color = (217, 242, 208)  # Light green
+                else:
+                    expense_sum += d_value if isinstance(d_value, (int, float)) else 0
+                    last_expense_row = row_idx
+                    expense_section_exists = True
+                    # Apply red color to expense subtotal rows
+                    focus_ws.range(f"C{row_idx}:F{row_idx}").interior.color = (250, 226, 214)  # Light red
+        else:
+            # Handle regular income/expense rows based on the value in column C
+            if isinstance(c_value, (int, float)):
+                if c_value < 4000:
+                    income_sum += d_value if isinstance(d_value, (int, float)) else 0
+                    last_income_row = row_idx
+                    income_section_exists = True
+                    # Apply green color to income rows
+                    focus_ws.range(f"C{row_idx}:F{row_idx}").interior.color = (217, 242, 208)  # Light green
+                else:
+                    expense_sum += d_value if isinstance(d_value, (int, float)) else 0
+                    last_expense_row = row_idx
+                    expense_section_exists = True
+                    # Apply red color to expense rows
+                    focus_ws.range(f"C{row_idx}:F{row_idx}").interior.color = (250, 226, 214)  # Light red
+
+    # After looping, check if there were any income or expense rows and apply final sums
+    if income_section_exists:
+        focus_ws.cell(row=last_income_row, column=6).value = format(income_sum / 2, "0.00")  # Half the income sum
+        focus_ws.cell(row=last_income_row, column=6).font.bold = True
+
+    if expense_section_exists:
+        focus_ws.cell(row=last_expense_row, column=6).value = format(expense_sum / 2, "0.00")  # Half the expense sum
+        focus_ws.cell(row=last_expense_row, column=6).font.bold = True
+
+    # Calculate the net income
+    result = income_sum / 2 - expense_sum / 2
+    focus_ws.cell(row=max_row + 1, column=6).value = format(result, "0.00")
+    focus_ws.cell(row=max_row + 1, column=5).value = "NET INCOME"
+    focus_ws.cell(row=max_row + 1, column=5).font.bold = True
+    focus_ws.cell(row=max_row + 1, column=6).font.bold = True
+
+
+
+
+
 def delete_blank_rows(ws, max_row):
     # Start from row 8 and go downwards
     row_idx = 8
@@ -452,7 +526,8 @@ def run_full_pl_macro(file_bytes):
     delete_blank_rows(ssoi_ws, max_row)   # For SSOI sheet
     
     
-    
+    #Calling focus income and expense
+    apply_focus_subtotals(focus_ws, max_row)
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
