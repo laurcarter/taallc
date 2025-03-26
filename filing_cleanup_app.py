@@ -76,7 +76,7 @@ if st.session_state.step == 1:
     suffix = st.selectbox("Suffix (Jr., Sr., III)", ["", "Jr.", "Sr.", "III"])
     occupation = st.text_input("Occupation")
     employer = st.text_input("Employer")
-    dob = st.date_input("Date of Birth", format="MM/dd/yyyy")
+    dob = st.date_input("Date of Birth")  # Streamlit will handle the date format automatically
     phone_number = st.text_input("Phone Number")
 
     if st.button("Continue"):
