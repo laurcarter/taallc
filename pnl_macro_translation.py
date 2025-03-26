@@ -5,6 +5,39 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 from openpyxl.utils import get_column_letter
 
+def apply_random_formatting(focus_ws, ssoi_ws, max_row):
+    # Comma formatting and rounding for both Focus and SSOI sheets
+    for ws in [focus_ws, ssoi_ws]:
+        # Column J (now column 10 after deletion)
+        for row in range(8, max_row + 1):
+            cell = ws.cell(row=row, column=10)  # Column J
+            if isinstance(cell.value, (int, float)):
+                # Round to 0 decimal places and apply comma format
+                cell.value = round(cell.value, 0)
+                cell.number_format = "#,##0"  # Apply comma style formatting
+
+        # Column F (column 6)
+        for row in range(8, max_row + 1):
+            cell = ws.cell(row=row, column=6)  # Column F
+            if isinstance(cell.value, (int, float)):
+                # Apply comma style formatting
+                cell.number_format = "#,##0"
+
+        # Column D (column 4)
+        for row in range(8, max_row + 1):
+            cell = ws.cell(row=row, column=4)  # Column D
+            if isinstance(cell.value, (int, float)):
+                # Apply comma style formatting
+                cell.number_format = "#,##0"
+
+        # Bold cells with the word 'Total' in column C
+        for row in range(8, max_row + 1):
+            cell = ws.cell(row=row, column=3)  # Column C
+            if cell.value and "total" in str(cell.value).lower():  # Check if 'total' is in the cell
+                cell.font = Font(bold=True)  # Apply bold font
+
+
+
 def apply_ssoi_summary_formatting(ssoi_ws, max_row):
     # Set headers for the SSOI sheet summary section
     ssoi_ws["I7"].value = "SSOI"  # Header for column I
@@ -784,6 +817,8 @@ def run_full_pl_macro(file_bytes):
 
     create_summary_ssoi(ssoi_ws, max_row)
     apply_ssoi_summary_formatting(ssoi_ws, max_row)
+
+    apply_random_formatting(focus_ws, ssoi_ws, max_row)
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
