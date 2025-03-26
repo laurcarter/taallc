@@ -4,6 +4,44 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
+
+from openpyxl.styles import PatternFill, Font
+from openpyxl.utils import get_column_letter
+
+def apply_focus_summary_formatting(focus_ws, max_row):
+    # Set headers for the Focus sheet summary section
+    focus_ws["I7"].value = "Focus"  # Header for column I
+    focus_ws["J7"].value = ""       # Blank column J
+    focus_ws["K7"].value = "Amount" # Header for column K
+    
+    # Fill columns I to K in the Focus sheet with black color for headers
+    black_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
+    focus_ws["I7"].fill = black_fill
+    focus_ws["J7"].fill = black_fill
+    focus_ws["K7"].fill = black_fill
+    
+    # Set the font color to white for header cells
+    white_font = Font(color="FFFFFF")
+    focus_ws["I7"].font = white_font
+    focus_ws["J7"].font = white_font
+    focus_ws["K7"].font = white_font
+
+    # Delete column J and shift everything to the left
+    focus_ws.delete_cols(10)  # This deletes column J (which is the 10th column)
+    
+    # Round values in the new column J (which is now column K) starting from row 8
+    for row in range(8, max_row + 1):
+        cell = focus_ws.cell(row=row, column=9)  # Column J is now column 9 after deletion
+        if isinstance(cell.value, (int, float)):  # Ensure it's a numeric value
+            cell.value = round(cell.value, 0)  # Round to 0 decimal places
+    
+    # Apply comma style formatting to the new column J (which is now column K) starting from row 8
+    for row in range(8, max_row + 1):
+        cell = focus_ws.cell(row=row, column=9)  # Column J is now column 9 after deletion
+        if isinstance(cell.value, (int, float)):  # Ensure it's a numeric value
+            cell.number_format = '#,##0'  # Apply comma style formatting
+
+
 def create_summary(focus_ws, max_row):
     summary_row = 8  # Starting row for the summary
     
@@ -695,6 +733,7 @@ def run_full_pl_macro(file_bytes):
 
     create_summary(focus_ws, max_row)
 
+    apply_focus_summary_formatting(focus_ws, max_row)
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
