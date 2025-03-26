@@ -5,7 +5,6 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
 
-
 def apply_focus_subtotals(focus_ws, max_row):
     # Initialize variables for income and expense sums
     income_sum = 0
@@ -24,79 +23,70 @@ def apply_focus_subtotals(focus_ws, max_row):
     # Define the bold font
     bold_font = Font(bold=True)
 
+    current_value = None  # Tracks the current group in column C
+    total_sum = 0  # Tracks the sum of the values in column D for the current group
+
     # Loop through the rows starting from row 8
-    for row_idx in range(8, max_row + 1):
+    row_idx = 8
+    while row_idx <= max_row:
         c_value = focus_ws.cell(row=row_idx, column=3).value
         d_value = focus_ws.cell(row=row_idx, column=4).value
 
         # Skip rows where the value in column C is empty or not numeric
         if c_value is None or c_value == "":
+            row_idx += 1
             continue
 
-        # If it's a subtotal row (contains "Total")
-        if "Total" in str(c_value):
-            subtotal_value = str(c_value).replace("Total", "").strip()
-            if subtotal_value.isdigit():
-                subtotal_value = float(subtotal_value)
-                # Check if the value is less than 4000 for income or greater than or equal for expense
-                if subtotal_value < 4000:
-                    income_sum += d_value if isinstance(d_value, (int, float)) else 0
-                    last_income_row = row_idx
-                    income_section_exists = True
-                    # Apply green color to income subtotal rows
-                    focus_ws.cell(row=row_idx, column=3).fill = light_green_fill
-                    focus_ws.cell(row=row_idx, column=4).fill = light_green_fill
-                    focus_ws.cell(row=row_idx, column=5).fill = light_green_fill
-                    focus_ws.cell(row=row_idx, column=6).fill = light_green_fill
-                else:
-                    expense_sum += d_value if isinstance(d_value, (int, float)) else 0
-                    last_expense_row = row_idx
-                    expense_section_exists = True
-                    # Apply red color to expense subtotal rows
-                    focus_ws.cell(row=row_idx, column=3).fill = light_red_fill
-                    focus_ws.cell(row=row_idx, column=4).fill = light_red_fill
-                    focus_ws.cell(row=row_idx, column=5).fill = light_red_fill
-                    focus_ws.cell(row=row_idx, column=6).fill = light_red_fill
-        else:
-            # Handle regular income/expense rows based on the value in column C
-            if isinstance(c_value, (int, float)):
-                if c_value < 4000:
-                    income_sum += d_value if isinstance(d_value, (int, float)) else 0
-                    last_income_row = row_idx
-                    income_section_exists = True
-                    # Apply green color to income rows
-                    focus_ws.cell(row=row_idx, column=3).fill = light_green_fill
-                    focus_ws.cell(row=row_idx, column=4).fill = light_green_fill
-                    focus_ws.cell(row=row_idx, column=5).fill = light_green_fill
-                    focus_ws.cell(row=row_idx, column=6).fill = light_green_fill
-                else:
-                    expense_sum += d_value if isinstance(d_value, (int, float)) else 0
-                    last_expense_row = row_idx
-                    expense_section_exists = True
-                    # Apply red color to expense rows
-                    focus_ws.cell(row=row_idx, column=3).fill = light_red_fill
-                    focus_ws.cell(row=row_idx, column=4).fill = light_red_fill
-                    focus_ws.cell(row=row_idx, column=5).fill = light_red_fill
-                    focus_ws.cell(row=row_idx, column=6).fill = light_red_fill
+        # If the current value in column C is different from the previous one, insert a subtotal row
+        if c_value != current_value:
+            # If we have already encountered a group, insert the total row
+            if current_value is not None:
+                focus_ws.insert_rows(row_idx)
+                focus_ws.cell(row=row_idx, column=3).value = f"{current_value} Total"  # Insert "Total" in column C
+                focus_ws.cell(row=row_idx, column=4).value = total_sum  # Insert the sum in column D
+                focus_ws.cell(row=row_idx, column=3).fill = light_green_fill if current_value < 4000 else light_red_fill
+                focus_ws.cell(row=row_idx, column=4).fill = light_green_fill if current_value < 4000 else light_red_fill
+                focus_ws.cell(row=row_idx, column=5).fill = light_green_fill if current_value < 4000 else light_red_fill
+                focus_ws.cell(row=row_idx, column=6).fill = light_green_fill if current_value < 4000 else light_red_fill
 
-    # After looping, check if there were any income or expense rows and apply final sums
+                # Move the row index down because we just inserted a new row
+                row_idx += 1
+
+            # Reset for the new group
+            current_value = c_value
+            total_sum = d_value if isinstance(d_value, (int, float)) else 0  # Start sum with first value of the new group
+        else:
+            # Add the current value in column D to the running total
+            if isinstance(d_value, (int, float)):
+                total_sum += d_value
+
+        row_idx += 1  # Move to the next row
+
+    # Handle the last group after the loop ends (ensure the final group is processed)
+    if current_value is not None:
+        focus_ws.insert_rows(row_idx)
+        focus_ws.cell(row=row_idx, column=3).value = f"{current_value} Total"
+        focus_ws.cell(row=row_idx, column=4).value = total_sum
+        focus_ws.cell(row=row_idx, column=3).fill = light_green_fill if current_value < 4000 else light_red_fill
+        focus_ws.cell(row=row_idx, column=4).fill = light_green_fill if current_value < 4000 else light_red_fill
+        focus_ws.cell(row=row_idx, column=5).fill = light_green_fill if current_value < 4000 else light_red_fill
+        focus_ws.cell(row=row_idx, column=6).fill = light_green_fill if current_value < 4000 else light_red_fill
+
+    # Calculate and display the total sums
     if income_section_exists:
-        focus_ws.cell(row=last_income_row, column=6).value = format(income_sum / 2, "0.00")  # Half the income sum
-        focus_ws.cell(row=last_income_row, column=6).font = bold_font  # Apply bold font
+        focus_ws.cell(row=row_idx + 1, column=6).value = format(income_sum / 2, "0.00")  # Half the income sum
+        focus_ws.cell(row=row_idx + 1, column=6).font = bold_font  # Apply bold font
 
     if expense_section_exists:
-        focus_ws.cell(row=last_expense_row, column=6).value = format(expense_sum / 2, "0.00")  # Half the expense sum
-        focus_ws.cell(row=last_expense_row, column=6).font = bold_font  # Apply bold font
+        focus_ws.cell(row=row_idx + 1, column=6).value = format(expense_sum / 2, "0.00")  # Half the expense sum
+        focus_ws.cell(row=row_idx + 1, column=6).font = bold_font  # Apply bold font
 
-    # Calculate the net income
+    # Calculate the result (Net Income)
     result = income_sum / 2 - expense_sum / 2
-    focus_ws.cell(row=max_row + 1, column=6).value = format(result, "0.00")
-    focus_ws.cell(row=max_row + 1, column=5).value = "NET INCOME"
-    focus_ws.cell(row=max_row + 1, column=5).font = bold_font  # Apply bold font
-    focus_ws.cell(row=max_row + 1, column=6).font = bold_font  # Apply bold font
-
-
-
+    focus_ws.cell(row=row_idx + 2, column=6).value = format(result, "0.00")
+    focus_ws.cell(row=row_idx + 2, column=5).value = "NET INCOME"
+    focus_ws.cell(row=row_idx + 2, column=5).font = bold_font  # Apply bold font
+    focus_ws.cell(row=row_idx + 2, column=6).font = bold_font  # Apply bold font
 
 
 
