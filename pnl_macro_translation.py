@@ -5,6 +5,7 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
 
+
 def apply_focus_subtotals(focus_ws, max_row):
     # Initialize variables for income and expense sums
     income_sum = 0
@@ -19,6 +20,9 @@ def apply_focus_subtotals(focus_ws, max_row):
     # Define the light green and red color fills
     light_green_fill = PatternFill(start_color="D9F2D7", end_color="D9F2D7", fill_type="solid")
     light_red_fill = PatternFill(start_color="F9E2D6", end_color="F9E2D6", fill_type="solid")
+
+    # Define the bold font
+    bold_font = Font(bold=True)
 
     # Loop through the rows starting from row 8
     for row_idx in range(8, max_row + 1):
@@ -78,18 +82,19 @@ def apply_focus_subtotals(focus_ws, max_row):
     # After looping, check if there were any income or expense rows and apply final sums
     if income_section_exists:
         focus_ws.cell(row=last_income_row, column=6).value = format(income_sum / 2, "0.00")  # Half the income sum
-        focus_ws.cell(row=last_income_row, column=6).font.bold = True
+        focus_ws.cell(row=last_income_row, column=6).font = bold_font  # Apply bold font
 
     if expense_section_exists:
         focus_ws.cell(row=last_expense_row, column=6).value = format(expense_sum / 2, "0.00")  # Half the expense sum
-        focus_ws.cell(row=last_expense_row, column=6).font.bold = True
+        focus_ws.cell(row=last_expense_row, column=6).font = bold_font  # Apply bold font
 
     # Calculate the net income
     result = income_sum / 2 - expense_sum / 2
     focus_ws.cell(row=max_row + 1, column=6).value = format(result, "0.00")
     focus_ws.cell(row=max_row + 1, column=5).value = "NET INCOME"
-    focus_ws.cell(row=max_row + 1, column=5).font.bold = True
-    focus_ws.cell(row=max_row + 1, column=6).font.bold = True
+    focus_ws.cell(row=max_row + 1, column=5).font = bold_font  # Apply bold font
+    focus_ws.cell(row=max_row + 1, column=6).font = bold_font  # Apply bold font
+
 
 
 
