@@ -564,20 +564,25 @@ def run_full_pl_macro(file_bytes):
     # You can now use income_sum and expense_sum in your further calculations
     apply_income_expense_totals(focus_ws, max_row)
 
-    # Find the row with "NET INCOME" in column E
-    net_income_row = None
+    # Find the last row with data in column C starting from row 8
+    end_row = 8
     for row in range(8, max_row + 1):
-        if focus_ws.cell(row=row, column=5).value == "NET INCOME":
-            net_income_row = row
-            break
+        if focus_ws.cell(row=row, column=3).value is not None and focus_ws.cell(row=row, column=3).value != "":
+            end_row = row
     
-    # If "NET INCOME" is found, check for blank rows above it
-    if net_income_row:
-        # Loop through the rows above "NET INCOME"
-        for row in range(net_income_row - 1, 7, -1):  # Start from one row above the "NET INCOME" row and go upwards
-            # Check if both columns E and F are blank
-            if focus_ws.cell(row=row, column=5).value is None and focus_ws.cell(row=row, column=6).value is None:
-                focus_ws.delete_rows(row)  # Delete the row if both columns E and F are blank
+    # Now place "NET INCOME" directly below the last row with values in column C
+    focus_ws.cell(row=end_row + 1, column=5).value = "NET INCOME"  # Place in column E
+    focus_ws.cell(row=end_row + 1, column=5).font = Font(bold=True)  # Make "NET INCOME" bold
+    
+    # Place the result in column F right next to "NET INCOME"
+    focus_ws.cell(row=end_row + 1, column=6).value = result  # Column F for result
+    focus_ws.cell(row=end_row + 1, column=6).font = Font(bold=True)  # Make the result bold
+    
+    # Check for blank rows above the "NET INCOME" row and delete them
+    for row in range(end_row, 7, -1):  # Start from just below "NET INCOME" row and go upwards
+        if focus_ws.cell(row=row, column=5).value is None and focus_ws.cell(row=row, column=6).value is None:
+            focus_ws.delete_rows(row)  # Delete row if both columns E and F are blank
+
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
