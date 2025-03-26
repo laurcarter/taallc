@@ -4,7 +4,69 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
-from openpyxl.styles import PatternFill
+
+def apply_income_expense_totals_ssoi(ssoi_ws, max_row):
+    # Call the categorize_income_expense_ssoi function to get the income and expense sums
+    income_sum, expense_sum = categorize_income_expense_ssoi(ssoi_ws, max_row)
+
+    # Divide the income and expense sums by 2
+    income_sum /= 2
+    expense_sum /= 2
+
+    # Initialize row trackers for income and expense sections
+    income_rows = []
+    expense_rows = []
+
+    # Loop through the rows again to identify income and expense sections (rows with green and red fills)
+    for row_idx in range(8, max_row + 1):
+        c_value = ssoi_ws.cell(row=row_idx, column=3).value  # Column C
+        d_value = ssoi_ws.cell(row=row_idx, column=4).value  # Column D
+
+        # Only consider rows with income or expense values (skip others)
+        if c_value is None or d_value is None:
+            continue
+
+        # Check for income or expense rows based on the value in column C
+        numeric_value = ''.join(filter(str.isdigit, str(c_value)))
+        if numeric_value.isdigit():
+            numeric_value = float(numeric_value)
+
+            # Add the row index to the respective list (income or expense) based on the value in column C
+            if numeric_value <= 11:
+                income_rows.append(row_idx)
+            else:
+                expense_rows.append(row_idx)
+
+    # Insert the income sum into the last row of the income section
+    if income_rows:
+        last_income_row = income_rows[-1]  # Get the last row in the income section
+        ssoi_ws.cell(row=last_income_row, column=6).value = round(income_sum, 2)  # Insert sum into column F
+        ssoi_ws.cell(row=last_income_row, column=6).font = Font(bold=True)  # Make it bold
+
+    # Insert the expense sum into the last row of the expense section
+    if expense_rows:
+        last_expense_row = expense_rows[-1]  # Get the last row in the expense section
+        ssoi_ws.cell(row=last_expense_row, column=6).value = round(expense_sum, 2)  # Insert sum into column F
+        ssoi_ws.cell(row=last_expense_row, column=6).font = Font(bold=True)  # Make it bold
+
+    # Calculate the result by subtracting expenses from income
+    result = income_sum - expense_sum
+
+    # Find the last used row in column C to determine where to place the "NET INCOME" value
+    last_row = max_row
+    for row in range(max_row, 7, -1):  # Start from max_row and move upwards
+        if ssoi_ws.cell(row=row, column=3).value is not None:
+            last_row = row
+            break
+
+    # Place the result in the cell below the last used row in column F
+    ssoi_ws.cell(row=last_row + 1, column=5).value = "NET INCOME"  # Column E for "NET INCOME"
+    ssoi_ws.cell(row=last_row + 1, column=5).font = Font(bold=True)  # Make the "NET INCOME" bold
+
+    # Place the result in column F
+    ssoi_ws.cell(row=last_row + 1, column=6).value = round(result, 2)  # Column F for result
+    ssoi_ws.cell(row=last_row + 1, column=6).font = Font(bold=True)  # Make the result bold
+
 
 def categorize_income_expense_ssoi(ssoi_ws, max_row):
     # Define the colors for income and expense
@@ -616,7 +678,7 @@ def run_full_pl_macro(file_bytes):
 
     # You can now use income_sum and expense_sum in your further calculations
     apply_income_expense_totals(focus_ws, max_row)
-    income_sum, expense_sum = categorize_income_expense_ssoi(ssoi_ws, max_row)
+    apply_income_expense_totals_ssoi(ssoi_ws, max_row)
 
 
 
