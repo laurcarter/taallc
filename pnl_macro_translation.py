@@ -5,7 +5,6 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
 from openpyxl.styles import PatternFill
-from openpyxl import Workbook
 
 def categorize_income_expense_ssoi(ssoi_ws, max_row):
     # Define the colors for income and expense
@@ -36,12 +35,21 @@ def categorize_income_expense_ssoi(ssoi_ws, max_row):
                 # Income: Add the value in column D to the income sum and apply green color
                 if isinstance(d_value, (int, float)):
                     income_sum += d_value / 2  # Divide by 2 as per the given logic
-                    ssoi_ws.range(f"C{row}:F{row}").interior.color = (217, 242, 208)  # Light green
+                    
+                    # Apply green color to income rows (Columns C to F)
+                    for col in range(3, 7):  # Columns C to F
+                        ssoi_ws.cell(row=row, column=col).fill = light_green_fill
+
             elif numeric_value > 11:
                 # Expense: Add the value in column D to the expense sum and apply red color
                 if isinstance(d_value, (int, float)):
                     expense_sum += d_value / 2  # Divide by 2 as per the given logic
-                    ssoi_ws.range(f"C{row}:F{row}").interior.color = (250, 226, 214)  # Light red
+                    
+                    # Apply red color to expense rows (Columns C to F)
+                    for col in range(3, 7):  # Columns C to F
+                        ssoi_ws.cell(row=row, column=col).fill = light_red_fill
+
+    return income_sum, expense_sum
 
     return income_sum, expense_sum
 
