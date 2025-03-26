@@ -4,34 +4,58 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
-def apply_income_expense_totals(focus_ws, income_sum, expense_sum, max_row):
-    # Divide income and expense sums by 2
+
+def apply_income_expense_totals(focus_ws, max_row):
+    # Initialize income and expense sums
+    income_sum = 0
+    expense_sum = 0
+    
+    income_rows = []  # To store rows for income
+    expense_rows = []  # To store rows for expense
+    
+    # Loop through each row in the Focus sheet starting from row 8
+    for row_idx in range(8, max_row + 1):
+        c_value = focus_ws.cell(row=row_idx, column=3).value  # Column C
+        d_value = focus_ws.cell(row=row_idx, column=4).value  # Column D
+        
+        # Check for income (C < 4000) or expense (C >= 4000)
+        if c_value is not None:
+            # Clean value to remove any non-numeric characters like "Total"
+            c_value = str(c_value).replace("Total", "").strip()
+            
+            if c_value.isdigit():
+                c_value = int(c_value)
+            else:
+                continue  # Skip if the value in column C is not numeric
+                
+            if c_value < 4000:  # Income condition
+                income_rows.append(row_idx)
+                if isinstance(d_value, (int, float)):
+                    income_sum += d_value  # Add to income sum
+                # Apply color for income rows
+                focus_ws.range(f"C{row_idx}:F{row_idx}").fill = light_green_fill
+            else:  # Expense condition
+                expense_rows.append(row_idx)
+                if isinstance(d_value, (int, float)):
+                    expense_sum += d_value  # Add to expense sum
+                # Apply color for expense rows
+                focus_ws.range(f"C{row_idx}:F{row_idx}").fill = light_red_fill
+
+    # Divide the sums by 2 as per the requirement
     income_sum /= 2
     expense_sum /= 2
 
-    # Find the last row of income (green) section
-    income_last_row = None
-    for row in range(max_row, 7, -1):
-        if focus_ws.cell(row=row, column=3).fill.start_color.index == 'D9F2D1':  # Light green
-            income_last_row = row
-            break
+    # Apply the income sum in the last income row (lowest row in income section)
+    if income_rows:
+        last_income_row = income_rows[-1]
+        focus_ws.cell(row=last_income_row, column=6).value = round(income_sum, 2)
+        focus_ws.cell(row=last_income_row, column=6).font = Font(bold=True)  # Make it bold
 
-    # If income section exists, place the income sum in the last income row (column F)
-    if income_last_row:
-        focus_ws.cell(row=income_last_row, column=6).value = round(income_sum, 2)  # Column F for income sum
-        focus_ws.cell(row=income_last_row, column=6).font = Font(bold=True)  # Make the income sum bold
-
-    # Find the last row of expense (red) section
-    expense_last_row = None
-    for row in range(max_row, 7, -1):
-        if focus_ws.cell(row=row, column=3).fill.start_color.index == 'F9E2D2':  # Light red
-            expense_last_row = row
-            break
-
-    # If expense section exists, place the expense sum in the last expense row (column F)
-    if expense_last_row:
-        focus_ws.cell(row=expense_last_row, column=6).value = round(expense_sum, 2)  # Column F for expense sum
-        focus_ws.cell(row=expense_last_row, column=6).font = Font(bold=True)  # Make the expense sum bold
+    # Apply the expense sum in the last expense row (lowest row in expense section)
+    if expense_rows:
+        last_expense_row = expense_rows[-1]
+        focus_ws.cell(row=last_expense_row, column=6).value = round(expense_sum, 2)
+        focus_ws.cell(row=last_expense_row, column=6).font = Font(bold=True)  # Make it bold
 
     # Calculate the result by subtracting expenses from income
     result = income_sum - expense_sum
@@ -545,7 +569,7 @@ def run_full_pl_macro(file_bytes):
     income_sum, expense_sum = categorize_income_expense(focus_ws, max_row)
 
     # You can now use income_sum and expense_sum in your further calculations
-    apply_income_expense_totals(focus_ws, income_sum, expense_sum, max_row)
+    apply_income_expense_totals(focus_ws, max_row)
 
 
     # Ensure to save the workbook after sorting if needed
