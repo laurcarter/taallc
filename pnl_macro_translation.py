@@ -5,6 +5,7 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
 
+
 def categorize_income_expense(focus_ws, max_row):
     # Define the colors
     light_green_fill = PatternFill(start_color="D9F2D1", end_color="D9F2D1", fill_type="solid")  # Light green
@@ -32,20 +33,23 @@ def categorize_income_expense(focus_ws, max_row):
             # Categorize as income (less than 4000) or expense (greater than or equal to 4000)
             if numeric_value < 4000:
                 # Apply color for income (light green)
-                focus_ws.range(f"C{row}:F{row}").fill = light_green_fill
+                for col in range(3, 7):  # Columns C to F
+                    focus_ws.cell(row=row, column=col).fill = light_green_fill
 
                 # Add the value from column D to the income sum
                 if isinstance(d_value, (int, float)):
                     income_sum += d_value
             else:
                 # Apply color for expense (light red)
-                focus_ws.range(f"C{row}:F{row}").fill = light_red_fill
+                for col in range(3, 7):  # Columns C to F
+                    focus_ws.cell(row=row, column=col).fill = light_red_fill
 
                 # Add the value from column D to the expense sum
                 if isinstance(d_value, (int, float)):
                     expense_sum += d_value
 
     return income_sum, expense_sum
+
 
 
 
