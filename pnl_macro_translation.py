@@ -4,8 +4,47 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
+from openpyxl.styles import PatternFill
+from openpyxl import Workbook
 
-from openpyxl.styles import Font
+def categorize_income_expense_ssoi(ssoi_ws, max_row):
+    # Define the colors for income and expense
+    light_green_fill = PatternFill(start_color="D9F2D1", end_color="D9F2D1", fill_type="solid")  # Light green
+    light_red_fill = PatternFill(start_color="F9E2D2", end_color="F9E2D2", fill_type="solid")  # Light red
+
+    income_sum = 0
+    expense_sum = 0
+
+    # Loop through each row starting from row 8
+    for row in range(8, max_row + 1):
+        c_value = ssoi_ws.cell(row=row, column=3).value  # Value in column C
+        d_value = ssoi_ws.cell(row=row, column=4).value  # Value in column D
+
+        # If there's no value in column C, skip this row
+        if c_value is None or c_value == "":
+            continue
+
+        # Scrub letters from the value in column C (take only the numeric part)
+        numeric_value = ''.join(filter(str.isdigit, str(c_value)))
+
+        # Ensure the numeric value is treated as a number
+        if numeric_value.isdigit():
+            numeric_value = float(numeric_value)
+
+            # Categorize as income (less than or equal to 11) or expense (greater than 11)
+            if numeric_value <= 11:
+                # Income: Add the value in column D to the income sum and apply green color
+                if isinstance(d_value, (int, float)):
+                    income_sum += d_value / 2  # Divide by 2 as per the given logic
+                    ssoi_ws.range(f"C{row}:F{row}").interior.color = (217, 242, 208)  # Light green
+            elif numeric_value > 11:
+                # Expense: Add the value in column D to the expense sum and apply red color
+                if isinstance(d_value, (int, float)):
+                    expense_sum += d_value / 2  # Divide by 2 as per the given logic
+                    ssoi_ws.range(f"C{row}:F{row}").interior.color = (250, 226, 214)  # Light red
+
+    return income_sum, expense_sum
+
 
 def apply_income_expense_totals(focus_ws, max_row):
     # Call the categorize_income_expense function to get the income and expense sums
@@ -569,6 +608,7 @@ def run_full_pl_macro(file_bytes):
 
     # You can now use income_sum and expense_sum in your further calculations
     apply_income_expense_totals(focus_ws, max_row)
+    income_sum, expense_sum = categorize_income_expense_ssoi(ssoi_ws, max_row)
 
 
 
