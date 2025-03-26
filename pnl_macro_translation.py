@@ -9,9 +9,6 @@ def apply_income_expense_totals_ssoi(ssoi_ws, max_row):
     # Call the categorize_income_expense_ssoi function to get the income and expense sums
     income_sum, expense_sum = categorize_income_expense_ssoi(ssoi_ws, max_row)
 
-    # Divide the income and expense sums by 2
-    income_sum /= 2
-    expense_sum /= 2
 
     # Initialize row trackers for income and expense sections
     income_rows = []
