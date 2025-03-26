@@ -103,6 +103,8 @@ elif st.session_state.step == 2:
     st.write(f"**Date of Birth:** {st.session_state.dob.strftime('%m/%d/%Y')}")
     st.write(f"**Phone Number:** {st.session_state.phone_number}")
 
+    if st.button("Continue"):
+        st.session_state.step = 3
 
 # Step 3: Upload Excel File
 elif st.session_state.step == 3:
