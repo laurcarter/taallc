@@ -4,6 +4,46 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
+def apply_income_expense_totals(focus_ws, income_sum, expense_sum, max_row):
+    # Divide income and expense sums by 2
+    income_sum /= 2
+    expense_sum /= 2
+
+    # Find the last row of income (green) section
+    income_last_row = None
+    for row in range(max_row, 7, -1):
+        if focus_ws.cell(row=row, column=3).fill.start_color.index == 'D9F2D1':  # Light green
+            income_last_row = row
+            break
+
+    # If income section exists, place the income sum in the last income row (column F)
+    if income_last_row:
+        focus_ws.cell(row=income_last_row, column=6).value = round(income_sum, 2)  # Column F for income sum
+        focus_ws.cell(row=income_last_row, column=6).font = Font(bold=True)  # Make the income sum bold
+
+    # Find the last row of expense (red) section
+    expense_last_row = None
+    for row in range(max_row, 7, -1):
+        if focus_ws.cell(row=row, column=3).fill.start_color.index == 'F9E2D2':  # Light red
+            expense_last_row = row
+            break
+
+    # If expense section exists, place the expense sum in the last expense row (column F)
+    if expense_last_row:
+        focus_ws.cell(row=expense_last_row, column=6).value = round(expense_sum, 2)  # Column F for expense sum
+        focus_ws.cell(row=expense_last_row, column=6).font = Font(bold=True)  # Make the expense sum bold
+
+    # Calculate the result by subtracting expenses from income
+    result = income_sum - expense_sum
+
+    # Place the result in the cell below the last used row in column F
+    end_row = max_row + 1
+    focus_ws.cell(row=end_row, column=5).value = "NET INCOME"  # Column E for "NET INCOME"
+    focus_ws.cell(row=end_row, column=5).font = Font(bold=True)  # Make the "NET INCOME" bold
+
+    # Place the result in column F
+    focus_ws.cell(row=end_row, column=6).value = round(result, 2)  # Column F for result
+    focus_ws.cell(row=end_row, column=6).font = Font(bold=True)  # Make the result bold
 
 
 def categorize_income_expense(focus_ws, max_row):
@@ -505,6 +545,7 @@ def run_full_pl_macro(file_bytes):
     income_sum, expense_sum = categorize_income_expense(focus_ws, max_row)
 
     # You can now use income_sum and expense_sum in your further calculations
+    apply_income_expense_totals(focus_ws, income_sum, expense_sum, max_row)
 
 
     # Ensure to save the workbook after sorting if needed
