@@ -3,10 +3,24 @@ from openpyxl import load_workbook
 from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
-
-
-from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import get_column_letter
+
+def create_summary_ssoi(ssoi_ws, max_row):
+    summary_row = 8  # Starting row for the summary section
+
+    # Loop through the SSOI sheet to find and summarize subtotals
+    for row in range(8, max_row + 1):
+        c_value = ssoi_ws.cell(row=row, column=3).value  # Value in column C
+        d_value = ssoi_ws.cell(row=row, column=4).value  # Value in column D
+
+        # Check if the value in column C contains the word "Total"
+        if c_value and "Total" in str(c_value):
+            # Split the value in column C into number ID and "Total"
+            ssoi_ws.cell(row=summary_row, column=9).value = str(c_value).replace("Total", "").strip()  # Number ID in column I
+            ssoi_ws.cell(row=summary_row, column=10).value = "Total"  # Word "Total" in column J
+            ssoi_ws.cell(row=summary_row, column=11).value = d_value  # Subtotal value in column K
+            summary_row += 1  # Move to the next row for the next summary item
+
 
 def apply_focus_summary_formatting(focus_ws, max_row):
     # Set headers for the Focus sheet summary section
@@ -732,8 +746,10 @@ def run_full_pl_macro(file_bytes):
     apply_income_expense_totals_ssoi(ssoi_ws, max_row)
 
     create_summary(focus_ws, max_row)
-
     apply_focus_summary_formatting(focus_ws, max_row)
+
+    create_summary_ssoi(ssoi_ws, max_row)
+
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
