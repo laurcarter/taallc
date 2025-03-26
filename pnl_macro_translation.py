@@ -5,89 +5,47 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 
 
+def categorize_income_expense(focus_ws, max_row):
+    # Define the colors
+    light_green_fill = PatternFill(start_color="D9F2D1", end_color="D9F2D1", fill_type="solid")  # Light green
+    light_red_fill = PatternFill(start_color="F9E2D2", end_color="F9E2D2", fill_type="solid")  # Light red
 
-def apply_focus_subtotals(focus_ws, max_row):
-    # Initialize variables for income and expense sums
     income_sum = 0
     expense_sum = 0
-    income_section_exists = False
-    expense_section_exists = False
 
-    # Track the last income and expense row
-    last_income_row = None
-    last_expense_row = None
+    # Loop through each row starting from row 8
+    for row in range(8, max_row + 1):
+        c_value = focus_ws.cell(row=row, column=3).value  # Value in column C
+        d_value = focus_ws.cell(row=row, column=4).value  # Value in column D
 
-    # Define the light green and red color fills
-    light_green_fill = PatternFill(start_color="D9F2D7", end_color="D9F2D7", fill_type="solid")
-    light_red_fill = PatternFill(start_color="F9E2D6", end_color="F9E2D6", fill_type="solid")
-
-    # Define the bold font
-    bold_font = Font(bold=True)
-
-    current_value = None  # Tracks the current group in column C
-    total_sum = 0  # Tracks the sum of the values in column D for the current group
-
-    # Loop through the rows starting from row 8
-    row_idx = 8
-    while row_idx <= max_row:
-        c_value = focus_ws.cell(row=row_idx, column=3).value
-        d_value = focus_ws.cell(row=row_idx, column=4).value
-
-        # Skip rows where the value in column C is empty or not numeric
+        # If there's no value in column C, skip this row
         if c_value is None or c_value == "":
-            row_idx += 1
             continue
 
-        # If the current value in column C is different from the previous one, insert a subtotal row
-        if c_value != current_value:
-            # If we have already encountered a group, insert the total row
-            if current_value is not None:
-                focus_ws.insert_rows(row_idx)
-                focus_ws.cell(row=row_idx, column=3).value = f"{current_value} Total"  # Insert "Total" in column C
-                focus_ws.cell(row=row_idx, column=4).value = total_sum  # Insert the sum in column D
-                focus_ws.cell(row=row_idx, column=3).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
-                focus_ws.cell(row=row_idx, column=4).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
-                focus_ws.cell(row=row_idx, column=5).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
-                focus_ws.cell(row=row_idx, column=6).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
+        # Scrub letters from the value in column C (take only the numeric part)
+        numeric_value = ''.join(filter(str.isdigit, str(c_value)))
 
-                # Move the row index down because we just inserted a new row
-                row_idx += 1
+        # Ensure the numeric value is treated as a number
+        if numeric_value.isdigit():
+            numeric_value = float(numeric_value)
 
-            # Reset for the new group
-            current_value = c_value
-            total_sum = d_value if isinstance(d_value, (int, float)) else 0  # Start sum with first value of the new group
-        else:
-            # Add the current value in column D to the running total
-            if isinstance(d_value, (int, float)):
-                total_sum += d_value
+            # Categorize as income (less than 4000) or expense (greater than or equal to 4000)
+            if numeric_value < 4000:
+                # Apply color for income (light green)
+                focus_ws.range(f"C{row}:F{row}").fill = light_green_fill
 
-        row_idx += 1  # Move to the next row
+                # Add the value from column D to the income sum
+                if isinstance(d_value, (int, float)):
+                    income_sum += d_value
+            else:
+                # Apply color for expense (light red)
+                focus_ws.range(f"C{row}:F{row}").fill = light_red_fill
 
-    # Handle the last group after the loop ends (ensure the final group is processed)
-    if current_value is not None:
-        focus_ws.insert_rows(row_idx)
-        focus_ws.cell(row=row_idx, column=3).value = f"{current_value} Total"
-        focus_ws.cell(row=row_idx, column=4).value = total_sum
-        focus_ws.cell(row=row_idx, column=3).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
-        focus_ws.cell(row=row_idx, column=4).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
-        focus_ws.cell(row=row_idx, column=5).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
-        focus_ws.cell(row=row_idx, column=6).fill = light_green_fill if isinstance(current_value, (int, float)) and current_value < 4000 else light_red_fill
+                # Add the value from column D to the expense sum
+                if isinstance(d_value, (int, float)):
+                    expense_sum += d_value
 
-    # Calculate and display the total sums
-    if income_section_exists:
-        focus_ws.cell(row=row_idx + 1, column=6).value = format(income_sum / 2, "0.00")  # Half the income sum
-        focus_ws.cell(row=row_idx + 1, column=6).font = bold_font  # Apply bold font
-
-    if expense_section_exists:
-        focus_ws.cell(row=row_idx + 1, column=6).value = format(expense_sum / 2, "0.00")  # Half the expense sum
-        focus_ws.cell(row=row_idx + 1, column=6).font = bold_font  # Apply bold font
-
-    # Calculate the result (Net Income)
-    result = income_sum / 2 - expense_sum / 2
-    focus_ws.cell(row=row_idx + 2, column=6).value = format(result, "0.00")
-    focus_ws.cell(row=row_idx + 2, column=5).value = "NET INCOME"
-    focus_ws.cell(row=row_idx + 2, column=5).font = bold_font  # Apply bold font
-    focus_ws.cell(row=row_idx + 2, column=6).font = bold_font  # Apply bold font
+    return income_sum, expense_sum
 
 
 
@@ -539,8 +497,11 @@ def run_full_pl_macro(file_bytes):
     delete_blank_rows(ssoi_ws, max_row)   # For SSOI sheet
     
     
-    #Calling focus income and expense
-    apply_focus_subtotals(focus_ws, max_row)
+    # Assuming focus_ws is the Focus sheet and max_row is the last row with data
+    income_sum, expense_sum = categorize_income_expense(focus_ws, max_row)
+
+    # You can now use income_sum and expense_sum in your further calculations
+
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
