@@ -5,6 +5,40 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 from openpyxl.utils import get_column_letter
 
+def apply_ssoi_summary_formatting(ssoi_ws, max_row):
+    # Set headers for the SSOI sheet summary section
+    ssoi_ws["I7"].value = "SSOI"  # Header for column I
+    ssoi_ws["J7"].value = ""      # Blank column J
+    ssoi_ws["K7"].value = "Amount" # Header for column K
+    
+    # Fill columns I to K in the SSOI sheet with black color for headers
+    black_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
+    ssoi_ws["I7"].fill = black_fill
+    ssoi_ws["J7"].fill = black_fill
+    ssoi_ws["K7"].fill = black_fill
+    
+    # Set the font color to white for header cells
+    white_font = Font(color="FFFFFF")
+    ssoi_ws["I7"].font = white_font
+    ssoi_ws["J7"].font = white_font
+    ssoi_ws["K7"].font = white_font
+
+    # Delete column J and shift everything to the left
+    ssoi_ws.delete_cols(10)  # This deletes column J (which is the 10th column)
+    
+    # Round values in the new column J (which is now column K) starting from row 8
+    for row in range(8, max_row + 1):
+        cell = ssoi_ws.cell(row=row, column=9)  # Column J is now column 9 after deletion
+        if isinstance(cell.value, (int, float)):  # Ensure it's a numeric value
+            cell.value = round(cell.value, 0)  # Round to 0 decimal places
+    
+    # Apply comma style formatting to the new column J (which is now column K) starting from row 8
+    for row in range(8, max_row + 1):
+        cell = ssoi_ws.cell(row=row, column=9)  # Column J is now column 9 after deletion
+        if isinstance(cell.value, (int, float)):  # Ensure it's a numeric value
+            cell.number_format = '#,##0'  # Apply comma style formatting
+
+
 def create_summary_ssoi(ssoi_ws, max_row):
     summary_row = 8  # Starting row for the summary section
 
@@ -749,7 +783,7 @@ def run_full_pl_macro(file_bytes):
     apply_focus_summary_formatting(focus_ws, max_row)
 
     create_summary_ssoi(ssoi_ws, max_row)
-
+    apply_ssoi_summary_formatting(ssoi_ws, max_row)
 
     # Ensure to save the workbook after sorting if needed
     output_stream = BytesIO()
