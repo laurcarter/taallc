@@ -103,16 +103,6 @@ elif st.session_state.step == 2:
     st.write(f"**Date of Birth:** {st.session_state.dob.strftime('%m/%d/%Y')}")
     st.write(f"**Phone Number:** {st.session_state.phone_number}")
 
-    st.write("### Phone Numbers:")
-    phone_number_1 = st.text_input("Phone Number 1", value=st.session_state.phone_number)
-    phone_number_2 = st.text_input("Phone Number 2")
-    phone_number_3 = st.text_input("Phone Number 3")
-    
-    if st.button("Continue"):
-        st.session_state.phone_number_1 = phone_number_1
-        st.session_state.phone_number_2 = phone_number_2
-        st.session_state.phone_number_3 = phone_number_3
-        st.session_state.step = 3
 
 # Step 3: Upload Excel File
 elif st.session_state.step == 3:
