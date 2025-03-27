@@ -217,8 +217,12 @@ elif st.session_state.step == 5:
     # Get the file to check for empty cells in column A (rows 5-10)
     file_bytes = st.session_state.excel_bytes  # The current file in session state
 
+    # Ensure file_bytes is a BytesIO object
+    if not isinstance(file_bytes, BytesIO):
+        file_bytes = BytesIO(file_bytes)  # Convert raw bytes to BytesIO if it's not already
+
     # Load the workbook
-    wb = load_workbook(filename=BytesIO(file_bytes))
+    wb = load_workbook(filename=file_bytes)
     sheet = wb.active
     empty_cell_count = 0
     total_cells_to_check = 6  # Checking rows 5 to 10 (6 rows total)
@@ -245,6 +249,7 @@ elif st.session_state.step == 5:
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
 
         st.session_state.step = 6  # Move to the final step for download
+
 
 
 
