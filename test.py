@@ -232,4 +232,19 @@ elif st.session_state.step == 5:
         if choice == "Profit & Loss (P&L)":
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
         st.session_state.step = 6
+# Step 6: Download Final Processed File
+elif st.session_state.step == 6:
+    st.title("✅ Final Step: Download Processed File")  # Title for Step 6
+    st.write("Download the final processed file.")  # Description for Step 6
+
+    st.download_button(
+        label="Download Final Excel",
+        data=st.session_state.excel_bytes,
+        file_name="final_filing.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    if st.button("Start Over"):
+        for key in ["step", "excel_bytes", "flagged_cells"]:
+            st.session_state.pop(key, None)
 
