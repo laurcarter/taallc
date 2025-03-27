@@ -154,11 +154,28 @@ elif st.session_state.step == 3:
             # Proceed with the selected sheet
             file_bytes = selected_file_bytes.read()
 
-        # Step 1: Collapse the sheet before highlighting totals
-        collapsed_file = collapse_sheet(file_bytes)  # Call collapse_sheet first
-        st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
+        # Conditional check for blank cells between rows 10-20
+        sheet = wb.active  # Use the active sheet for analysis
+        blank_cells_count = 0
+        total_cells_count = 0
 
-        # Now highlight and flag totals on the collapsed file
+        # Check for blank cells in the specified range (rows 10-20)
+        for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=sheet.max_column):
+            for cell in row:
+                if cell.value is None or str(cell.value).strip() == "":
+                    blank_cells_count += 1
+                total_cells_count += 1
+
+        # If more than 50% of cells are blank in the range, collapse the sheet
+        if blank_cells_count / total_cells_count > 0.5:
+            # Collapse the sheet if more than 50% of the cells in rows 10-20 are blank
+            collapsed_file = collapse_sheet(file_bytes)  # Call collapse_sheet if needed
+            st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
+        else:
+            # Skip collapsing the sheet
+            st.session_state.excel_bytes = file_bytes  # Keep the original file bytes
+
+        # Now highlight and flag totals on the file (collapsed or original)
         highlighted_file, flagged = highlight_and_flag_totals(st.session_state.excel_bytes)
         st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
         st.session_state.flagged_cells = flagged  # Store the flagged cells
@@ -166,6 +183,7 @@ elif st.session_state.step == 3:
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
         if st.button("Continue"):
             st.session_state.step = 4
+
 
 
 # Step 4: Show flagged cells for review
