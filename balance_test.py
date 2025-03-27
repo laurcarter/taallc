@@ -9,54 +9,6 @@ from openpyxl import load_workbook
 from io import BytesIO
 
 
-def sort_column_c(focus_ws, start_row=8, end_row=100):
-    # Create a list to store the rows (including the data) to be sorted
-    rows_to_sort = []
-
-    # Gather rows and their corresponding values from Column C
-    for row in range(start_row, end_row + 1):
-        value = focus_ws.cell(row=row, column=3).value  # Column C values
-        if value is not None:
-            rows_to_sort.append((row, value))
-
-    # Sort the rows based on the values in Column C (ascending)
-    rows_to_sort.sort(key=lambda x: x[1])
-
-    # Create a dictionary to store rows for grouping "total" values with the matching number
-    grouped_rows = []
-    total_group = []
-
-    # Group "total" rows with the previous value (matching number)
-    for row, value in rows_to_sort:
-        current_value = focus_ws.cell(row=row, column=3).value
-        next_row_value = focus_ws.cell(row=row + 1, column=3).value if row + 1 <= end_row else None
-
-        if current_value and "total" in str(current_value).lower():
-            if total_group:
-                grouped_rows.append(total_group)
-                total_group = []  # Reset for the next total group
-            total_group.append(row)  # Add the "total" row
-        else:
-            grouped_rows.append([row])
-
-    # Add remaining totals group if any
-    if total_group:
-        grouped_rows.append(total_group)
-
-    # Place the sorted data back into the worksheet, starting from row 8
-    current_row = start_row
-    for group in grouped_rows:
-        for row in group:
-            # Copy entire row
-            for col in range(1, focus_ws.max_column + 1):
-                focus_ws.cell(row=current_row, column=col).value = focus_ws.cell(row=row, column=col).value
-
-            current_row += 1  # Move to the next row
-
-    # Clear original data (the rows that have already been copied)
-    for row in range(start_row, end_row + 1):
-        for col in range(1, focus_ws.max_column + 1):
-            focus_ws.cell(row=row, column=col).value = None
 
 
 def apply_random_formatting(focus_ws, max_row):
@@ -358,8 +310,6 @@ def balance_focus_grouping(file_bytes):
     #subtotals
     apply_subtotals_for_sheet(focus_ws, max_row)
     
-    # Call this function for both sheets
-    
     
     create_summary(focus_ws, max_row)
     apply_focus_summary_formatting(focus_ws, max_row)
@@ -368,7 +318,29 @@ def balance_focus_grouping(file_bytes):
     apply_random_formatting(focus_ws, max_row)
 
     #new fixes, after copying pnl
-    sort_column_c(focus_ws, start_row=8, end_row=100)
+    # Sort the rows based on the values in Column C (smallest to largest), starting from row 8
+    rows_to_sort = []
+    
+    # Collect values from Column C and their corresponding rows starting from row 8
+    for row in range(8, max_row + 1):
+        value = focus_ws.cell(row=row, column=3).value  # Column C values
+        if value is not None:
+            rows_to_sort.append((row, value))
+    
+    # Sort the rows based on the values in Column C (ascending)
+    rows_to_sort.sort(key=lambda x: x[1])
+    
+    # Move the rows into the sorted order
+    for idx, (row, _) in enumerate(rows_to_sort):
+        # Move data to the new row position (starting from row 8)
+        target_row = 8 + idx
+        for col in range(1, focus_ws.max_column + 1):
+            focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=row, column=col).value
+    
+        # Clear the original row after moving the data
+        for col in range(1, focus_ws.max_column + 1):
+            focus_ws.cell(row=row, column=col).value = None
+
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
