@@ -54,10 +54,12 @@ def clean_flagged_totals(file_bytes):
                     cell.value = remove_parentheses_content(str(cell.value))
                     cell.fill = PatternFill()  # Reset to default empty fill
 
+    # Ensure the workbook is saved and returned correctly
     output_stream = BytesIO()
     wb.save(output_stream)
     output_stream.seek(0)
     return output_stream
+
 
 # Function to perform P&L transformation
 def perform_pnl_transformation(file_bytes):
