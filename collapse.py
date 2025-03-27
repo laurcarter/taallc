@@ -84,8 +84,8 @@ def collapse_sheet(file_bytes):
     clean_ws.cell(row=1, column=1).value = "Account Names"
     clean_ws.cell(row=1, column=2).value = "Balance"
 
-    # Move the CleanedSheet to the front of the workbook
-    wb._sheets = [wb["CleanedSheet"]] + [ws for ws in wb.worksheets if ws.title != "CleanedSheet"]
+    # Move the CleanedSheet to the front of the workbook using the `move_sheet` method
+    wb.move_sheet(clean_ws, offset=-len(wb.sheetnames))  # Move the CleanedSheet to the front
 
     # Save the workbook and return the processed data
     output_stream = BytesIO()
