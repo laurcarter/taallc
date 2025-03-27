@@ -22,26 +22,28 @@ def collapse_sheet(file_bytes):
         account_names = ""
         balance_found = False
 
-        # Step 2: Search columns A to N for the first numeric value (balance column)
-        for j in range(1, 15):  # Columns A to N (1 to 14)
-            cell = row[j-1]  # Get the cell in column j (1-indexed)
-            if cell is not None and cell.value is not None and isinstance(cell.value, (int, float)):  # Check for numeric value (balance)
-                balance = cell.value  # First numeric value is the balance
+        # Step 2: Search for the first numeric value (balance column) in columns A to N
+        for j in range(1, 15):  # Check columns A to N (columns 1 to 14)
+            cell = row[j-1]  # Access the cell (1-indexed)
+            
+            if cell is not None and isinstance(cell.value, (int, float)):  # Check if it's a numeric balance value
+                balance = cell.value  # First numeric value is considered the balance
                 clean_ws.cell(row=i, column=2).value = balance  # Place the balance in column B
                 balance_found = True
                 balance_column = j
                 break
 
-        # Step 3: Populate Account Names in column A
+        # Step 3: After finding the balance column, gather all non-numeric values (account names)
         if balance_found:
             account_names = ""
-            for j in range(1, balance_column):  # Iterate columns from A to the balance column
-                cell = row[j-1]  # Get the cell in column j (1-indexed)
-                if cell is not None and cell.value is not None and not isinstance(cell.value, (int, float)):  # Check for non-numeric value
-                    account_names += f" {cell.value}"
+            for j in range(1, balance_column):  # Loop over columns to the left of the balance column
+                cell = row[j-1]  # Access the cell (1-indexed)
+                
+                if cell is not None and not isinstance(cell.value, (int, float)) and cell.value != "":
+                    account_names += f" {cell.value}"  # Concatenate account names to the string
 
             account_names = account_names.strip()  # Remove any leading/trailing spaces
-            clean_ws.cell(row=i, column=1).value = account_names  # Place the account names in column A
+            clean_ws.cell(row=i, column=1).value = account_names  # Place account names in column A
 
     # Step 4: Insert a row at the top of the CleanedSheet for headers
     clean_ws.insert_rows(1)
