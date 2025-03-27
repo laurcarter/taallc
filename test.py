@@ -182,8 +182,13 @@ elif st.session_state.step == 3.5:
         # Store the updated Excel file in session state
         st.session_state.excel_bytes = selected_file_bytes.read()  # Store the updated Excel file
 
+        # Initialize flagged_cells in session state if it does not exist
+        if 'flagged_cells' not in st.session_state:
+            st.session_state.flagged_cells = []
+
         # Move to the next step for flagging totals (Step 4)
         st.session_state.step = 4  # Proceed to Step 4 for reviewing flagged cells
+
 
 
 
