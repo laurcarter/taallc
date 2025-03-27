@@ -129,6 +129,31 @@ elif st.session_state.step == 3:
     if uploaded_file:
         file_bytes = uploaded_file.read()
 
+        # Load the workbook to check the number of sheets
+        wb = load_workbook(filename=BytesIO(file_bytes))
+        sheet_names = wb.sheetnames  # List of sheet names
+        
+        if len(sheet_names) > 1:
+            # If multiple sheets are detected, prompt user to select one
+            st.warning("Multiple sheets detected. Please choose one sheet to proceed with.")
+            
+            # Display a selectbox for the user to choose a sheet
+            selected_sheet = st.selectbox("Select sheet to proceed with", sheet_names)
+
+            # Remove all other sheets
+            for sheet in sheet_names:
+                if sheet != selected_sheet:
+                    del wb[sheet]  # Delete unwanted sheets
+
+            # Now only the selected sheet is left, and we can continue processing
+            # Re-read the file with only the selected sheet
+            selected_file_bytes = BytesIO()
+            wb.save(selected_file_bytes)
+            selected_file_bytes.seek(0)
+
+            # Proceed with the selected sheet
+            file_bytes = selected_file_bytes.read()
+
         # Step 1: Collapse the sheet before highlighting totals
         collapsed_file = collapse_sheet(file_bytes)  # Call collapse_sheet first
         st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
@@ -141,7 +166,6 @@ elif st.session_state.step == 3:
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
         if st.button("Continue"):
             st.session_state.step = 4
-
 
 
 # Step 4: Show flagged cells for review
