@@ -30,13 +30,13 @@ def balance_focus_grouping(file_bytes):
             focus_ws.cell(row=row, column=1, value=split_values[0].strip())  # First part
             focus_ws.cell(row=row, column=2, value=split_values[1].strip(")"))  # Second part without closing parenthesis
 
-    # **Remove opening parenthesis in Column B**
+    # **Remove opening parenthesis in Column B** (only if present)
     for row in range(1, last_row + 1):
         cell_value = focus_ws.cell(row=row, column=2).value
         if isinstance(cell_value, str):
             focus_ws.cell(row=row, column=2, value=cell_value.replace("(", ""))
 
-    # **Remove closing parenthesis in Column B**
+    # **Remove closing parenthesis in Column B** (only if present)
     for row in range(1, last_row + 1):
         cell_value = focus_ws.cell(row=row, column=2).value
         if isinstance(cell_value, str):
@@ -63,6 +63,7 @@ def balance_focus_grouping(file_bytes):
     output_stream.seek(0)
 
     return output_stream
+
 
 
 # Step 1: Upload the file
