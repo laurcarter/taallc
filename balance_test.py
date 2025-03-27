@@ -92,6 +92,25 @@ def balance_focus_grouping(file_bytes):
     # Increase the width of column E to double the default width in the Focus sheet
     focus_ws.column_dimensions["E"].width = focus_ws.column_dimensions["E"].width * 2.5
 
+    
+
+    #subtotals
+    #apply_subtotals_for_sheet(focus_ws, max_row)
+    
+    # Call this function for both sheets
+    #delete_blank_rows(focus_ws, max_row)  # For Focus sheet
+    
+    
+
+    # You can now use income_sum and expense_sum in your further calculations
+    #apply_income_expense_totals(focus_ws, max_row)
+
+
+    #create_summary(focus_ws, max_row)
+    #apply_focus_summary_formatting(focus_ws, max_row)
+
+
+    #apply_random_formatting(focus_ws, max_row)
 
 
     # Save the modified workbook to a BytesIO object
