@@ -204,17 +204,27 @@ elif st.session_state.step == 5:
     st.write("Select the type of filing for this document.")  # Description for Step 5
 
     choice = st.radio("Select your filing type:", ["Profit & Loss (P&L)", "Balance Sheet"], index=0)
+    
     if st.button("Run Transformation"):
-        # Before running the transformation, trigger the collapse function
-        collapsed_file = collapse_sheet(st.session_state.excel_bytes)  # Trigger collapse here
-        st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
+        # Check if file_bytes exist and are valid
+        if 'excel_bytes' in st.session_state and st.session_state.excel_bytes:
+            file_bytes = st.session_state.excel_bytes
+            try:
+                # Trigger collapse here before running the transformation
+                collapsed_file = collapse_sheet(file_bytes)  # Calling collapse function
+                st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
 
-        if choice == "Profit & Loss (P&L)":
-            st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
-        
-        st.session_state.step = 6  # Move to the final step
+                # Continue with the transformation depending on the user's selection
+                if choice == "Profit & Loss (P&L)":
+                    st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
 
+                st.session_state.step = 6  # Move to the final step for download
 
+            except Exception as e:
+                st.error(f"An error occurred while processing the collapse function: {e}")
+        else:
+            st.error("No valid file found to process.")
+            
 # Step 6: Download Final Processed File
 elif st.session_state.step == 6:
     st.title("✅ Final Step: Download Processed File")  # Title for Step 6
