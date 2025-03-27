@@ -67,9 +67,9 @@ def collapse_sheet(file_bytes):
     # Iterate through rows in column A of the CleanedSheet to remove 'None' values within cells
     for row in clean_ws.iter_rows(min_col=1, max_col=1, min_row=2, max_row=clean_ws.max_row):
         for cell in row:
-            if cell.value is None:
-                cell.value = ""  # Replace None with an empty string in column A
-
+            # If the cell value is None or contains only whitespace, replace it with an empty string
+            if cell.value is None or str(cell.value).strip() == "":
+                cell.value = ""  # Replace None or empty strings with an empty string in column A
 
     # Save the workbook and return the processed data
     output_stream = BytesIO()
