@@ -123,19 +123,19 @@ elif st.session_state.step == 3:
     if uploaded_file:
         file_bytes = uploaded_file.read()
 
-        # First, call collapse_sheet function to collapse the account names
-        from collapse import collapse_sheet  # Import collapse_sheet from your collapse.py file
-        st.session_state.excel_bytes = collapse_sheet(file_bytes)  # Process file to collapse sheet
-        
-        # Now highlight and flag totals as in your existing logic
+        # Step 1: Collapse the sheet before highlighting totals
+        collapsed_file = collapse_sheet(file_bytes)  # Call collapse_sheet first
+        st.session_state.excel_bytes = collapsed_file
+
+        # Now highlight and flag totals
         highlighted_file, flagged = highlight_and_flag_totals(st.session_state.excel_bytes)
         st.session_state.excel_bytes = highlighted_file
         st.session_state.flagged_cells = flagged
 
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
-        
         if st.button("Continue"):
             st.session_state.step = 4
+
 
 
 # Step 4: Show flagged cells for review
