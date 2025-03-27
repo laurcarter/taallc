@@ -5,7 +5,6 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 from openpyxl.utils import get_column_letter
 import streamlit as st
-
 from openpyxl import load_workbook
 from io import BytesIO
 
@@ -26,37 +25,36 @@ def balance_focus_grouping(file_bytes):
     max_row = ws.max_row
     max_col = ws.max_column
 
-    # Step 1: Copy the content from the original sheet and paste it as plain text into the Focus sheet
-    for row in ws.iter_rows(min_row=1, max_row=max_row, max_col=max_col):
-        for cell in row:
-            focus_ws.cell(row=cell.row, column=cell.column, value=cell.value)
+    # Step 1: Copy Column A from the original sheet into Focus sheet (Column A in Focus)
+    for row in range(1, max_row + 1):
+        focus_ws.cell(row=row, column=1).value = ws.cell(row=row, column=1).value
 
-    # Step 2: Delimit Column A by the opening parenthesis and put the second part in Column B in Focus sheet
+    # Step 2: Split Column A by the opening parenthesis and move to Column B and D
     for row in range(1, max_row + 1):
         val = focus_ws.cell(row=row, column=1).value
         if val and '(' in str(val):
             # Split the value at the opening parenthesis and store the parts
             parts = str(val).split('(', 1)
-            focus_ws.cell(row=row, column=1).value = parts[0].strip()
-            focus_ws.cell(row=row, column=2).value = parts[1].strip()
+            focus_ws.cell(row=row, column=1).value = parts[0].strip()  # First part goes to Column A
+            focus_ws.cell(row=row, column=4).value = parts[1].strip()  # Second part goes to Column D
 
-    # Step 3: Remove parentheses in Column B (Focus sheet)
+    # Step 3: Remove parentheses in Column D (Focus sheet)
     for row in range(1, max_row + 1):
-        val_b = focus_ws.cell(row=row, column=2).value
-        if val_b:
-            focus_ws.cell(row=row, column=2).value = str(val_b).replace("(", "").replace(")", "")
+        val_d = focus_ws.cell(row=row, column=4).value
+        if val_d:
+            focus_ws.cell(row=row, column=4).value = str(val_d).replace("(", "").replace(")", "")
 
     # Step 4: Copy Column B from the original sheet to Column E in Focus sheet
     for row in range(1, max_row + 1):
         original_value = ws.cell(row=row, column=2).value
         focus_ws.cell(row=row, column=5).value = original_value
 
-    # Step 5: Clear Columns C and D in Focus sheet (Do this after copying to avoid overwriting)
+    # Step 5: Clear Columns C and D (focus_ws) in Focus sheet after moving data
     for row in range(1, max_row + 1):
         focus_ws.cell(row=row, column=3).value = None
         focus_ws.cell(row=row, column=4).value = None
 
-    # Step 6: Move Column E to Column D in Focus sheet (this happens AFTER clearing C and D)
+    # Step 6: Move Column E to Column D in Focus sheet (after clearing C and D)
     for row in range(1, max_row + 1):
         focus_ws.cell(row=row, column=4).value = focus_ws.cell(row=row, column=5).value
         focus_ws.cell(row=row, column=5).value = None  # Clear Column E after moving
@@ -66,6 +64,7 @@ def balance_focus_grouping(file_bytes):
     wb.save(output)
     output.seek(0)  # Move cursor to the beginning of the BytesIO object
     return output.read()  # Return the transformed file as bytes
+
 
 
 
