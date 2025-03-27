@@ -24,6 +24,8 @@ def collapse_sheet(file_bytes):
 
         # Step 2: Search for the first numeric value (balance column) in columns A to N
         for j in range(1, 15):  # Check columns A to N (columns 1 to 14)
+            if j-1 >= len(row):  # Check if j-1 is within the available columns in the row
+                continue
             cell = row[j-1]  # Access the cell (1-indexed)
             
             if cell is not None and isinstance(cell.value, (int, float)):  # Check if it's a numeric balance value
@@ -37,6 +39,8 @@ def collapse_sheet(file_bytes):
         if balance_found:
             account_names = ""
             for j in range(1, balance_column):  # Loop over columns to the left of the balance column
+                if j-1 >= len(row):  # Check if j-1 is within the available columns in the row
+                    continue
                 cell = row[j-1]  # Access the cell (1-indexed)
                 
                 if cell is not None and not isinstance(cell.value, (int, float)) and cell.value != "":
