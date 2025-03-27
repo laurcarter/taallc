@@ -172,6 +172,7 @@ elif st.session_state.step == 3:
         if st.button("Continue"):
             st.session_state.step = 4  # Move to Step 4
 
+
 # Step 4: Show flagged cells for review
 elif st.session_state.step == 4:
     st.title("🔍 Review Flagged Cells")  # Title for Step 4
@@ -197,7 +198,6 @@ elif st.session_state.step == 4:
             st.session_state.step = 5
 
 
-
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
     st.title("🔧 What type of filing is this?")  # Title for Step 5
@@ -205,10 +205,14 @@ elif st.session_state.step == 5:
 
     choice = st.radio("Select your filing type:", ["Profit & Loss (P&L)", "Balance Sheet"], index=0)
     if st.button("Run Transformation"):
+        # Before running the transformation, trigger the collapse function
+        collapsed_file = collapse_sheet(st.session_state.excel_bytes)  # Trigger collapse here
+        st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
+
         if choice == "Profit & Loss (P&L)":
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
-        st.session_state.step = 6
-
+        
+        st.session_state.step = 6  # Move to the final step
 
 
 # Step 6: Download Final Processed File
@@ -222,7 +226,6 @@ elif st.session_state.step == 6:
         file_name="final_filing.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
     if st.button("Start Over"):
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
