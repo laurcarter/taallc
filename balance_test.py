@@ -180,7 +180,7 @@ def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
     if max_row is None:
         max_row = focus_ws.max_row
 
-    # Create a list to store the rows and their corresponding values in Column C and D
+    # Step 1: Create a list to store the rows and their corresponding values in Column C and D
     rows_to_sort = []
 
     # Collect all the rows along with values from Column C and Column D
@@ -190,24 +190,13 @@ def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
         if value_c is not None:  # Only include rows with a value in Column C
             rows_to_sort.append((row, value_c, value_d))
 
-    # Step 1: Group rows by identical values in Column C
-    grouped_rows = {}
-    for row, value_c, value_d in rows_to_sort:
-        if value_c not in grouped_rows:
-            grouped_rows[value_c] = []
-        grouped_rows[value_c].append((row, value_d))
-
-    # Step 2: Sort each group by Column D in descending order
-    sorted_rows = []
-    for value_c, rows in grouped_rows.items():
-        # Sort rows within the group based on Column D (descending order)
-        rows.sort(key=lambda x: x[1], reverse=True)
-        sorted_rows.extend(rows)  # Append the sorted rows to the sorted_rows list
+    # Step 2: Sort the rows first by Column C (ascending) and then by Column D (descending)
+    rows_to_sort.sort(key=lambda x: (x[1], -x[2]))  # Sort by Column C ascending, Column D descending
 
     # Step 3: Reassign the sorted rows back to the worksheet
     target_row = start_row  # Start placing rows from the start_row position
 
-    for original_row, _ in sorted_rows:
+    for original_row, value_c, value_d in rows_to_sort:
         # Copy the entire row to the new position, including columns C and D (and other columns)
         for col in range(1, focus_ws.max_column + 1):
             focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=original_row, column=col).value
@@ -216,9 +205,10 @@ def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
         target_row += 1
 
     # Step 4: Clear the original rows after they have been re-inserted
-    for original_row, _ in sorted_rows:
+    for original_row, _, _ in rows_to_sort:
         for col in range(1, focus_ws.max_column + 1):
             focus_ws.cell(row=original_row, column=col).value = None
+
 
 
 
