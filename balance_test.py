@@ -30,6 +30,33 @@ def balance_focus_grouping(file_bytes):
             focus_ws.cell(row=row, column=1, value=split_values[0].strip())  # First part
             focus_ws.cell(row=row, column=2, value=split_values[1].strip(")"))  # Second part without closing parenthesis
 
+    # **Remove opening parenthesis in Column B**
+    for row in range(1, last_row + 1):
+        cell_value = focus_ws.cell(row=row, column=2).value
+        if isinstance(cell_value, str):
+            focus_ws.cell(row=row, column=2, value=cell_value.replace("(", ""))
+
+    # **Remove closing parenthesis in Column B**
+    for row in range(1, last_row + 1):
+        cell_value = focus_ws.cell(row=row, column=2).value
+        if isinstance(cell_value, str):
+            focus_ws.cell(row=row, column=2, value=cell_value.replace(")", ""))
+
+    # **Copy Column B from the original sheet to Column E in the Focus sheet**
+    for row in range(1, last_row + 1):
+        value_to_copy = ws.cell(row=row, column=2).value  # Column B from original sheet
+        focus_ws.cell(row=row, column=5, value=value_to_copy)  # Column E in Focus sheet
+
+    # **Clear the contents in Columns C and D in Focus sheet**
+    for row in range(1, last_row + 1):
+        focus_ws.cell(row=row, column=3).value = None  # Column C
+        focus_ws.cell(row=row, column=4).value = None  # Column D
+
+    # **Move data from Column E to Column D**
+    for row in range(1, last_row + 1):
+        focus_ws.cell(row=row, column=4).value = focus_ws.cell(row=row, column=5).value  # Move from E to D
+        focus_ws.cell(row=row, column=5).value = None  # Clear Column E after moving
+
     # Save the modified workbook to a BytesIO object
     output_stream = BytesIO()
     wb.save(output_stream)
