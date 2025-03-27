@@ -193,45 +193,7 @@ elif st.session_state.step == 4:
     else:
         st.info("No problematic 'Total' cells found. Skipping ahead.")
         if st.button("Continue"):
-            st.session_state.step = 5  # Skip to Step 5 if no flagged cells
-
-    # After reviewing flagged cells, check collapse condition
-    # Trigger collapse only after cleaning (or skipping) flagged totals
-
-    # Check collapse condition only after cleaning flagged totals
-    if 'excel_bytes' in st.session_state and st.session_state.excel_bytes:
-        file_bytes = st.session_state.excel_bytes  # Ensure we're working with the correct file
-        
-        # Ensure file_bytes is a BytesIO object
-        if not isinstance(file_bytes, BytesIO):
-            file_bytes = BytesIO(file_bytes)  # Wrap file_bytes in BytesIO if it's raw bytes
-
-        # Load the workbook after ensuring it's in the correct format
-        wb = load_workbook(filename=file_bytes)
-        sheet = wb.active
-
-        blank_cells_count = 0
-        total_cells_count = 0
-        collapse_needed = False
-
-        # Check for blank cells in column 1 (A) within rows 10-20
-        for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):  # Only check column 1 (A)
-            for cell in row:
-                if cell.value is None or str(cell.value).strip() == "":
-                    blank_cells_count += 1
-                total_cells_count += 1
-
-        # If more than 50% of cells in column 1 (A) between rows 10-20 are blank, collapse the sheet
-        if blank_cells_count / total_cells_count > 0.5:
-            collapse_needed = True
-
-        if collapse_needed:
-            # Collapse the sheet if needed
-            collapsed_file = collapse_sheet(file_bytes)  # Call collapse function if needed
-            st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
-        else:
-            # Skip collapsing the sheet
-            st.session_state.excel_bytes = file_bytes  # Keep the original file bytes
+            st.session_state.step = 5  # Skip to Step 5 if no flagged cell
 
 
 
