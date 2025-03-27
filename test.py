@@ -185,7 +185,6 @@ elif st.session_state.step == 3:
             st.session_state.step = 4
 
 
-
 # Step 4: Show flagged cells for review
 elif st.session_state.step == 4:
     st.title("🔍 Review Flagged Cells")  # Title for Step 4
