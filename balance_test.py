@@ -49,57 +49,49 @@ def balance_focus_grouping(file_bytes):
         original_value = ws.cell(row=row, column=2).value  # Get the value, not the formula
         focus_ws.cell(row=row, column=4).value = original_value  # Directly paste the value into Column D
 
-        # Move the entire sheet over by two columns in both Focus and SSOI sheets
-    focus_ws.insert_cols(1, 2)  # Insert two columns at the beginning of the Focus sheet
+    # Insert two columns at the beginning of the Focus sheet (Columns A and B become empty)
+    focus_ws.insert_cols(1, 2)
     
-    # Move data in columns starting from row 5 in the Focus sheet
+    # Shift data from columns starting from row 5 (move the data from columns C, D, F)
     for row in range(5, max_row + 1):
-        focus_ws.cell(row=row, column=3).offset(0, 2).value = focus_ws.cell(row=row, column=3).value
+        # Move data in Column C to Column E
+        focus_ws.cell(row=row, column=5).value = focus_ws.cell(row=row, column=3).value
         focus_ws.cell(row=row, column=3).value = None  # Clear original cell
     
-        focus_ws.cell(row=row, column=4).offset(0, -1).value = focus_ws.cell(row=row, column=4).value
+        # Move data in Column D to Column C
+        focus_ws.cell(row=row, column=3).value = focus_ws.cell(row=row, column=4).value
         focus_ws.cell(row=row, column=4).value = None  # Clear original cell
     
-        focus_ws.cell(row=row, column=6).offset(0, -2).value = focus_ws.cell(row=row, column=6).value
+        # Move data in Column F to Column D
+        focus_ws.cell(row=row, column=4).value = focus_ws.cell(row=row, column=6).value
         focus_ws.cell(row=row, column=6).value = None  # Clear original cell
     
-
-# new
-    # Add column titles in row 4
+    # Add column titles in row 4 (ensure this is done after the rows are shifted)
     focus_ws["C4"] = "Focus"
     focus_ws["D4"] = "Amount"
     focus_ws["E4"] = "Description"
     focus_ws["F4"] = "Totals"
-
     
-    # Shift everything below row 4 down by 3 rows in both sheets
+    # Shift everything below row 4 down by 3 rows in Focus sheet
     focus_ws.insert_rows(4, amount=3)  # Insert 3 rows at row 4 in focus_ws
-
-
-    # Call the sort_focus_sheet function after the rest of the operations in the macro
-    #sort_focus_sheet(focus_ws, max_row)
-
-    # After sorting column C (done by previous functions), call this function for secondary sorting
-    #secondary_sort_focus_sheet(focus_ws, max_row)
-
+    
     # Define fill color (black) and font color (white)
     black_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
     white_font = Font(color="FFFFFF")
-
+    
     # Fill columns C to F in row 7 with black and change the text color to white in the Focus sheet
     for col in ["C", "D", "E", "F"]:
         focus_ws[f"{col}7"].fill = black_fill
         focus_ws[f"{col}7"].font = white_font
-
-
+    
     # Format column D and F in the Focus sheet to show numbers with thousand commas
     for row in range(1, max_row + 1):
         focus_ws.cell(row=row, column=4).number_format = "#,##0"  # Column D
         focus_ws.cell(row=row, column=6).number_format = "#,##0"  # Column F
-
-
+    
     # Increase the width of column E to double the default width in the Focus sheet
     focus_ws.column_dimensions["E"].width = focus_ws.column_dimensions["E"].width * 2.5
+
 
 
     # Save the modified workbook to a BytesIO object
