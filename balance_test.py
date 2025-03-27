@@ -37,58 +37,6 @@ def apply_random_formatting(focus_ws, ssoi_ws, max_row):
                 cell.font = Font(bold=True)  # Apply bold font
 
 
-
-def apply_ssoi_summary_formatting(ssoi_ws, max_row):
-    # Set headers for the SSOI sheet summary section
-    ssoi_ws["I7"].value = "SSOI"  # Header for column I
-    ssoi_ws["J7"].value = ""      # Blank column J
-    ssoi_ws["K7"].value = "Amount" # Header for column K
-    
-    # Fill columns I to K in the SSOI sheet with black color for headers
-    black_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
-    ssoi_ws["I7"].fill = black_fill
-    ssoi_ws["J7"].fill = black_fill
-    ssoi_ws["K7"].fill = black_fill
-    
-    # Set the font color to white for header cells
-    white_font = Font(color="FFFFFF")
-    ssoi_ws["I7"].font = white_font
-    ssoi_ws["J7"].font = white_font
-    ssoi_ws["K7"].font = white_font
-
-    # Delete column J and shift everything to the left
-    ssoi_ws.delete_cols(10)  # This deletes column J (which is the 10th column)
-    
-    # Round values in the new column J (which is now column K) starting from row 8
-    for row in range(8, max_row + 1):
-        cell = ssoi_ws.cell(row=row, column=9)  # Column J is now column 9 after deletion
-        if isinstance(cell.value, (int, float)):  # Ensure it's a numeric value
-            cell.value = round(cell.value, 0)  # Round to 0 decimal places
-    
-    # Apply comma style formatting to the new column J (which is now column K) starting from row 8
-    for row in range(8, max_row + 1):
-        cell = ssoi_ws.cell(row=row, column=9)  # Column J is now column 9 after deletion
-        if isinstance(cell.value, (int, float)):  # Ensure it's a numeric value
-            cell.number_format = '#,##0'  # Apply comma style formatting
-
-
-def create_summary_ssoi(ssoi_ws, max_row):
-    summary_row = 8  # Starting row for the summary section
-
-    # Loop through the SSOI sheet to find and summarize subtotals
-    for row in range(8, max_row + 1):
-        c_value = ssoi_ws.cell(row=row, column=3).value  # Value in column C
-        d_value = ssoi_ws.cell(row=row, column=4).value  # Value in column D
-
-        # Check if the value in column C contains the word "Total"
-        if c_value and "Total" in str(c_value):
-            # Split the value in column C into number ID and "Total"
-            ssoi_ws.cell(row=summary_row, column=9).value = str(c_value).replace("Total", "").strip()  # Number ID in column I
-            ssoi_ws.cell(row=summary_row, column=10).value = "Total"  # Word "Total" in column J
-            ssoi_ws.cell(row=summary_row, column=11).value = d_value  # Subtotal value in column K
-            summary_row += 1  # Move to the next row for the next summary item
-
-
 def apply_focus_summary_formatting(focus_ws, max_row):
     # Set headers for the Focus sheet summary section
     focus_ws["I7"].value = "Focus"  # Header for column I
@@ -454,12 +402,12 @@ def secondary_sort_focus_sheet(focus_ws, max_row):
 
 def balance_focus_grouping(file_bytes):
     # Ensure file_bytes is a BytesIO object
-    if isinstance(file_bytes, BytesIO):
-        file_obj = file_bytes
-    else:
-        file_obj = BytesIO(file_bytes)
+    if not isinstance(file_bytes, BytesIO):
+        # If file_bytes is raw data (not a BytesIO object), wrap it into BytesIO
+        file_bytes = BytesIO(file_bytes)
 
-    wb = load_workbook(filename=file_obj)
+    # Load the workbook from the BytesIO object
+    wb = load_workbook(filename=file_bytes)
     ws = wb.active  # Get the active worksheet
 
     # Create Focus worksheet
@@ -590,12 +538,11 @@ def balance_focus_grouping(file_bytes):
 
     apply_random_formatting(focus_ws, ssoi_ws, max_row)
 
-    # Ensure to save the workbook after sorting if needed
-    output_stream = BytesIO()
-    wb.save(output_stream)
-    output_stream.seek(0)
-    return output_stream
-
+    # Save the modified workbook to a BytesIO object
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)  # Move cursor to the beginning of the BytesIO object
+    return output.read()  # Return the transformed file as bytes
 
 
 # Step 1: Upload the file
