@@ -60,6 +60,17 @@ def collapse_sheet(file_bytes):
     # Move the CleanedSheet to the front of the workbook
     wb._sheets = [wb["CleanedSheet"]] + [ws for ws in wb.worksheets if ws.title != "CleanedSheet"]
 
+    # ---------------------------
+    # Scrubbing Non-None Values in Column A
+    # ---------------------------
+    
+    # Iterate through rows in column A of the CleanedSheet to remove 'None' values within cells
+    for row in clean_ws.iter_rows(min_col=1, max_col=1, min_row=2, max_row=clean_ws.max_row):
+        for cell in row:
+            if cell.value is None:
+                cell.value = ""  # Replace None with an empty string in column A
+
+
     # Save the workbook and return the processed data
     output_stream = BytesIO()
     wb.save(output_stream)
