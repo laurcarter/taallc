@@ -187,7 +187,7 @@ elif st.session_state.step == 3.5:
             st.session_state.flagged_cells = []
 
         # Move to the next step for flagging totals (Step 4)
-        st.session_state.step = 4  # Proceed to Step 4 for reviewing flagged cells
+        st.session_state.step = 3  # Proceed to Step 4 for reviewing flagged cells
 
 
 # Step 4: Show flagged cells for review and clean if needed
