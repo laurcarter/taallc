@@ -6,6 +6,8 @@ from openpyxl.utils import column_index_from_string
 from openpyxl.utils import get_column_letter
 import streamlit as st
 
+from openpyxl import load_workbook
+from io import BytesIO
 
 def balance_focus_grouping(file_bytes):
     # Ensure file_bytes is a BytesIO object
@@ -49,21 +51,22 @@ def balance_focus_grouping(file_bytes):
         original_value = ws.cell(row=row, column=2).value
         focus_ws.cell(row=row, column=5).value = original_value
 
-    # Step 5: Clear Columns C and D in Focus sheet
+    # Step 5: Clear Columns C and D in Focus sheet (Do this after copying to avoid overwriting)
     for row in range(1, max_row + 1):
         focus_ws.cell(row=row, column=3).value = None
         focus_ws.cell(row=row, column=4).value = None
 
-    # Step 6: Move Column E to Column D in Focus sheet
+    # Step 6: Move Column E to Column D in Focus sheet (this happens AFTER clearing C and D)
     for row in range(1, max_row + 1):
         focus_ws.cell(row=row, column=4).value = focus_ws.cell(row=row, column=5).value
-        focus_ws.cell(row=row, column=5).value = None
+        focus_ws.cell(row=row, column=5).value = None  # Clear Column E after moving
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
     wb.save(output)
     output.seek(0)  # Move cursor to the beginning of the BytesIO object
     return output.read()  # Return the transformed file as bytes
+
 
 
 
