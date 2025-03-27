@@ -161,39 +161,40 @@ elif st.session_state.step == 3:
             # If there is only one sheet, use it directly
             sheet = wb.active
 
-        # Conditional check for blank cells between rows 10-20 in column 1 (A)
-        blank_cells_count = 0
-        total_cells_count = 0
-        collapse_needed = False
-
-        # Check for blank cells in column 1 (A) within rows 10-20 on the active sheet
-        for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):  # Only check column 1 (A)
-            for cell in row:
-                if cell.value is None or str(cell.value).strip() == "":
-                    blank_cells_count += 1
-                total_cells_count += 1
-
-        # If more than 50% of cells in column 1 (A) between rows 10-20 are blank, collapse the sheet
-        if blank_cells_count / total_cells_count > 0.5:
-            collapse_needed = True
-
-        if collapse_needed:
-            # Collapse the sheet if needed
-            collapsed_file = collapse_sheet(file_bytes)  # Call collapse_sheet if needed
-            st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
-        else:
-            # Skip collapsing the sheet
-            st.session_state.excel_bytes = file_bytes  # Keep the original file bytes
-
-        # Now highlight and flag totals on the file (collapsed or original)
-        highlighted_file, flagged = highlight_and_flag_totals(st.session_state.excel_bytes)
+        # Now highlight and flag totals on the selected sheet before checking collapse condition
+        highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
         st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
         st.session_state.flagged_cells = flagged  # Store the flagged cells
 
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
-        if st.button("Continue"):
-            st.session_state.step = 4
 
+        # Continue button to move to the next step
+        if st.button("Continue"):
+            # Check for collapse condition based on blank cells in rows 10-20 of column A
+            blank_cells_count = 0
+            total_cells_count = 0
+            collapse_needed = False
+
+            # Check for blank cells in column 1 (A) within rows 10-20
+            for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):
+                for cell in row:
+                    if cell.value is None or str(cell.value).strip() == "":
+                        blank_cells_count += 1
+                    total_cells_count += 1
+
+            # If more than 50% of cells in column 1 (A) between rows 10-20 are blank, collapse the sheet
+            if blank_cells_count / total_cells_count > 0.5:
+                collapse_needed = True
+
+            if collapse_needed:
+                # Collapse the sheet if needed
+                collapsed_file = collapse_sheet(file_bytes)  # Call collapse_sheet if needed
+                st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
+            else:
+                # Skip collapsing the sheet
+                st.session_state.excel_bytes = file_bytes  # Keep the original file bytes
+
+            st.session_state.step = 4
 
 
 # Step 4: Show flagged cells for review
@@ -220,6 +221,7 @@ elif st.session_state.step == 4:
         if st.button("Continue"):
             st.session_state.step = 5
 
+
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
     st.title("🔧 What type of filing is this?")  # Title for Step 5
@@ -230,19 +232,4 @@ elif st.session_state.step == 5:
         if choice == "Profit & Loss (P&L)":
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
         st.session_state.step = 6
-
-# Step 6: Download Final Processed File
-elif st.session_state.step == 6:
-    st.title("✅ Final Step: Download Processed File")  # Title for Step 6
-    st.write("Download the final processed file.")  # Description for Step 6
-
-    st.download_button(
-        label="Download Final Excel",
-        data=st.session_state.excel_bytes,
-        file_name="final_filing.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    if st.button("Start Over"):
-        for key in ["step", "excel_bytes", "flagged_cells"]:
-            st.session_state.pop(key, None)
 
