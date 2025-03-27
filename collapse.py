@@ -3,7 +3,8 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
 def collapse_sheet(file_bytes):
-    wb = load_workbook(filename=BytesIO(file_bytes))  # Ensure file_bytes is wrapped in BytesIO
+    # Load the workbook and get the active sheet
+    wb = load_workbook(filename=BytesIO(file_bytes))
     ws = wb.active  # Active sheet
 
     # Create a temporary sheet to hold the data
@@ -85,7 +86,7 @@ def collapse_sheet(file_bytes):
     clean_ws.cell(row=1, column=2).value = "Balance"
 
     # Move the CleanedSheet to the front of the workbook using the `move_sheet` method
-    wb.move_sheet(clean_ws, offset=-len(wb.sheetnames))  # Move the CleanedSheet to the front
+    wb._sheets = [wb["CleanedSheet"]] + [ws for ws in wb.worksheets if ws.title != "CleanedSheet"]
 
     # Save the workbook and return the processed data
     output_stream = BytesIO()
