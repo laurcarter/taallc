@@ -1,20 +1,13 @@
 import streamlit as st
 from io import BytesIO
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill, Font
 import re
-
-# ---------- Streamlit Page Config ----------
-st.set_page_config(page_title="Personal Information Collection", layout="wide")
-
-# Title and description
-st.title("🧾 Personal Information Collection")
-st.write("To get started, we'll need some information about you.")
 
 # ---------- Utility Functions ----------
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
 
-# Function to highlight flagged totals (for example if any issues in data are found)
+# Function to highlight flagged totals
 def highlight_and_flag_totals(file_bytes):
     wb = load_workbook(filename=BytesIO(file_bytes), data_only=True)
     flagged_cells = []
@@ -33,13 +26,48 @@ def highlight_and_flag_totals(file_bytes):
     output_stream.seek(0)
     return output_stream, flagged_cells
 
-# Step 1: Personal Information Collection
+# Function to clean flagged totals (remove parentheses and 'Total')
+def clean_flagged_totals(file_bytes):
+    if isinstance(file_bytes, BytesIO):
+        file_obj = file_bytes
+    else:
+        file_obj = BytesIO(file_bytes)
+
+    wb = load_workbook(filename=file_obj, data_only=True)
+
+    def remove_parentheses_content(text):
+        return re.sub(r'\s*\([^)]*\)', '', text).strip()
+
+    for ws in wb.worksheets:
+        max_row = ws.max_row
+        for row in ws.iter_rows(min_row=1, max_row=max_row, min_col=1, max_col=8):
+            for cell in row:
+                if cell.value and "Total" in str(cell.value):
+                    cell.value = remove_parentheses_content(str(cell.value))
+                    cell.fill = PatternFill()  # Reset to default empty fill
+
+    output_stream = BytesIO()
+    wb.save(output_stream)
+    output_stream.seek(0)
+    return output_stream
+
+# Function to perform P&L transformation
+def perform_pnl_transformation(file_bytes):
+    from pnl_macro_translation import run_full_pl_macro
+    return run_full_pl_macro(file_bytes)
+
+# ---------- Streamlit App Flow ----------
+st.set_page_config(page_title="Personal Information Collection", layout="wide")
+st.title("🧾 Personal Information Collection")
+st.write("To get started, we'll need some information about you.")
+
+# Step Handling
 if "step" not in st.session_state:
     st.session_state.step = 1
 if "personal_info" not in st.session_state:
     st.session_state.personal_info = {}
 
-# Step 1 - Collect Personal Information
+# Step 1: Personal Information Collection
 if st.session_state.step == 1:
     with st.expander("Step 1: Tell us about yourself", expanded=True):
         first_name = st.text_input("First Name")
