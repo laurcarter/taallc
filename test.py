@@ -136,12 +136,12 @@ elif st.session_state.step == 3:
         wb = load_workbook(filename=BytesIO(file_bytes))
         sheet_names = wb.sheetnames  # List of sheet names
         
-        # If there are multiple sheets, move to Step 3.5 for sheet selection
         if len(sheet_names) > 1:
+            # If there are multiple sheets, go to Step 3.5 for sheet selection
+            st.session_state.uploaded_file_bytes = file_bytes  # Store file bytes for Step 3.5
             st.session_state.step = 3.5  # Proceed to Step 3.5 for sheet selection
-            st.session_state.uploaded_file_bytes = file_bytes  # Store file bytes in session state
         else:
-            # If there's only one sheet, continue with the current logic
+            # If only one sheet, continue as normal
             sheet = wb.active
 
             # Highlight and flag totals on the selected sheet
@@ -153,6 +153,7 @@ elif st.session_state.step == 3:
             # Continue button to move to the next step
             if st.button("Continue"):
                 st.session_state.step = 4  # Move to Step 4
+
 # Step 3.5: Select a sheet if multiple sheets exist
 elif st.session_state.step == 3.5:
     st.title("📄 Select Sheet")  # Title for Step 3.5
@@ -163,7 +164,7 @@ elif st.session_state.step == 3.5:
     wb = load_workbook(filename=BytesIO(uploaded_file_bytes))
     sheet_names = wb.sheetnames  # List of sheet names
     
-    # Display the sheet names in a multi-select option
+    # Display the sheet names in a select box
     selected_sheet = st.selectbox("Select a sheet:", sheet_names)
 
     # Button to continue after selection
@@ -178,11 +179,12 @@ elif st.session_state.step == 3.5:
         wb.save(selected_file_bytes)
         selected_file_bytes.seek(0)
 
-        # Proceed with the selected sheet and store it in session state
+        # Store the updated Excel file in session state
         st.session_state.excel_bytes = selected_file_bytes.read()  # Store the updated Excel file
 
-        # Move to the next step for flagging totals
-        st.session_state.step = 4  # Move to Step 4 for reviewing flagged cells
+        # Move to the next step for flagging totals (Step 4)
+        st.session_state.step = 4  # Proceed to Step 4 for reviewing flagged cells
+
 
 
 
