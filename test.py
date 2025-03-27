@@ -132,29 +132,31 @@ elif st.session_state.step == 3:
     if uploaded_file:
         file_bytes = uploaded_file.read()
 
-        # Load the workbook to check if there are multiple sheets
+        # Load the workbook to check the number of sheets
         wb = load_workbook(filename=BytesIO(file_bytes))
         sheet_names = wb.sheetnames  # List of sheet names
-        
+
         if len(sheet_names) > 1:
-            # If there are multiple sheets, go to Step 3.5 for sheet selection
-            st.session_state.uploaded_file_bytes = file_bytes  # Store file bytes for Step 3.5
-            st.session_state.step = 3.5  # Proceed to Step 3.5 for sheet selection
+            # If multiple sheets are detected, move to Step 3.5 for sheet selection
+            st.session_state.uploaded_file = uploaded_file  # Store uploaded file in session state
+            st.session_state.step = 3.5  # Transition to Step 3.5
         else:
-            # If only one sheet, continue as normal
+            # If there is only one sheet, proceed with the regular logic
             sheet = wb.active
 
-            # Highlight and flag totals on the selected sheet
+            # Now highlight and flag totals on the selected sheet
             highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
             st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
             st.session_state.flagged_cells = flagged  # Store the flagged cells
 
             st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
+
             # Continue button to move to the next step
             if st.button("Continue"):
                 st.session_state.step = 4  # Move to Step 4
 
-# Step 3.5: After Sheet Selection (if multiple sheets are detected)
+
+# Step 3.5: Sheet Selection (if multiple sheets are detected)
 elif st.session_state.step == 3.5:
     st.title("📂 Choose Your Sheet")  # Title for Step 3.5
     st.write("You have multiple sheets in the file. Please select one to continue.")  # Description for Step 3.5
@@ -163,10 +165,10 @@ elif st.session_state.step == 3.5:
 
     if uploaded_file:
         # Load the workbook and display available sheets
-        file_bytes = uploaded_file
+        file_bytes = uploaded_file.read()
         wb = load_workbook(filename=BytesIO(file_bytes))
         sheet_names = wb.sheetnames  # List of sheet names
-        
+
         # Display selectbox for choosing sheet
         selected_sheet = st.selectbox("Select sheet to proceed with", sheet_names)
 
@@ -196,6 +198,7 @@ elif st.session_state.step == 3.5:
         # Continue button to move to the next step
         if st.button("Continue"):
             st.session_state.step = 4  # Move to Step 4
+
 
 
 
