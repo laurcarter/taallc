@@ -213,9 +213,10 @@ def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
             # Move the target row down after each operation
             target_row += 1
 
-            # Clear the original row after moving it
-            for col in range(1, focus_ws.max_column + 1):
-                focus_ws.cell(row=original_row, column=col).value = None
+    # Step 4: Clear the original rows after they have been re-inserted
+    for row, _, _ in rows_to_sort:
+        for col in range(1, focus_ws.max_column + 1):
+            focus_ws.cell(row=row, column=col).value = None
 
 
 
