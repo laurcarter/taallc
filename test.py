@@ -159,17 +159,17 @@ elif st.session_state.step == 3.5:
     st.title("📂 Choose Your Sheet")  # Title for Step 3.5
     st.write("You have multiple sheets in the file. Please select one to continue.")  # Description for Step 3.5
 
-    # Load the workbook and display available sheets
-    uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"], key="file_uploader_3_5")
-    
+    uploaded_file = st.session_state.get('uploaded_file', None)  # Retrieve the uploaded file from session state
+
     if uploaded_file:
-        file_bytes = uploaded_file.read()
+        # Load the workbook and display available sheets
+        file_bytes = uploaded_file
         wb = load_workbook(filename=BytesIO(file_bytes))
         sheet_names = wb.sheetnames  # List of sheet names
         
         # Display selectbox for choosing sheet
         selected_sheet = st.selectbox("Select sheet to proceed with", sheet_names)
-        
+
         # Remove all other sheets
         for sheet in sheet_names:
             if sheet != selected_sheet:
@@ -183,11 +183,11 @@ elif st.session_state.step == 3.5:
         wb.save(selected_file_bytes)
         selected_file_bytes.seek(0)
 
-        # Proceed with the selected sheet
-        file_bytes = selected_file_bytes.read()
+        # Store the selected file back in session state
+        st.session_state.excel_bytes = selected_file_bytes.read()
 
         # Now highlight and flag totals on the selected sheet
-        highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
+        highlighted_file, flagged = highlight_and_flag_totals(st.session_state.excel_bytes)
         st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
         st.session_state.flagged_cells = flagged  # Store the flagged cells
 
@@ -196,6 +196,8 @@ elif st.session_state.step == 3.5:
         # Continue button to move to the next step
         if st.button("Continue"):
             st.session_state.step = 4  # Move to Step 4
+
+
 
 
 
