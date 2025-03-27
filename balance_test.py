@@ -300,10 +300,10 @@ def balance_focus_grouping(file_bytes):
     focus_ws.column_dimensions["E"].width = focus_ws.column_dimensions["E"].width * 2.5
     
     # Call the sort_focus_sheet function after the rest of the operations in the macro
-    sort_focus_sheet(focus_ws, max_row)
+    #sort_focus_sheet(focus_ws, max_row)
 
     # After sorting column C (done by previous functions), call this function for secondary sorting
-    secondary_sort_focus_sheet(focus_ws, max_row)
+    #secondary_sort_focus_sheet(focus_ws, max_row)
 
 
 
