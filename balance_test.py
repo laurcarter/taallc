@@ -312,11 +312,6 @@ def balance_focus_grouping(file_bytes):
     # Call this function for both sheets
     
     
-
-    # You can now use income_sum and expense_sum in your further calculations
-    apply_income_expense_totals(focus_ws, max_row)
-
-
     create_summary(focus_ws, max_row)
     apply_focus_summary_formatting(focus_ws, max_row)
 
