@@ -6,36 +6,37 @@ from openpyxl.utils import column_index_from_string
 from openpyxl.utils import get_column_letter
 import streamlit as st
 
-def apply_random_formatting(focus_ws, ssoi_ws, max_row):
-    # Comma formatting and rounding for both Focus and SSOI sheets
-    for ws in [focus_ws, ssoi_ws]:
-        # Column J (now column 10 after deletion)
-        for row in range(8, max_row + 1):
-            cell = ws.cell(row=row, column=10)  # Column J
-            if isinstance(cell.value, (int, float)):
-                # Round to 0 decimal places and apply comma format
-                cell.value = round(cell.value, 0)
-                cell.number_format = "#,##0"  # Apply comma style formatting
 
-        # Column F (column 6)
-        for row in range(8, max_row + 1):
-            cell = ws.cell(row=row, column=6)  # Column F
-            if isinstance(cell.value, (int, float)):
-                # Apply comma style formatting
-                cell.number_format = "#,##0"
+def apply_random_formatting(focus_ws, max_row):
+    # Comma formatting and rounding for Focus sheet only
 
-        # Column D (column 4)
-        for row in range(8, max_row + 1):
-            cell = ws.cell(row=row, column=4)  # Column D
-            if isinstance(cell.value, (int, float)):
-                # Apply comma style formatting
-                cell.number_format = "#,##0"
+    # Column J (now column 10 after deletion)
+    for row in range(8, max_row + 1):
+        cell = focus_ws.cell(row=row, column=10)  # Column J
+        if isinstance(cell.value, (int, float)):
+            # Round to 0 decimal places and apply comma format
+            cell.value = round(cell.value, 0)
+            cell.number_format = "#,##0"  # Apply comma style formatting
 
-        # Bold cells with the word 'Total' in column C
-        for row in range(8, max_row + 1):
-            cell = ws.cell(row=row, column=3)  # Column C
-            if cell.value and "total" in str(cell.value).lower():  # Check if 'total' is in the cell
-                cell.font = Font(bold=True)  # Apply bold font
+    # Column F (column 6)
+    for row in range(8, max_row + 1):
+        cell = focus_ws.cell(row=row, column=6)  # Column F
+        if isinstance(cell.value, (int, float)):
+            # Apply comma style formatting
+            cell.number_format = "#,##0"
+
+    # Column D (column 4)
+    for row in range(8, max_row + 1):
+        cell = focus_ws.cell(row=row, column=4)  # Column D
+        if isinstance(cell.value, (int, float)):
+            # Apply comma style formatting
+            cell.number_format = "#,##0"
+
+    # Bold cells with the word 'Total' in column C
+    for row in range(8, max_row + 1):
+        cell = focus_ws.cell(row=row, column=3)  # Column C
+        if cell.value and "total" in str(cell.value).lower():  # Check if 'total' is in the cell
+            cell.font = Font(bold=True)  # Apply bold font
 
 
 def apply_focus_summary_formatting(focus_ws, max_row):
@@ -89,64 +90,6 @@ def create_summary(focus_ws, max_row):
             summary_row += 1  # Move to the next row for the next summary item
 
 
-def apply_income_expense_totals_ssoi(ssoi_ws, max_row):
-    # Call the categorize_income_expense_ssoi function to get the income and expense sums
-    income_sum, expense_sum = categorize_income_expense_ssoi(ssoi_ws, max_row)
-
-
-    # Initialize row trackers for income and expense sections
-    income_rows = []
-    expense_rows = []
-
-    # Loop through the rows again to identify income and expense sections (rows with green and red fills)
-    for row_idx in range(8, max_row + 1):
-        c_value = ssoi_ws.cell(row=row_idx, column=3).value  # Column C
-        d_value = ssoi_ws.cell(row=row_idx, column=4).value  # Column D
-
-        # Only consider rows with income or expense values (skip others)
-        if c_value is None or d_value is None:
-            continue
-
-        # Check for income or expense rows based on the value in column C
-        numeric_value = ''.join(filter(str.isdigit, str(c_value)))
-        if numeric_value.isdigit():
-            numeric_value = float(numeric_value)
-
-            # Add the row index to the respective list (income or expense) based on the value in column C
-            if numeric_value <= 11:
-                income_rows.append(row_idx)
-            else:
-                expense_rows.append(row_idx)
-
-    # Insert the income sum into the last row of the income section
-    if income_rows:
-        last_income_row = income_rows[-1]  # Get the last row in the income section
-        ssoi_ws.cell(row=last_income_row, column=6).value = round(income_sum, 2)  # Insert sum into column F
-        ssoi_ws.cell(row=last_income_row, column=6).font = Font(bold=True)  # Make it bold
-
-    # Insert the expense sum into the last row of the expense section
-    if expense_rows:
-        last_expense_row = expense_rows[-1]  # Get the last row in the expense section
-        ssoi_ws.cell(row=last_expense_row, column=6).value = round(expense_sum, 2)  # Insert sum into column F
-        ssoi_ws.cell(row=last_expense_row, column=6).font = Font(bold=True)  # Make it bold
-
-    # Calculate the result by subtracting expenses from income
-    result = income_sum - expense_sum
-
-    # Find the last used row in column C to determine where to place the "NET INCOME" value
-    last_row = max_row
-    for row in range(max_row, 7, -1):  # Start from max_row and move upwards
-        if ssoi_ws.cell(row=row, column=3).value is not None:
-            last_row = row
-            break
-
-    # Place the result in the cell below the last used row in column F
-    ssoi_ws.cell(row=last_row + 1, column=5).value = "NET INCOME"  # Column E for "NET INCOME"
-    ssoi_ws.cell(row=last_row + 1, column=5).font = Font(bold=True)  # Make the "NET INCOME" bold
-
-    # Place the result in column F
-    ssoi_ws.cell(row=last_row + 1, column=6).value = round(result, 2)  # Column F for result
-    ssoi_ws.cell(row=last_row + 1, column=6).font = Font(bold=True)  # Make the result bold
 
 
 
@@ -277,11 +220,6 @@ def delete_blank_rows(ws, max_row):
         else:
             row_idx += 1  # Move to the next row if not both columns are blank
 
-
-def apply_subtotals(focus_ws, ssoi_ws, max_row):
-    # Apply subtotals to both the Focus and SSOI sheets
-    apply_subtotals_for_sheet(focus_ws, max_row)
-    apply_subtotals_for_sheet(ssoi_ws, max_row)
 
 def apply_subtotals_for_sheet(ws, max_row):
     current_value = None  # Tracks the current group in column C
@@ -522,7 +460,7 @@ def balance_focus_grouping(file_bytes):
 
 
     #subtotals
-    apply_subtotals(focus_ws, ssoi_ws, max_row)
+    apply_subtotals_for_sheet(focus_ws, max_row)
     
     # Call this function for both sheets
     delete_blank_rows(focus_ws, max_row)  # For Focus sheet
@@ -537,7 +475,7 @@ def balance_focus_grouping(file_bytes):
     apply_focus_summary_formatting(focus_ws, max_row)
 
 
-    apply_random_formatting(focus_ws, ssoi_ws, max_row)
+    apply_random_formatting(focus_ws, max_row)
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
