@@ -43,11 +43,11 @@ def balance_focus_grouping(file_bytes):
         val_d = focus_ws.cell(row=row, column=2).value
         if val_d:
             focus_ws.cell(row=row, column=2).value = str(val_d).replace("(", "").replace(")", "")
-
-    # Step 4: Copy Column B from the original sheet to Column D in Focus sheet
+    # Step 4: Copy Column B from the original sheet to Column D in Focus sheet (as value only)
     for row in range(1, max_row + 1):
-        original_value = ws.cell(row=row, column=2).value
-        focus_ws.cell(row=row, column=4).value = original_value  # Directly paste into Column D
+        # Get the calculated value (not the formula) from Column B in the original sheet
+        original_value = ws.cell(row=row, column=2).value  # Get the value, not the formula
+        focus_ws.cell(row=row, column=4).value = original_value  # Directly paste the value into Column D
 
 
     # Save the modified workbook to a BytesIO object
