@@ -161,12 +161,13 @@ elif st.session_state.step == 3:
             # If there is only one sheet, use it directly
             sheet = wb.active
 
-        # Conditional check for blank cells in column 1 (A) between rows 10-20
+        # Conditional check for blank cells between rows 10-20 in column 1 (A)
         blank_cells_count = 0
         total_cells_count = 0
+        collapse_needed = False
 
         # Check for blank cells in column 1 (A) within rows 10-20 on the active sheet
-        for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):  # Only check column 1
+        for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):  # Only check column 1 (A)
             for cell in row:
                 if cell.value is None or str(cell.value).strip() == "":
                     blank_cells_count += 1
@@ -174,7 +175,10 @@ elif st.session_state.step == 3:
 
         # If more than 50% of cells in column 1 (A) between rows 10-20 are blank, collapse the sheet
         if blank_cells_count / total_cells_count > 0.5:
-            # Collapse the sheet if more than 50% of the cells in column 1 (A) are blank
+            collapse_needed = True
+
+        if collapse_needed:
+            # Collapse the sheet if needed
             collapsed_file = collapse_sheet(file_bytes)  # Call collapse_sheet if needed
             st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
         else:
@@ -189,6 +193,7 @@ elif st.session_state.step == 3:
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
         if st.button("Continue"):
             st.session_state.step = 4
+
 
 
 # Step 4: Show flagged cells for review
