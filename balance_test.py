@@ -176,14 +176,13 @@ def sort_focus_sheet(focus_ws, max_row):
         for col_idx, value in enumerate(row_values, start=1):
             focus_ws.cell(row=idx, column=col_idx).value = value
 
-
 def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
     if max_row is None:
         max_row = focus_ws.max_row
 
     # Create a list to store the rows and their corresponding values in Column C and D
     rows_to_sort = []
-    
+
     # Collect all the rows along with values from Column C and Column D
     for row in range(start_row, max_row + 1):
         value_c = focus_ws.cell(row=row, column=3).value  # Column C value
@@ -213,6 +212,7 @@ def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
             # Clear the original row after moving it
             for col in range(1, focus_ws.max_column + 1):
                 focus_ws.cell(row=original_row, column=col).value = None
+
 
 
 def balance_focus_grouping(file_bytes):
