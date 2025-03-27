@@ -232,12 +232,15 @@ elif st.session_state.step == 5:
         cell = sheet.cell(row=row, column=1)
         if cell.value is None or str(cell.value).strip() == "":
             empty_cell_count += 1
-    
+
     # If all the cells between rows 5-10 in column A are empty, collapse the file
     if empty_cell_count == total_cells_to_check:
         collapsed_file = collapse_sheet(file_bytes)  # Call the collapse function
-        st.session_state.excel_bytes = collapsed_file  # Update the session state with the collapsed file
-
+        if isinstance(collapsed_file, BytesIO):  # Ensure it returns BytesIO
+            st.session_state.excel_bytes = collapsed_file  # Update the session state with the collapsed file
+        else:
+            st.error("Error: Collapse function did not return a valid file.")  # Handle errors
+            
     st.title("🔧 What type of filing is this?")  # Title for Step 5
     st.write("Select the type of filing for this document.")  # Description for Step 5
 
