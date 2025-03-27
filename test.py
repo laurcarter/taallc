@@ -222,7 +222,7 @@ elif st.session_state.step == 5:
         file_bytes = BytesIO(file_bytes)  # Convert raw bytes to BytesIO if it's not already
 
     # Load the workbook
-    wb = load_workbook(filename=file_bytes)
+    wb = load_workbook(file_bytes)
     sheet = wb.active
     empty_cell_count = 0
     total_cells_to_check = 6  # Checking rows 5 to 10 (6 rows total)
