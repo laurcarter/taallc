@@ -304,8 +304,7 @@ def balance_focus_grouping(file_bytes):
     # After sorting column C (done by previous functions), call this function for secondary sorting
     secondary_sort_focus_sheet(focus_ws, max_row)
 
-    
-    delete_blank_rows(focus_ws, max_row)  # For Focus sheet
+
 
     #subtotals
     apply_subtotals_for_sheet(focus_ws, max_row)
