@@ -203,11 +203,15 @@ def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
         rows.sort(key=lambda x: x[1], reverse=True)
 
         # Step 3: Reassign the sorted rows back to the worksheet
-        for idx, (original_row, value_d) in enumerate(rows):
-            target_row = start_row + idx  # The new row position after sorting within the group
+        target_row = start_row  # Start placing rows from the start_row position
+
+        for original_row, _ in rows:
             # Copy the entire row to the new position, including columns C and D (and other columns)
             for col in range(1, focus_ws.max_column + 1):
                 focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=original_row, column=col).value
+
+            # Move the target row down after each operation
+            target_row += 1
 
             # Clear the original row after moving it
             for col in range(1, focus_ws.max_column + 1):
