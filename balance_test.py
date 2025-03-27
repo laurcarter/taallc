@@ -327,22 +327,21 @@ def balance_focus_grouping(file_bytes):
         if value is not None:
             rows_to_sort.append((row, value))
     
-    # Sort the rows based on the values in Column C (ascending)
+    # Sort the rows based on the values in Column C (ascending order)
     rows_to_sort.sort(key=lambda x: x[1])
     
-    # Create a new list to store the sorted values
-    sorted_values = []
-    
-    # Move the rows into the sorted order
-    for idx, (row, _) in enumerate(rows_to_sort):
-        # Store the sorted row values in a list
-        sorted_values.append([focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)])
-    
-    # Reinsert the sorted values into the worksheet, starting from row 8
-    for idx, sorted_row in enumerate(sorted_values):
+    # Now, reorder the rows according to the sorted order
+    for idx, (original_row, _) in enumerate(rows_to_sort):
+        # Move the row data to the new sorted position
         target_row = 8 + idx
-        for col_idx, value in enumerate(sorted_row, start=1):
-            focus_ws.cell(row=target_row, column=col_idx).value = value
+        for col in range(1, focus_ws.max_column + 1):
+            # Copy the value from the original row to the sorted target row
+            focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=original_row, column=col).value
+    
+        # Clear the original row after copying the data
+        for col in range(1, focus_ws.max_column + 1):
+            focus_ws.cell(row=original_row, column=col).value = None
+
 
 
 
