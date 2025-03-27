@@ -24,41 +24,47 @@ def balance_focus_grouping(file_bytes):
     max_row = ws.max_row
     max_col = ws.max_column
 
-        # Step 1: Copy content from original sheet to Focus as plain values
+    # Step 1: Copy the content from the original sheet and paste it as plain text into the Focus sheet
     for row in ws.iter_rows(min_row=1, max_row=max_row, max_col=max_col):
         for cell in row:
             focus_ws.cell(row=cell.row, column=cell.column, value=cell.value)
 
-    # Step 2: Look for the opening parenthesis in Column A and extract to Column B
+    # Step 2: Delimit Column A by the opening parenthesis and put the second part in Column B in Focus sheet
     for row in range(1, max_row + 1):
         val = focus_ws.cell(row=row, column=1).value
         if val and '(' in str(val):
-            # Find the part before the opening parenthesis and paste it in Column B
+            # Split the value at the opening parenthesis and store the parts
             parts = str(val).split('(', 1)
-            focus_ws.cell(row=row, column=2).value = parts[0].strip()
+            focus_ws.cell(row=row, column=1).value = parts[0].strip()
+            focus_ws.cell(row=row, column=2).value = parts[1].strip()
 
-    # Step 3: Copy Column B from original sheet to Column C in Focus sheet
+    # Step 3: Remove parentheses in Column B (Focus sheet)
     for row in range(1, max_row + 1):
-        original_value = ws.cell(row=row, column=2).value
-        focus_ws.cell(row=row, column=3).value = original_value
-
-    # Step 4: Remove parentheses in Column B and Column C for Focus sheet
-    for row in range(1, max_row + 1):
-        # Remove parentheses in Column B
         val_b = focus_ws.cell(row=row, column=2).value
         if val_b:
             focus_ws.cell(row=row, column=2).value = str(val_b).replace("(", "").replace(")", "")
 
-    # Move the entire sheet over by two columns in both Focus and SSOI sheets
-    focus_ws.insert_cols(1, 2)  # Insert two columns at the beginning of the Focus sheet
-    
+    # Step 4: Copy Column B from the original sheet to Column E in Focus sheet
+    for row in range(1, max_row + 1):
+        original_value = ws.cell(row=row, column=2).value
+        focus_ws.cell(row=row, column=5).value = original_value
 
+    # Step 5: Clear Columns C and D in Focus sheet
+    for row in range(1, max_row + 1):
+        focus_ws.cell(row=row, column=3).value = None
+        focus_ws.cell(row=row, column=4).value = None
+
+    # Step 6: Move Column E to Column D in Focus sheet
+    for row in range(1, max_row + 1):
+        focus_ws.cell(row=row, column=4).value = focus_ws.cell(row=row, column=5).value
+        focus_ws.cell(row=row, column=5).value = None
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
     wb.save(output)
     output.seek(0)  # Move cursor to the beginning of the BytesIO object
     return output.read()  # Return the transformed file as bytes
+
 
 
 # Step 1: Upload the file
