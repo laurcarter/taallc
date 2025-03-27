@@ -1,4 +1,3 @@
-# collapse.py
 from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
@@ -84,6 +83,9 @@ def collapse_sheet(file_bytes):
     clean_ws.insert_rows(1)
     clean_ws.cell(row=1, column=1).value = "Account Names"
     clean_ws.cell(row=1, column=2).value = "Balance"
+
+    # Move the CleanedSheet to the front of the workbook
+    wb._sheets = [wb["CleanedSheet"]] + [ws for ws in wb.worksheets if ws.title != "CleanedSheet"]
 
     # Save the workbook and return the processed data
     output_stream = BytesIO()
