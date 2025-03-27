@@ -318,7 +318,8 @@ def balance_focus_grouping(file_bytes):
     sort_focus_sheet(focus_ws, max_row)
 
     # After sorting by Column C (primary sort)
-    secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=max_row)
+    secondary_sort_focus_sheet(focus_ws, max_row=max_row)
+    
 
 
 
