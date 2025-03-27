@@ -297,7 +297,14 @@ def balance_focus_grouping(file_bytes):
     
     # Increase the width of column E to double the default width in the Focus sheet
     focus_ws.column_dimensions["E"].width = focus_ws.column_dimensions["E"].width * 2.5
+    
+    # Call the sort_focus_sheet function after the rest of the operations in the macro
+    sort_focus_sheet(focus_ws, max_row)
 
+    # After sorting column C (done by previous functions), call this function for secondary sorting
+    secondary_sort_focus_sheet(focus_ws, max_row)
+
+    
     delete_blank_rows(focus_ws, max_row)  # For Focus sheet
 
     #subtotals
