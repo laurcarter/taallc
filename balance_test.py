@@ -308,39 +308,14 @@ def balance_focus_grouping(file_bytes):
 
 
     #subtotals
-    apply_subtotals_for_sheet(focus_ws, max_row)
+    #apply_subtotals_for_sheet(focus_ws, max_row)
     
     
-    create_summary(focus_ws, max_row)
-    apply_focus_summary_formatting(focus_ws, max_row)
+    #create_summary(focus_ws, max_row)
+    #apply_focus_summary_formatting(focus_ws, max_row)
 
 
-    apply_random_formatting(focus_ws, max_row)
-
-    #new fixes, after copying pnl
-    # Sort the rows based on the values in Column C (smallest to largest), starting from row 8
-    rows_to_sort = []
-    
-    # Collect values from Column C and their corresponding rows starting from row 8
-    for row in range(8, max_row + 1):
-        value = focus_ws.cell(row=row, column=3).value  # Column C values
-        if value is not None:
-            rows_to_sort.append((row, value))
-    
-    # Sort the rows based on the values in Column C (ascending order)
-    rows_to_sort.sort(key=lambda x: x[1])
-    
-    # Now, reorder the rows according to the sorted order
-    for idx, (original_row, _) in enumerate(rows_to_sort):
-        # Move the row data to the new sorted position
-        target_row = 8 + idx
-        for col in range(1, focus_ws.max_column + 1):
-            # Copy the value from the original row to the sorted target row
-            focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=original_row, column=col).value
-    
-        # Clear the original row after copying the data
-        for col in range(1, focus_ws.max_column + 1):
-            focus_ws.cell(row=original_row, column=col).value = None
+    #apply_random_formatting(focus_ws, max_row)
 
 
 
