@@ -58,8 +58,6 @@ def perform_pnl_transformation(file_bytes):
 
 # ---------- Streamlit App Flow ----------
 st.set_page_config(page_title="Personal Information Collection", layout="wide")
-st.title("🧾 Personal Information Collection")
-st.write("To get started, we'll need some information about you.")
 
 # Step Handling
 if "step" not in st.session_state:
@@ -69,6 +67,9 @@ if "personal_info" not in st.session_state:
 
 # Step 1: Personal Information Collection
 if st.session_state.step == 1:
+    st.title("🧾 Personal Information Collection")  # Title for Step 1
+    st.write("To get started, we'll need some information about you.")  # Description for Step 1
+
     with st.expander("Step 1: Tell us about yourself", expanded=True):
         first_name = st.text_input("First Name")
         middle_initial = st.text_input("Middle Initial")
@@ -95,6 +96,9 @@ if st.session_state.step == 1:
 
 # Step 2: Personal Information Summary
 elif st.session_state.step == 2:
+    st.title("🔍 Review Your Personal Information")  # Title for Step 2
+    st.write("Please review your personal information before continuing.")  # Description for Step 2
+
     with st.expander("Step 2: Review Your Information", expanded=True):
         st.write(f"**First Name:** {st.session_state.personal_info['first_name']}")
         st.write(f"**Middle Initial:** {st.session_state.personal_info['middle_initial']}")
@@ -110,7 +114,9 @@ elif st.session_state.step == 2:
 
 # Step 3: Upload Excel File
 elif st.session_state.step == 3:
-    st.subheader("🔧 Upload Your Excel File")
+    st.title("📂 Upload Your Excel File")  # Title for Step 3
+    st.write("Please upload your Excel file for auto-filing.")  # Description for Step 3
+
     uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
     if uploaded_file:
         file_bytes = uploaded_file.read()
@@ -124,7 +130,9 @@ elif st.session_state.step == 3:
 
 # Step 4: Show flagged cells for review
 elif st.session_state.step == 4:
-    st.subheader("🔍 Review Flagged Cells")
+    st.title("🔍 Review Flagged Cells")  # Title for Step 4
+    st.write("Review and clean any flagged cells, or leave them as-is.")  # Description for Step 4
+
     if st.session_state.flagged_cells:
         for sheet, coord, val in st.session_state.flagged_cells:
             st.write(f"- **{sheet}**!{coord} → `{val}`")
@@ -146,7 +154,9 @@ elif st.session_state.step == 4:
 
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
-    st.subheader("🔧 What type of filing is this?")
+    st.title("🔧 What type of filing is this?")  # Title for Step 5
+    st.write("Select the type of filing for this document.")  # Description for Step 5
+
     choice = st.radio("Select your filing type:", ["Profit & Loss (P&L)", "Balance Sheet"], index=0)
     if st.button("Run Transformation"):
         if choice == "Profit & Loss (P&L)":
@@ -155,7 +165,9 @@ elif st.session_state.step == 5:
 
 # Step 6: Download Final Processed File
 elif st.session_state.step == 6:
-    st.subheader("✅ Final Step: Download Processed File")
+    st.title("✅ Final Step: Download Processed File")  # Title for Step 6
+    st.write("Download the final processed file.")  # Description for Step 6
+
     st.download_button(
         label="Download Final Excel",
         data=st.session_state.excel_bytes,
@@ -165,3 +177,4 @@ elif st.session_state.step == 6:
     if st.button("Start Over"):
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
+
