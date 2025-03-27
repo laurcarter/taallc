@@ -43,6 +43,7 @@ def collapse_sheet(file_bytes):
                     continue
                 cell = row[j-1]  # Access the cell (1-indexed)
                 
+                # Skip if the cell is None, empty or contains a number
                 if cell is not None and not isinstance(cell.value, (int, float)) and cell.value != "":
                     account_names += f" {cell.value}"  # Concatenate account names to the string
     
@@ -50,7 +51,6 @@ def collapse_sheet(file_bytes):
             
             if account_names:  # Only write to the sheet if account names are not empty
                 clean_ws.cell(row=i, column=1).value = account_names  # Place account names in column A
-
 
     # Step 4: Insert a row at the top of the CleanedSheet for headers
     clean_ws.insert_rows(1)
@@ -61,15 +61,15 @@ def collapse_sheet(file_bytes):
     wb._sheets = [wb["CleanedSheet"]] + [ws for ws in wb.worksheets if ws.title != "CleanedSheet"]
 
     # ---------------------------
-    # Scrubbing Non-None Values in Column A
+    # Scrubbing Non-None Values in Column A (for the empty rows)
     # ---------------------------
     
-    # Iterate through rows in column A of the CleanedSheet to remove 'None' values within cells
+    # Iterate through rows in column A of the CleanedSheet to ensure no 'None' values
     for row in clean_ws.iter_rows(min_col=1, max_col=1, min_row=2, max_row=clean_ws.max_row):
         for cell in row:
-            # If the cell value is None or contains only whitespace, replace it with an empty string
-            if cell.value is None or str(cell.value).strip() == "":
-                cell.value = ""  # Replace None or empty strings with an empty string in column A
+            # If the cell contains None or an empty string, set it to an empty string
+            if cell.value is None or cell.value == "" or str(cell.value).strip() == "":
+                cell.value = None  # Empty it out without affecting other values
 
     # Save the workbook and return the processed data
     output_stream = BytesIO()
