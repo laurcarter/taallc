@@ -330,16 +330,20 @@ def balance_focus_grouping(file_bytes):
     # Sort the rows based on the values in Column C (ascending)
     rows_to_sort.sort(key=lambda x: x[1])
     
+    # Create a new list to store the sorted values
+    sorted_values = []
+    
     # Move the rows into the sorted order
     for idx, (row, _) in enumerate(rows_to_sort):
-        # Move data to the new row position (starting from row 8)
-        target_row = 8 + idx
-        for col in range(1, focus_ws.max_column + 1):
-            focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=row, column=col).value
+        # Store the sorted row values in a list
+        sorted_values.append([focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)])
     
-        # Clear the original row after moving the data
-        for col in range(1, focus_ws.max_column + 1):
-            focus_ws.cell(row=row, column=col).value = None
+    # Reinsert the sorted values into the worksheet, starting from row 8
+    for idx, sorted_row in enumerate(sorted_values):
+        target_row = 8 + idx
+        for col_idx, value in enumerate(sorted_row, start=1):
+            focus_ws.cell(row=target_row, column=col_idx).value = value
+
 
 
     # Save the modified workbook to a BytesIO object
