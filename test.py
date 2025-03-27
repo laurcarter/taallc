@@ -210,9 +210,36 @@ elif st.session_state.step == 5:
         if 'excel_bytes' in st.session_state and st.session_state.excel_bytes:
             file_bytes = st.session_state.excel_bytes
             try:
-                # Trigger collapse here before running the transformation
-                collapsed_file = collapse_sheet(file_bytes)  # Calling collapse function
-                st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
+                # Convert the BytesIO object to raw bytes using .getvalue() method
+                raw_bytes = file_bytes.getvalue() if isinstance(file_bytes, BytesIO) else file_bytes
+
+                # Check the condition for collapse (e.g., blank cells in column A between rows 10-20)
+                wb = load_workbook(filename=BytesIO(raw_bytes))
+                sheet = wb.active
+
+                # Conditional check for blank cells in column 1 (A) between rows 10-20
+                blank_cells_count = 0
+                total_cells_count = 0
+                collapse_needed = False
+
+                # Check for blank cells in column 1 (A) within rows 10-20
+                for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):
+                    for cell in row:
+                        if cell.value is None or str(cell.value).strip() == "":
+                            blank_cells_count += 1
+                        total_cells_count += 1
+
+                # If more than 50% of cells in column 1 (A) between rows 10-20 are blank, collapse the sheet
+                if blank_cells_count / total_cells_count > 0.5:
+                    collapse_needed = True
+
+                if collapse_needed:
+                    # Collapse the sheet if needed
+                    collapsed_file = collapse_sheet(raw_bytes)  # Call collapse function if needed
+                    st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
+                else:
+                    # Skip collapsing the sheet
+                    st.session_state.excel_bytes = raw_bytes  # Keep the original file bytes
 
                 # Continue with the transformation depending on the user's selection
                 if choice == "Profit & Loss (P&L)":
@@ -224,6 +251,7 @@ elif st.session_state.step == 5:
                 st.error(f"An error occurred while processing the collapse function: {e}")
         else:
             st.error("No valid file found to process.")
+
             
 # Step 6: Download Final Processed File
 elif st.session_state.step == 6:
