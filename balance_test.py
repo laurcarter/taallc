@@ -356,55 +356,30 @@ def balance_focus_grouping(file_bytes):
     max_row = ws.max_row
     max_col = ws.max_column
 
-    # Copy content from original sheet to Focus as plain values
+        # Step 1: Copy content from original sheet to Focus as plain values
     for row in ws.iter_rows(min_row=1, max_row=max_row, max_col=max_col):
         for cell in row:
             focus_ws.cell(row=cell.row, column=cell.column, value=cell.value)
 
-    # Delimit Column A by '(' and extract to Column B (Focus only)
+    # Step 2: Look for the opening parenthesis in Column A and extract to Column B
     for row in range(1, max_row + 1):
         val = focus_ws.cell(row=row, column=1).value
         if val and '(' in str(val):
+            # Find the part before the opening parenthesis and paste it in Column B
             parts = str(val).split('(', 1)
-            focus_ws.cell(row=row, column=1).value = parts[0].strip()
-            focus_ws.cell(row=row, column=2).value = parts[1].strip()
-    
-    # Delimit Column B by '/' and process (Focus only)
-    for row in range(1, max_row + 1):
-        val = focus_ws.cell(row=row, column=2).value
-        if val and '/' in str(val):
-            parts = str(val).split('/')
-            focus_ws.cell(row=row, column=2).value = parts[0].strip().replace("(", "")
-            focus_ws.cell(row=row, column=3).value = parts[1].strip().replace(")", "").replace("/", "")
+            focus_ws.cell(row=row, column=2).value = parts[0].strip()
 
-    # Strip out the opening parenthesis in Column B for Focus only
-    for row in range(1, max_row + 1):
-        val = focus_ws.cell(row=row, column=2).value
-        if val:
-            # Ensure val is a string before calling replace()
-            val = str(val)
-            focus_ws.cell(row=row, column=2).value = val.replace("(", "")
-    
-    # Strip out the slash and closing parenthesis in Column C for Focus only
-    for row in range(1, max_row + 1):
-        val = focus_ws.cell(row=row, column=3).value
-        if val:
-            # Ensure val is a string before calling replace()
-            val = str(val)
-            focus_ws.cell(row=row, column=3).value = val.replace("/", "").replace(")", "")
-
-    # Wipe out column B of the Focus sheet
-    for row in range(1, max_row + 1):
-        focus_ws.cell(row=row, column=2).value = None
-    
-    # Clear column C in both Focus and SSOI sheets
-    for row in range(1, max_row + 1):
-        focus_ws.cell(row=row, column=3).value = None
-
-    # Copy Column B from original sheet to Column D in both Focus and SSOI sheets
+    # Step 3: Copy Column B from original sheet to Column C in Focus sheet
     for row in range(1, max_row + 1):
         original_value = ws.cell(row=row, column=2).value
-        focus_ws.cell(row=row, column=4).value = original_value
+        focus_ws.cell(row=row, column=3).value = original_value
+
+    # Step 4: Remove parentheses in Column B and Column C for Focus sheet
+    for row in range(1, max_row + 1):
+        # Remove parentheses in Column B
+        val_b = focus_ws.cell(row=row, column=2).value
+        if val_b:
+            focus_ws.cell(row=row, column=2).value = str(val_b).replace("(", "").replace(")", "")
 
     # Move the entire sheet over by two columns in both Focus and SSOI sheets
     focus_ws.insert_cols(1, 2)  # Insert two columns at the beginning of the Focus sheet
@@ -434,10 +409,10 @@ def balance_focus_grouping(file_bytes):
 
 
     # Call the sort_focus_sheet function after the rest of the operations in the macro
-    sort_focus_sheet(focus_ws, max_row)
+    #sort_focus_sheet(focus_ws, max_row)
 
     # After sorting column C (done by previous functions), call this function for secondary sorting
-    secondary_sort_focus_sheet(focus_ws, max_row)
+    #secondary_sort_focus_sheet(focus_ws, max_row)
 
     # Define fill color (black) and font color (white)
     black_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
@@ -460,22 +435,22 @@ def balance_focus_grouping(file_bytes):
 
 
     #subtotals
-    apply_subtotals_for_sheet(focus_ws, max_row)
+    #apply_subtotals_for_sheet(focus_ws, max_row)
     
     # Call this function for both sheets
-    delete_blank_rows(focus_ws, max_row)  # For Focus sheet
+    #delete_blank_rows(focus_ws, max_row)  # For Focus sheet
     
     
 
     # You can now use income_sum and expense_sum in your further calculations
-    apply_income_expense_totals(focus_ws, max_row)
+    #apply_income_expense_totals(focus_ws, max_row)
 
 
-    create_summary(focus_ws, max_row)
-    apply_focus_summary_formatting(focus_ws, max_row)
+    #create_summary(focus_ws, max_row)
+    #apply_focus_summary_formatting(focus_ws, max_row)
 
 
-    apply_random_formatting(focus_ws, max_row)
+    #apply_random_formatting(focus_ws, max_row)
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
