@@ -198,25 +198,27 @@ def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
         grouped_rows[value_c].append((row, value_d))
 
     # Step 2: Sort each group by Column D in descending order
+    sorted_rows = []
     for value_c, rows in grouped_rows.items():
         # Sort rows within the group based on Column D (descending order)
         rows.sort(key=lambda x: x[1], reverse=True)
+        sorted_rows.extend(rows)  # Append the sorted rows to the sorted_rows list
 
-        # Step 3: Reassign the sorted rows back to the worksheet
-        target_row = start_row  # Start placing rows from the start_row position
+    # Step 3: Reassign the sorted rows back to the worksheet
+    target_row = start_row  # Start placing rows from the start_row position
 
-        for original_row, _ in rows:
-            # Copy the entire row to the new position, including columns C and D (and other columns)
-            for col in range(1, focus_ws.max_column + 1):
-                focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=original_row, column=col).value
+    for original_row, _ in sorted_rows:
+        # Copy the entire row to the new position, including columns C and D (and other columns)
+        for col in range(1, focus_ws.max_column + 1):
+            focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=original_row, column=col).value
 
-            # Move the target row down after each operation
-            target_row += 1
+        # Move the target row down after each operation
+        target_row += 1
 
     # Step 4: Clear the original rows after they have been re-inserted
-    for row, _, _ in rows_to_sort:
+    for original_row, _ in sorted_rows:
         for col in range(1, focus_ws.max_column + 1):
-            focus_ws.cell(row=row, column=col).value = None
+            focus_ws.cell(row=original_row, column=col).value = None
 
 
 
