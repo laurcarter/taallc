@@ -1,0 +1,139 @@
+import streamlit as st
+from io import BytesIO
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill, Font
+import re
+
+# ---------- Streamlit Page Config ----------
+st.set_page_config(page_title="Personal Information Collection", layout="wide")
+
+# Title and description
+st.title("🧾 Personal Information Collection")
+st.write("To get started, we'll need some information about you.")
+
+# ---------- Utility Functions ----------
+yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+
+# Function to highlight flagged totals (for example if any issues in data are found)
+def highlight_and_flag_totals(file_bytes):
+    wb = load_workbook(filename=BytesIO(file_bytes), data_only=True)
+    flagged_cells = []
+
+    for ws in wb.worksheets:
+        max_row = ws.max_row
+        for row in ws.iter_rows(min_row=1, max_row=max_row, min_col=1, max_col=8):
+            for cell in row:
+                value = str(cell.value) if cell.value else ""
+                if "Total" in value and "(" in value and ")" in value:
+                    cell.fill = yellow_fill
+                    flagged_cells.append((ws.title, cell.coordinate, value))
+
+    output_stream = BytesIO()
+    wb.save(output_stream)
+    output_stream.seek(0)
+    return output_stream, flagged_cells
+
+# Step 1: Personal Information Collection
+if "step" not in st.session_state:
+    st.session_state.step = 1
+if "personal_info" not in st.session_state:
+    st.session_state.personal_info = {}
+
+# Step 1 - Collect Personal Information
+if st.session_state.step == 1:
+    with st.expander("Step 1: Tell us about yourself", expanded=True):
+        first_name = st.text_input("First Name")
+        middle_initial = st.text_input("Middle Initial")
+        last_name = st.text_input("Last Name")
+        suffix = st.selectbox("Suffix (Jr., Sr., III)", ["", "Jr.", "Sr.", "III"])
+        occupation = st.text_input("Occupation")
+        employer = st.text_input("Employer")
+        dob = st.date_input("Date of Birth")  # Streamlit will handle the date format automatically
+        phone_number = st.text_input("Phone Number")
+
+        if st.button("Continue"):
+            # Store the collected information in session state
+            st.session_state.personal_info = {
+                "first_name": first_name,
+                "middle_initial": middle_initial,
+                "last_name": last_name,
+                "suffix": suffix,
+                "occupation": occupation,
+                "employer": employer,
+                "dob": dob,
+                "phone_number": phone_number
+            }
+            st.session_state.step = 2
+
+# Step 2: Personal Information Summary
+elif st.session_state.step == 2:
+    with st.expander("Step 2: Review Your Information", expanded=True):
+        st.write(f"**First Name:** {st.session_state.personal_info['first_name']}")
+        st.write(f"**Middle Initial:** {st.session_state.personal_info['middle_initial']}")
+        st.write(f"**Last Name:** {st.session_state.personal_info['last_name']}")
+        st.write(f"**Suffix:** {st.session_state.personal_info['suffix']}")
+        st.write(f"**Occupation:** {st.session_state.personal_info['occupation']}")
+        st.write(f"**Employer:** {st.session_state.personal_info['employer']}")
+        st.write(f"**Date of Birth:** {st.session_state.personal_info['dob'].strftime('%m/%d/%Y')}")
+        st.write(f"**Phone Number:** {st.session_state.personal_info['phone_number']}")
+
+        if st.button("Continue"):
+            st.session_state.step = 3
+
+# Step 3: Upload Excel File
+elif st.session_state.step == 3:
+    st.subheader("🔧 Upload Your Excel File")
+    uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
+    if uploaded_file:
+        file_bytes = uploaded_file.read()
+        highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
+        st.session_state.excel_bytes = highlighted_file
+        st.session_state.flagged_cells = flagged
+
+        st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
+        if st.button("Continue"):
+            st.session_state.step = 4
+
+# Step 4: Show flagged cells for review
+elif st.session_state.step == 4:
+    st.subheader("🔍 Review Flagged Cells")
+    if st.session_state.flagged_cells:
+        for sheet, coord, val in st.session_state.flagged_cells:
+            st.write(f"- **{sheet}**!{coord} → `{val}`")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Yes, clean these cells"):
+                cleaned_file = clean_flagged_totals(st.session_state.excel_bytes)
+                st.session_state.excel_bytes = cleaned_file
+                st.session_state.step = 5
+        with col2:
+            if st.button("No, leave them as-is"):
+                st.session_state.step = 5
+
+    else:
+        st.info("No problematic 'Total' cells found. Skipping ahead.")
+        if st.button("Continue"):
+            st.session_state.step = 5
+
+# Step 5: Choose Transformation Type
+elif st.session_state.step == 5:
+    st.subheader("🔧 What type of filing is this?")
+    choice = st.radio("Select your filing type:", ["Profit & Loss (P&L)", "Balance Sheet"], index=0)
+    if st.button("Run Transformation"):
+        if choice == "Profit & Loss (P&L)":
+            st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
+        st.session_state.step = 6
+
+# Step 6: Download Final Processed File
+elif st.session_state.step == 6:
+    st.subheader("✅ Final Step: Download Processed File")
+    st.download_button(
+        label="Download Final Excel",
+        data=st.session_state.excel_bytes,
+        file_name="final_filing.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    if st.button("Start Over"):
+        for key in ["step", "excel_bytes", "flagged_cells"]:
+            st.session_state.pop(key, None)
