@@ -184,9 +184,15 @@ elif st.session_state.step == 4:
         col1, col2 = st.columns(2)
         with col1:
             if st.button("Yes, clean these cells"):
-                # Clean flagged totals if the user chooses "Yes"
-                cleaned_file = clean_flagged_totals(st.session_state.excel_bytes)
-                st.session_state.excel_bytes = cleaned_file  # Update excel_bytes after cleaning flagged totals
+                # Ensure file_bytes is a BytesIO object and clean flagged totals
+                file_bytes = st.session_state.excel_bytes
+                
+                # Clean the flagged totals (this function will modify the file)
+                cleaned_file = clean_flagged_totals(file_bytes)
+
+                # Update the session state with the cleaned file
+                st.session_state.excel_bytes = cleaned_file  # Store the cleaned file in session state
+
                 st.session_state.step = 5  # Move to Step 5 after cleaning flagged totals
         with col2:
             if st.button("No, leave them as-is"):
@@ -197,10 +203,9 @@ elif st.session_state.step == 4:
         if st.button("Continue"):
             st.session_state.step = 5  # Skip to Step 5 if no flagged cells
 
-    # No file collapse check or modification anymore
-
-    # Just move to Step 5 now that flagged cells have been handled
+    # Move to Step 5 now that flagged cells have been handled
     st.session_state.step = 5
+
 
 
 
