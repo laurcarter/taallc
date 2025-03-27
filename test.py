@@ -181,39 +181,47 @@ elif st.session_state.step == 4:
     st.write("Review and clean any flagged cells, or leave them as-is.")  # Description for Step 4
 
     if st.session_state.flagged_cells:
+        # Display all the flagged cells with their coordinates
         for sheet, coord, val in st.session_state.flagged_cells:
             st.write(f"- **{sheet}**!{coord} → `{val}`")
 
         col1, col2 = st.columns(2)
+
+        # Button for cleaning flagged totals
         with col1:
             if st.button("Yes, clean these cells"):
-                # Ensure we're working with the correct file_bytes from session state
+                # Get the current file from session state
                 file_bytes = st.session_state.excel_bytes
-
+                
                 # Clean the flagged totals (this function will modify the file)
                 cleaned_file = clean_flagged_totals(file_bytes)
 
                 # Update the session state with the cleaned file
                 st.session_state.excel_bytes = cleaned_file  # Store the cleaned file in session state
 
-                # After cleaning, move to Step 5 for transformation
-                st.session_state.step = 5  # Move to Step 5 after cleaning flagged totals
-                st.success("Flagged cells cleaned!")
+                # Proceed to Step 5 after cleaning
+                st.session_state.step = 5  
 
+        # Button for leaving the flagged totals as-is (just keep them highlighted)
         with col2:
             if st.button("No, leave them as-is"):
-                # If the user chooses not to clean, move to the next step without modification
-                st.session_state.step = 5  # Move to Step 5 without cleaning flagged totals
-                st.info("Flagged cells were not cleaned.")
+                # Ensure we keep the file as-is with highlighted totals, no cleaning
+                file_bytes = st.session_state.excel_bytes
+                
+                # Just highlight the totals again and move to Step 5
+                highlighted_file, _ = highlight_and_flag_totals(file_bytes)  # Re-highlight if needed
+                st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
+
+                # Proceed to Step 5 without cleaning
+                st.session_state.step = 5  
 
     else:
+        # If no flagged cells, display a message
         st.info("No problematic 'Total' cells found. Skipping ahead.")
         if st.button("Continue"):
+            # Proceed to Step 5 if no flagged cells
             st.session_state.step = 5  # Skip to Step 5 if no flagged cells
 
-    # Ensure we're moving forward properly after reviewing and cleaning flagged cells
-    # This step is done, and now we move to Step 5
-    st.session_state.step = 5
 
 
 
