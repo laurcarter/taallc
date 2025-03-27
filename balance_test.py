@@ -42,20 +42,20 @@ def balance_focus_grouping(file_bytes):
         if isinstance(cell_value, str):
             focus_ws.cell(row=row, column=2, value=cell_value.replace(")", ""))
 
-    # **Copy Column B from the original sheet to Column E in the Focus sheet**
+    # **Copy Column B from the original sheet to Column D in the Focus sheet**
     for row in range(1, last_row + 1):
         value_to_copy = ws.cell(row=row, column=2).value  # Column B from original sheet
-        focus_ws.cell(row=row, column=5, value=value_to_copy)  # Column E in Focus sheet
+        focus_ws.cell(row=row, column=4, value=value_to_copy)  # Column D in Focus sheet
 
     # **Clear the contents in Columns C and D in Focus sheet**
     for row in range(1, last_row + 1):
         focus_ws.cell(row=row, column=3).value = None  # Column C
         focus_ws.cell(row=row, column=4).value = None  # Column D
 
-    # **Move data from Column E to Column D**
+    # **Move data from Column D to Column C**
     for row in range(1, last_row + 1):
-        focus_ws.cell(row=row, column=4).value = focus_ws.cell(row=row, column=5).value  # Move from E to D
-        focus_ws.cell(row=row, column=5).value = None  # Clear Column E after moving
+        focus_ws.cell(row=row, column=3).value = focus_ws.cell(row=row, column=4).value  # Move from D to C
+        focus_ws.cell(row=row, column=4).value = None  # Clear Column D after moving
 
     # Save the modified workbook to a BytesIO object
     output_stream = BytesIO()
@@ -63,6 +63,7 @@ def balance_focus_grouping(file_bytes):
     output_stream.seek(0)
 
     return output_stream
+
 
 
 
