@@ -172,6 +172,7 @@ elif st.session_state.step == 3:
             st.session_state.step = 4  # Move to Step 4
 
 
+
 # Step 4: Show flagged cells for review and clean if needed
 elif st.session_state.step == 4:
     st.title("🔍 Review Flagged Cells")  # Title for Step 4
@@ -203,8 +204,9 @@ elif st.session_state.step == 4:
         if st.button("Continue"):
             st.session_state.step = 5  # Skip to Step 5 if no flagged cells
 
-    # Move to Step 5 now that flagged cells have been handled
+    # Ensure we're moving forward properly after reviewing and cleaning flagged cells
     st.session_state.step = 5
+
 
 
 
