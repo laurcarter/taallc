@@ -135,20 +135,24 @@ elif st.session_state.step == 3:
         # Load the workbook to check the number of sheets
         wb = load_workbook(filename=BytesIO(file_bytes))
         sheet_names = wb.sheetnames  # List of sheet names
+        if len(sheet_names) > 1:
+            # If multiple sheets are detected, ask the user to resubmit a new file with a single sheet
+            st.error("Your file contains multiple sheets. Please resubmit a new file with only one sheet.")
+            st.session_state.step = 3  # Stay on Step 3 so they can upload again
+        else:
+            # If there is only one sheet, proceed with the regular logic
+            sheet = wb.active
 
-        # If there is only one sheet, proceed with the regular logic
-        sheet = wb.active
-
-        # Now highlight and flag totals on the selected sheet
-        highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
-        st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
-        st.session_state.flagged_cells = flagged  # Store the flagged cells
-
-        st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
-
-        # Continue button to move to the next step
-        if st.button("Continue"):
-                st.session_state.step = 4  # Move to Step 4
+            # Now highlight and flag totals on the selected sheet
+            highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
+            st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
+            st.session_state.flagged_cells = flagged  # Store the flagged cells
+    
+            st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
+    
+            # Continue button to move to the next step
+            if st.button("Continue"):
+                    st.session_state.step = 4  # Move to Step 4
 
 
 
