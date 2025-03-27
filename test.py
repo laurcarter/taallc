@@ -35,6 +35,7 @@ def highlight_and_flag_totals(file_bytes):
 
 
 # Function to clean flagged totals (remove parentheses and 'Total')
+# Function to clean flagged totals (remove parentheses and 'Total')
 def clean_flagged_totals(file_bytes):
     if isinstance(file_bytes, BytesIO):
         file_obj = file_bytes
@@ -51,14 +52,15 @@ def clean_flagged_totals(file_bytes):
         for row in ws.iter_rows(min_row=1, max_row=max_row, min_col=1, max_col=8):
             for cell in row:
                 if cell.value and "Total" in str(cell.value):
-                    cell.value = remove_parentheses_content(str(cell.value))
-                    cell.fill = PatternFill()  # Reset to default empty fill
+                    cell.value = remove_parentheses_content(str(cell.value))  # Clean text
+                    cell.fill = PatternFill()  # Reset the highlight fill
 
-    # Ensure the workbook is saved and returned correctly
+    # Save the updated file and return as BytesIO
     output_stream = BytesIO()
     wb.save(output_stream)
     output_stream.seek(0)
     return output_stream
+
 
 
 # Function to perform P&L transformation
@@ -208,6 +210,7 @@ elif st.session_state.step == 4:
 
     # Ensure we're moving forward properly after reviewing and cleaning flagged cells
     st.session_state.step = 5
+
 
 
 
