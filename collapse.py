@@ -6,70 +6,49 @@ def collapse_sheet(file_bytes):
     wb = load_workbook(filename=BytesIO(file_bytes))  # Ensure file_bytes is wrapped in BytesIO
     ws = wb.active  # Active sheet
 
-    # Create a temporary sheet to hold the data
-    temp_ws = wb.create_sheet("TempSheet")
-
-    # Copy the content of the active sheet to the temporary sheet
-    for row in ws.iter_rows():
-        for cell in row:
-            temp_ws[cell.coordinate].value = cell.value
-
-    # Step 1: Create the CleanedSheet for the final output
+    # Create a new sheet for the cleaned data
     clean_ws = wb.create_sheet("CleanedSheet")
 
-    # Loop through each row in the temp sheet
-    for i, row in enumerate(temp_ws.iter_rows(min_row=1, max_row=temp_ws.max_row), 1):
+    # Loop through each row in the sheet
+    for i, row in enumerate(ws.iter_rows(min_row=1, max_row=ws.max_row), 1):
         account_names = ""
         balance_found = False
     
-        # Step 2: Search for the first numeric value (balance column) in columns A to N
-        for j in range(1, 15):  # Check columns A to N (columns 1 to 14)
-            if j-1 >= len(row):  # Check if j-1 is within the available columns in the row
-                continue
-            cell = row[j-1]  # Access the cell (1-indexed)
+        # Step 1: Find the first numeric value (balance column) in the row
+        for j in range(0, len(row)):  # Iterate through all columns in the row
+            cell = row[j]
             
-            if cell is not None and isinstance(cell.value, (int, float)):  # Check if it's a numeric balance value
-                balance = cell.value  # First numeric value is considered the balance
-                clean_ws.cell(row=i, column=2).value = balance  # Place the balance in column B
+            # Check for a numeric value (balance)
+            if isinstance(cell.value, (int, float)) and cell.value is not None:
                 balance_found = True
-                balance_column = j
-                break
+                balance_column = j  # This is the column of the balance (numeric value)
+                balance = cell.value  # The balance value
+                clean_ws.cell(row=i, column=2).value = balance  # Store the balance in column B
+                break  # We found the balance column, no need to check further
     
-        # Step 3: After finding the balance column, gather all non-numeric values (account names)
+        # Step 2: After finding the balance column, collect account names from cells to the left
         if balance_found:
             account_names = ""
-            for j in range(1, balance_column):  # Loop over columns to the left of the balance column
-                if j-1 >= len(row):  # Check if j-1 is within the available columns in the row
-                    continue
-                cell = row[j-1]  # Access the cell (1-indexed)
+            for j in range(0, balance_column):  # Only check the cells to the left of the balance column
+                cell = row[j]
                 
-                # Skip if the cell is None, empty or contains a number
-                if cell is not None and not isinstance(cell.value, (int, float)) and cell.value != "":
-                    account_names += f" {cell.value}"  # Concatenate account names to the string
+                # Check if the cell is a non-empty string (account name)
+                if isinstance(cell.value, str) and cell.value.strip() != "":
+                    account_names += f" {cell.value}"  # Concatenate account names
     
             account_names = account_names.strip()  # Remove any leading/trailing spaces
             
-            if account_names:  # Only write to the sheet if account names are not empty
+            # Only write to the CleanedSheet if we have non-empty account names
+            if account_names:
                 clean_ws.cell(row=i, column=1).value = account_names  # Place account names in column A
 
-    # Step 4: Insert a row at the top of the CleanedSheet for headers
+    # Step 3: Insert a header row for the cleaned sheet
     clean_ws.insert_rows(1)
     clean_ws.cell(row=1, column=1).value = "Account Names"
     clean_ws.cell(row=1, column=2).value = "Balance"
 
     # Move the CleanedSheet to the front of the workbook
     wb._sheets = [wb["CleanedSheet"]] + [ws for ws in wb.worksheets if ws.title != "CleanedSheet"]
-
-    # ---------------------------
-    # Scrubbing Non-None Values in Column A (for the empty rows)
-    # ---------------------------
-    
-    # Iterate through rows in column A of the CleanedSheet to ensure no 'None' values
-    for row in clean_ws.iter_rows(min_col=1, max_col=1, min_row=2, max_row=clean_ws.max_row):
-        for cell in row:
-            # If the cell contains None or an empty string, set it to an empty string
-            if cell.value is None or cell.value == "" or str(cell.value).strip() == "":
-                cell.value = None  # Empty it out without affecting other values
 
     # Save the workbook and return the processed data
     output_stream = BytesIO()
