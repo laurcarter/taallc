@@ -3,6 +3,8 @@ from io import BytesIO
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill, Font
 import re
+from collapse import collapse_sheet
+
 
 # ---------- Utility Functions ----------
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
@@ -120,13 +122,21 @@ elif st.session_state.step == 3:
     uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
     if uploaded_file:
         file_bytes = uploaded_file.read()
-        highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
+
+        # First, call collapse_sheet function to collapse the account names
+        from collapse import collapse_sheet  # Import collapse_sheet from your collapse.py file
+        st.session_state.excel_bytes = collapse_sheet(file_bytes)  # Process file to collapse sheet
+        
+        # Now highlight and flag totals as in your existing logic
+        highlighted_file, flagged = highlight_and_flag_totals(st.session_state.excel_bytes)
         st.session_state.excel_bytes = highlighted_file
         st.session_state.flagged_cells = flagged
 
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
+        
         if st.button("Continue"):
             st.session_state.step = 4
+
 
 # Step 4: Show flagged cells for review
 elif st.session_state.step == 4:
