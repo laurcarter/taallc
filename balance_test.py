@@ -4,6 +4,7 @@ from io import BytesIO
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 from openpyxl.utils import get_column_letter
+import streamlit as st
 
 def apply_random_formatting(focus_ws, ssoi_ws, max_row):
     # Comma formatting and rounding for both Focus and SSOI sheets
