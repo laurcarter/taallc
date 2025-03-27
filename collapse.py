@@ -21,7 +21,7 @@ def collapse_sheet(file_bytes):
     for i, row in enumerate(temp_ws.iter_rows(min_row=1, max_row=temp_ws.max_row), 1):
         account_names = ""
         balance_found = False
-
+    
         # Step 2: Search for the first numeric value (balance column) in columns A to N
         for j in range(1, 15):  # Check columns A to N (columns 1 to 14)
             if j-1 >= len(row):  # Check if j-1 is within the available columns in the row
@@ -34,7 +34,7 @@ def collapse_sheet(file_bytes):
                 balance_found = True
                 balance_column = j
                 break
-
+    
         # Step 3: After finding the balance column, gather all non-numeric values (account names)
         if balance_found:
             account_names = ""
@@ -45,9 +45,12 @@ def collapse_sheet(file_bytes):
                 
                 if cell is not None and not isinstance(cell.value, (int, float)) and cell.value != "":
                     account_names += f" {cell.value}"  # Concatenate account names to the string
-
+    
             account_names = account_names.strip()  # Remove any leading/trailing spaces
-            clean_ws.cell(row=i, column=1).value = account_names  # Place account names in column A
+            
+            if account_names:  # Only write to the sheet if account names are not empty
+                clean_ws.cell(row=i, column=1).value = account_names  # Place account names in column A
+
 
     # Step 4: Insert a row at the top of the CleanedSheet for headers
     clean_ws.insert_rows(1)
