@@ -1,10 +1,9 @@
+# collapse.py
+from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
-import re
-from io import BytesIO  # Add this import
 
 def collapse_sheet(file_bytes):
-    # Load the workbook and create a temporary sheet for manipulation
     wb = load_workbook(filename=BytesIO(file_bytes))  # Ensure file_bytes is wrapped in BytesIO
     ws = wb.active  # Active sheet
 
