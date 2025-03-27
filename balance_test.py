@@ -177,53 +177,41 @@ def sort_focus_sheet(focus_ws, max_row):
             focus_ws.cell(row=idx, column=col_idx).value = value
 
 def secondary_sort_focus_sheet(focus_ws, max_row):
-    # Step 1: Create a list to hold rows with their corresponding values in column C and D
+    # Create a list to hold rows with their corresponding values from columns C and D
     rows = []
 
-    # Step 2: Loop through column C starting from row 8 to max_row
+    # Loop through column C starting from row 8
     for row in range(8, max_row + 1):
-        cell = focus_ws.cell(row=row, column=3)  # Column C value
-        if cell.value is not None:
-            c_value = str(cell.value).strip()
-            
-            # Append the entire row with its value in column C and D
-            rows.append((row, c_value, [focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)]))
-
-    # Step 3: Sort rows based on the value in column C (ascending order)
-    rows.sort(key=lambda x: (int(x[1]) if x[1].isdigit() else float('inf'), x[1]))
-
-    # Step 4: Reorganize the rows with identical Column C values, sorting within them based on Column D (descending order)
-    sorted_rows = []
-    current_c_value = None
-    current_cluster = []
-
-    for row in rows:
-        row_num, c_value, row_values = row
+        c_value = focus_ws.cell(row=row, column=3).value  # Column C value
+        d_value = focus_ws.cell(row=row, column=4).value  # Column D value
         
-        # When we encounter a new C value, sort the previous cluster by Column D (descending)
-        if c_value != current_c_value:
-            if current_cluster:
-                current_cluster.sort(key=lambda x: x[1], reverse=True)  # Sort by Column D (descending)
-                sorted_rows.extend(current_cluster)  # Add the sorted cluster to the final list
-            current_cluster = []  # Reset the cluster
-            current_c_value = c_value
+        # Skip rows where column C is empty
+        if c_value is None or c_value == "":
+            continue
 
-        current_cluster.append((row_num, row_values))
+        # Ensure column D is treated as a numeric value if possible
+        if isinstance(d_value, (int, float)):
+            d_value = float(d_value)  # Ensure the value is treated as a float
+        else:
+            d_value = float('-inf')  # Non-numeric values will be treated as the lowest possible
+        
+        # Append the entire row along with values from column C and D
+        rows.append((row, c_value, d_value, [focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)]))
 
-    # Add the last cluster
-    if current_cluster:
-        current_cluster.sort(key=lambda x: x[1], reverse=True)
-        sorted_rows.extend(current_cluster)
+    # Step 1: Sort rows based on column C (ascending) and column D (descending for same values in C)
+    rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
 
-    # Step 5: Clear existing data from row 8 onwards
+    # Step 2: Clear the existing values in the sheet starting from row 8
     for row in range(8, max_row + 1):
         for col in range(1, focus_ws.max_column + 1):
             focus_ws.cell(row=row, column=col).value = None
 
-    # Step 6: Write the sorted rows back into the worksheet
-    for idx, (original_row, row_values) in enumerate(sorted_rows, start=8):
+    # Step 3: Write the sorted rows back into the sheet starting from row 8
+    new_row_idx = 8
+    for _, _, _, row_values in rows:
         for col_idx, value in enumerate(row_values, start=1):
-            focus_ws.cell(row=idx, column=col_idx).value = value
+            focus_ws.cell(row=new_row_idx, column=col_idx).value = value
+        new_row_idx += 1
 
 
 
@@ -319,6 +307,7 @@ def balance_focus_grouping(file_bytes):
 
     # After sorting by Column C (primary sort)
     secondary_sort_focus_sheet(focus_ws, max_row=max_row)
+
     
 
 
