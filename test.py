@@ -171,7 +171,8 @@ elif st.session_state.step == 3:
         if st.button("Continue"):
             st.session_state.step = 4  # Move to Step 4
 
-# Step 4: Show flagged cells for review and collapse if needed
+
+# Step 4: Show flagged cells for review and clean if needed
 elif st.session_state.step == 4:
     st.title("🔍 Review Flagged Cells")  # Title for Step 4
     st.write("Review and clean any flagged cells, or leave them as-is.")  # Description for Step 4
@@ -183,6 +184,7 @@ elif st.session_state.step == 4:
         col1, col2 = st.columns(2)
         with col1:
             if st.button("Yes, clean these cells"):
+                # Clean flagged totals if the user chooses "Yes"
                 cleaned_file = clean_flagged_totals(st.session_state.excel_bytes)
                 st.session_state.excel_bytes = cleaned_file  # Update excel_bytes after cleaning flagged totals
                 st.session_state.step = 5  # Move to Step 5 after cleaning flagged totals
@@ -195,19 +197,11 @@ elif st.session_state.step == 4:
         if st.button("Continue"):
             st.session_state.step = 5  # Skip to Step 5 if no flagged cells
 
-    # Ensure file_bytes are handled properly after reviewing flagged cells
-    if 'excel_bytes' in st.session_state and st.session_state.excel_bytes:
-        file_bytes = st.session_state.excel_bytes  # Ensure we're working with the correct file
-        
-        # Ensure file_bytes is a BytesIO object
-        if not isinstance(file_bytes, BytesIO):
-            file_bytes = BytesIO(file_bytes)  # Wrap file_bytes in BytesIO if it's raw bytes
+    # No file collapse check or modification anymore
 
-        # **No collapse check or modification here anymore**
+    # Just move to Step 5 now that flagged cells have been handled
+    st.session_state.step = 5
 
-        st.session_state.excel_bytes = file_bytes  # Store the unchanged file bytes (if no collapse needed)
-
-        st.session_state.step = 5  # Proceed to Step 5
 
 
 
