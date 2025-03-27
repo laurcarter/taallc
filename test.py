@@ -10,8 +10,13 @@ from collapse import collapse_sheet
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
 
 # Function to highlight flagged totals
+# Function to highlight flagged totals
 def highlight_and_flag_totals(file_bytes):
-    wb = load_workbook(filename=BytesIO(file_bytes), data_only=True)
+    # Ensure file_bytes is wrapped in BytesIO before passing to load_workbook
+    if not isinstance(file_bytes, BytesIO):
+        file_bytes = BytesIO(file_bytes)
+
+    wb = load_workbook(filename=file_bytes, data_only=True)
     flagged_cells = []
 
     for ws in wb.worksheets:
@@ -27,6 +32,7 @@ def highlight_and_flag_totals(file_bytes):
     wb.save(output_stream)
     output_stream.seek(0)
     return output_stream, flagged_cells
+
 
 # Function to clean flagged totals (remove parentheses and 'Total')
 def clean_flagged_totals(file_bytes):
