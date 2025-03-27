@@ -187,19 +187,24 @@ elif st.session_state.step == 4:
         col1, col2 = st.columns(2)
         with col1:
             if st.button("Yes, clean these cells"):
-                # Ensure file_bytes is a BytesIO object and clean flagged totals
+                # Ensure we're working with the correct file_bytes from session state
                 file_bytes = st.session_state.excel_bytes
-                
+
                 # Clean the flagged totals (this function will modify the file)
                 cleaned_file = clean_flagged_totals(file_bytes)
 
                 # Update the session state with the cleaned file
                 st.session_state.excel_bytes = cleaned_file  # Store the cleaned file in session state
 
+                # After cleaning, move to Step 5 for transformation
                 st.session_state.step = 5  # Move to Step 5 after cleaning flagged totals
+                st.success("Flagged cells cleaned!")
+
         with col2:
             if st.button("No, leave them as-is"):
+                # If the user chooses not to clean, move to the next step without modification
                 st.session_state.step = 5  # Move to Step 5 without cleaning flagged totals
+                st.info("Flagged cells were not cleaned.")
 
     else:
         st.info("No problematic 'Total' cells found. Skipping ahead.")
@@ -207,7 +212,9 @@ elif st.session_state.step == 4:
             st.session_state.step = 5  # Skip to Step 5 if no flagged cells
 
     # Ensure we're moving forward properly after reviewing and cleaning flagged cells
+    # This step is done, and now we move to Step 5
     st.session_state.step = 5
+
 
 
 
