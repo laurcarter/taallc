@@ -198,8 +198,12 @@ elif st.session_state.step == 4:
     # After reviewing flagged cells, check collapse condition
     file_bytes = st.session_state.excel_bytes  # Ensure we're working with the correct file
     
-    # Check the condition for collapse (e.g., blank cells in column A between rows 10-20)
-    wb = load_workbook(filename=BytesIO(file_bytes))
+    # Ensure file_bytes is a BytesIO object
+    if not isinstance(file_bytes, BytesIO):
+        file_bytes = BytesIO(file_bytes)  # Wrap file_bytes in BytesIO if it's raw bytes
+
+    # Load the workbook after ensuring it's in the correct format
+    wb = load_workbook(filename=file_bytes)
     sheet = wb.active
 
     blank_cells_count = 0
@@ -226,6 +230,7 @@ elif st.session_state.step == 4:
         st.session_state.excel_bytes = file_bytes  # Keep the original file bytes
 
     st.session_state.step = 5  # Move to Step 5 for transformation selection
+
 
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
