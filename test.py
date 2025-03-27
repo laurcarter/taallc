@@ -211,8 +211,6 @@ elif st.session_state.step == 4:
 
 
 
-
-
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
     # **Silent Collapse Check**
@@ -247,6 +245,7 @@ elif st.session_state.step == 5:
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
 
         st.session_state.step = 6  # Move to the final step for download
+
 
 
             
