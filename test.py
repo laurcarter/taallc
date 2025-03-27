@@ -184,7 +184,7 @@ elif st.session_state.step == 4:
         with col1:
             if st.button("Yes, clean these cells"):
                 cleaned_file = clean_flagged_totals(st.session_state.excel_bytes)
-                st.session_state.excel_bytes = cleaned_file
+                st.session_state.excel_bytes = cleaned_file  # Update excel_bytes after cleaning flagged totals
                 st.session_state.step = 5  # Move to Step 5 after cleaning flagged totals
         with col2:
             if st.button("No, leave them as-is"):
@@ -193,7 +193,22 @@ elif st.session_state.step == 4:
     else:
         st.info("No problematic 'Total' cells found. Skipping ahead.")
         if st.button("Continue"):
-            st.session_state.step = 5  # Skip to Step 5 if no flagged cell
+            st.session_state.step = 5  # Skip to Step 5 if no flagged cells
+
+    # Ensure file_bytes are handled properly after reviewing flagged cells
+    if 'excel_bytes' in st.session_state and st.session_state.excel_bytes:
+        file_bytes = st.session_state.excel_bytes  # Ensure we're working with the correct file
+        
+        # Ensure file_bytes is a BytesIO object
+        if not isinstance(file_bytes, BytesIO):
+            file_bytes = BytesIO(file_bytes)  # Wrap file_bytes in BytesIO if it's raw bytes
+
+        # **No collapse check or modification here anymore**
+
+        st.session_state.excel_bytes = file_bytes  # Store the unchanged file bytes (if no collapse needed)
+
+        st.session_state.step = 5  # Proceed to Step 5
+
 
 
 
