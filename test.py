@@ -213,32 +213,41 @@ elif st.session_state.step == 4:
 
 
 
-
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
+    # **Silent Collapse Check**
+    # Get the file to check for empty cells in column A (rows 5-10)
+    file_bytes = st.session_state.excel_bytes  # The current file in session state
+
+    # Load the workbook
+    wb = load_workbook(filename=BytesIO(file_bytes))
+    sheet = wb.active
+    empty_cell_count = 0
+    total_cells_to_check = 6  # Checking rows 5 to 10 (6 rows total)
+
+    # Check if all cells in column A (rows 5-10) are empty
+    for row in range(5, 11):  # Rows 5 to 10 in column A
+        cell = sheet.cell(row=row, column=1)
+        if cell.value is None or str(cell.value).strip() == "":
+            empty_cell_count += 1
+    
+    # If all the cells between rows 5-10 in column A are empty, collapse the file
+    if empty_cell_count == total_cells_to_check:
+        collapsed_file = collapse_sheet(file_bytes)  # Call the collapse function
+        st.session_state.excel_bytes = collapsed_file  # Update the session state with the collapsed file
+
     st.title("🔧 What type of filing is this?")  # Title for Step 5
     st.write("Select the type of filing for this document.")  # Description for Step 5
 
     choice = st.radio("Select your filing type:", ["Profit & Loss (P&L)", "Balance Sheet"], index=0)
-    
+
     if st.button("Run Transformation"):
-        # Check if file_bytes exist and are valid
-        if 'excel_bytes' in st.session_state and st.session_state.excel_bytes:
-            file_bytes = st.session_state.excel_bytes
-            try:
-                # Convert the BytesIO object to raw bytes using .getvalue() method
-                raw_bytes = file_bytes.getvalue() if isinstance(file_bytes, BytesIO) else file_bytes
+        # Proceed with the transformation depending on the user's selection
+        if choice == "Profit & Loss (P&L)":
+            st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
 
-                # Continue with the transformation depending on the user's selection
-                if choice == "Profit & Loss (P&L)":
-                    st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
+        st.session_state.step = 6  # Move to the final step for download
 
-                st.session_state.step = 6  # Move to the final step for download
-
-            except Exception as e:
-                st.error(f"An error occurred while processing the collapse function: {e}")
-        else:
-            st.error("No valid file found to process.")
 
             
 # Step 6: Download Final Processed File
