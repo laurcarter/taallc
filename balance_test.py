@@ -177,42 +177,42 @@ def sort_focus_sheet(focus_ws, max_row):
             focus_ws.cell(row=idx, column=col_idx).value = value
 
 
-def secondary_sort_focus_sheet(focus_ws, max_row):
-    # Create a list to hold rows with their corresponding values from columns C and D
-    rows = []
+def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
+    if max_row is None:
+        max_row = focus_ws.max_row
 
-    # Loop through column C starting from row 8 (instead of 5)
-    for row in range(8, max_row + 1):
-        c_value = focus_ws.cell(row=row, column=3).value
-        d_value = focus_ws.cell(row=row, column=4).value
-        
-        # Skip rows where column C is empty
-        if c_value is None or c_value == "":
-            continue
+    # Create a list to store the rows and their corresponding values in Column C and D
+    rows_to_sort = []
+    
+    # Collect all the rows along with values from Column C and Column D
+    for row in range(start_row, max_row + 1):
+        value_c = focus_ws.cell(row=row, column=3).value  # Column C value
+        value_d = focus_ws.cell(row=row, column=4).value  # Column D value
+        if value_c is not None:  # Only include rows with a value in Column C
+            rows_to_sort.append((row, value_c, value_d))
 
-        # Ensure column D is treated as a numeric value if possible
-        if isinstance(d_value, (int, float)):
-            d_value = float(d_value)  # Ensure the value is treated as a float
-        else:
-            d_value = float('-inf')  # Non-numeric values will be treated as the lowest possible
-        
-        # Append the entire row along with values from column C and D
-        rows.append((row, c_value, d_value, [focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)]))
+    # Step 1: Group rows by identical values in Column C
+    grouped_rows = {}
+    for row, value_c, value_d in rows_to_sort:
+        if value_c not in grouped_rows:
+            grouped_rows[value_c] = []
+        grouped_rows[value_c].append((row, value_d))
 
-    # Sort rows based on column C (ascending) and column D (descending for same values in C)
-    rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
+    # Step 2: Sort each group by Column D in descending order
+    for value_c, rows in grouped_rows.items():
+        # Sort rows within the group based on Column D (descending order)
+        rows.sort(key=lambda x: x[1], reverse=True)
 
-    # Clear the existing values in the sheet starting from row 8
-    for row in range(8, max_row + 1):
-        for col in range(1, focus_ws.max_column + 1):
-            focus_ws.cell(row=row, column=col).value = None
+        # Step 3: Reassign the sorted rows back to the worksheet
+        for idx, (original_row, value_d) in enumerate(rows):
+            target_row = start_row + idx  # The new row position after sorting within the group
+            # Copy the entire row to the new position, including columns C and D (and other columns)
+            for col in range(1, focus_ws.max_column + 1):
+                focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=original_row, column=col).value
 
-    # Write the sorted rows back into the sheet starting from row 8
-    new_row_idx = 8
-    for _, _, _, row_values in rows:
-        for col_idx, value in enumerate(row_values, start=1):
-            focus_ws.cell(row=new_row_idx, column=col_idx).value = value
-        new_row_idx += 1
+            # Clear the original row after moving it
+            for col in range(1, focus_ws.max_column + 1):
+                focus_ws.cell(row=original_row, column=col).value = None
 
 
 def balance_focus_grouping(file_bytes):
@@ -302,8 +302,9 @@ def balance_focus_grouping(file_bytes):
     # Call the sort_focus_sheet function after the rest of the operations in the macro
     sort_focus_sheet(focus_ws, max_row)
 
-    # After sorting column C (done by previous functions), call this function for secondary sorting
-    #secondary_sort_focus_sheet(focus_ws, max_row)
+    # After sorting by Column C (primary sort)
+    secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=max_row)
+
 
 
 
