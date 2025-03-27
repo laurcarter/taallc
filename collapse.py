@@ -3,7 +3,11 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
 def collapse_sheet(file_bytes):
-    wb = load_workbook(filename=BytesIO(file_bytes))  # Ensure file_bytes is wrapped in BytesIO
+    # Ensure file_bytes is a BytesIO object if it's raw bytes
+    if not isinstance(file_bytes, BytesIO):
+        file_bytes = BytesIO(file_bytes)  # Convert raw bytes to BytesIO if needed
+
+    wb = load_workbook(file_bytes)  # Load workbook directly from BytesIO
     ws = wb.active  # Active sheet
 
     # Create a new sheet for the cleaned data
