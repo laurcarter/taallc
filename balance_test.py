@@ -176,41 +176,55 @@ def sort_focus_sheet(focus_ws, max_row):
         for col_idx, value in enumerate(row_values, start=1):
             focus_ws.cell(row=idx, column=col_idx).value = value
 
-def secondary_sort_focus_sheet(focus_ws, start_row=8, max_row=None):
-    if max_row is None:
-        max_row = focus_ws.max_row
+def secondary_sort_focus_sheet(focus_ws, max_row):
+    # Step 1: Create a list to hold rows with their corresponding values in column C and D
+    rows = []
 
-    # Create a list to store the rows and their corresponding values in Column C and D
-    rows_to_sort = []
+    # Step 2: Loop through column C starting from row 8 to max_row
+    for row in range(8, max_row + 1):
+        cell = focus_ws.cell(row=row, column=3)  # Column C value
+        if cell.value is not None:
+            c_value = str(cell.value).strip()
+            
+            # Append the entire row with its value in column C and D
+            rows.append((row, c_value, [focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)]))
 
-    # Collect all the rows along with values from Column C and Column D
-    for row in range(start_row, max_row + 1):
-        value_c = focus_ws.cell(row=row, column=3).value  # Column C value
-        value_d = focus_ws.cell(row=row, column=4).value  # Column D value
-        if value_c is not None:  # Only include rows with a value in Column C
-            # If Column D is not numeric, treat it as None for sorting purposes
-            if not isinstance(value_d, (int, float)):
-                value_d = None
-            rows_to_sort.append((row, value_c, value_d))
+    # Step 3: Sort rows based on the value in column C (ascending order)
+    rows.sort(key=lambda x: (int(x[1]) if x[1].isdigit() else float('inf'), x[1]))
 
-    # Step 1: Sort the rows first by Column C (ascending) and then by Column D (descending)
-    rows_to_sort.sort(key=lambda x: (x[1], -x[2] if x[2] is not None else float('inf')))  # Handle non-numeric values in Column D
+    # Step 4: Reorganize the rows with identical Column C values, sorting within them based on Column D (descending order)
+    sorted_rows = []
+    current_c_value = None
+    current_cluster = []
 
-    # Step 2: Reassign the sorted rows back to the worksheet
-    target_row = start_row  # Start placing rows from the start_row position
+    for row in rows:
+        row_num, c_value, row_values = row
+        
+        # When we encounter a new C value, sort the previous cluster by Column D (descending)
+        if c_value != current_c_value:
+            if current_cluster:
+                current_cluster.sort(key=lambda x: x[1], reverse=True)  # Sort by Column D (descending)
+                sorted_rows.extend(current_cluster)  # Add the sorted cluster to the final list
+            current_cluster = []  # Reset the cluster
+            current_c_value = c_value
 
-    for original_row, _, _ in rows_to_sort:
-        # Copy the entire row to the new position, including columns C and D (and other columns)
+        current_cluster.append((row_num, row_values))
+
+    # Add the last cluster
+    if current_cluster:
+        current_cluster.sort(key=lambda x: x[1], reverse=True)
+        sorted_rows.extend(current_cluster)
+
+    # Step 5: Clear existing data from row 8 onwards
+    for row in range(8, max_row + 1):
         for col in range(1, focus_ws.max_column + 1):
-            focus_ws.cell(row=target_row, column=col).value = focus_ws.cell(row=original_row, column=col).value
+            focus_ws.cell(row=row, column=col).value = None
 
-        # Move the target row down after each operation
-        target_row += 1
+    # Step 6: Write the sorted rows back into the worksheet
+    for idx, (original_row, row_values) in enumerate(sorted_rows, start=8):
+        for col_idx, value in enumerate(row_values, start=1):
+            focus_ws.cell(row=idx, column=col_idx).value = value
 
-    # Step 3: Clear the original rows after they have been re-inserted
-    for original_row, _, _ in rows_to_sort:
-        for col in range(1, focus_ws.max_column + 1):
-            focus_ws.cell(row=original_row, column=col).value = None
 
 
 
