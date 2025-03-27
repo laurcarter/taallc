@@ -146,7 +146,6 @@ elif st.session_state.step == 3:
                     del wb[sheet]  # Delete unwanted sheets
 
             # Now only the selected sheet is left, and we can continue processing
-            # Set the selected sheet as active
             sheet = wb[selected_sheet]
 
             # Proceed with the selected sheet
@@ -161,7 +160,7 @@ elif st.session_state.step == 3:
             # If there is only one sheet, use it directly
             sheet = wb.active
 
-        # Now highlight and flag totals on the selected sheet before checking collapse condition
+        # Now highlight and flag totals on the selected sheet
         highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
         st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
         st.session_state.flagged_cells = flagged  # Store the flagged cells
@@ -172,8 +171,7 @@ elif st.session_state.step == 3:
         if st.button("Continue"):
             st.session_state.step = 4  # Move to Step 4
 
-
-# Step 4: Show flagged cells for review
+# Step 4: Show flagged cells for review and collapse if needed
 elif st.session_state.step == 4:
     st.title("🔍 Review Flagged Cells")  # Title for Step 4
     st.write("Review and clean any flagged cells, or leave them as-is.")  # Description for Step 4
@@ -197,6 +195,37 @@ elif st.session_state.step == 4:
         if st.button("Continue"):
             st.session_state.step = 5
 
+    # After reviewing flagged cells, check collapse condition
+    file_bytes = st.session_state.excel_bytes  # Ensure we're working with the correct file
+    
+    # Check the condition for collapse (e.g., blank cells in column A between rows 10-20)
+    wb = load_workbook(filename=BytesIO(file_bytes))
+    sheet = wb.active
+
+    blank_cells_count = 0
+    total_cells_count = 0
+    collapse_needed = False
+
+    # Check for blank cells in column 1 (A) within rows 10-20
+    for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):  # Only check column 1 (A)
+        for cell in row:
+            if cell.value is None or str(cell.value).strip() == "":
+                blank_cells_count += 1
+            total_cells_count += 1
+
+    # If more than 50% of cells in column 1 (A) between rows 10-20 are blank, collapse the sheet
+    if blank_cells_count / total_cells_count > 0.5:
+        collapse_needed = True
+
+    if collapse_needed:
+        # Collapse the sheet if needed
+        collapsed_file = collapse_sheet(file_bytes)  # Call collapse function if needed
+        st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
+    else:
+        # Skip collapsing the sheet
+        st.session_state.excel_bytes = file_bytes  # Keep the original file bytes
+
+    st.session_state.step = 5  # Move to Step 5 for transformation selection
 
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
@@ -212,34 +241,6 @@ elif st.session_state.step == 5:
             try:
                 # Convert the BytesIO object to raw bytes using .getvalue() method
                 raw_bytes = file_bytes.getvalue() if isinstance(file_bytes, BytesIO) else file_bytes
-
-                # Check the condition for collapse (e.g., blank cells in column A between rows 10-20)
-                wb = load_workbook(filename=BytesIO(raw_bytes))
-                sheet = wb.active
-
-                # Conditional check for blank cells in column 1 (A) between rows 10-20
-                blank_cells_count = 0
-                total_cells_count = 0
-                collapse_needed = False
-
-                # Check for blank cells in column 1 (A) within rows 10-20
-                for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):
-                    for cell in row:
-                        if cell.value is None or str(cell.value).strip() == "":
-                            blank_cells_count += 1
-                        total_cells_count += 1
-
-                # If more than 50% of cells in column 1 (A) between rows 10-20 are blank, collapse the sheet
-                if blank_cells_count / total_cells_count > 0.5:
-                    collapse_needed = True
-
-                if collapse_needed:
-                    # Collapse the sheet if needed
-                    collapsed_file = collapse_sheet(raw_bytes)  # Call collapse function if needed
-                    st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
-                else:
-                    # Skip collapsing the sheet
-                    st.session_state.excel_bytes = raw_bytes  # Keep the original file bytes
 
                 # Continue with the transformation depending on the user's selection
                 if choice == "Profit & Loss (P&L)":
