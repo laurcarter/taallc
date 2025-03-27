@@ -146,7 +146,10 @@ elif st.session_state.step == 3:
                     del wb[sheet]  # Delete unwanted sheets
 
             # Now only the selected sheet is left, and we can continue processing
-            # Re-read the file with only the selected sheet
+            # Set the selected sheet as active
+            sheet = wb[selected_sheet]
+
+            # Proceed with the selected sheet
             selected_file_bytes = BytesIO()
             wb.save(selected_file_bytes)
             selected_file_bytes.seek(0)
@@ -154,12 +157,15 @@ elif st.session_state.step == 3:
             # Proceed with the selected sheet
             file_bytes = selected_file_bytes.read()
 
+        else:
+            # If there is only one sheet, use it directly
+            sheet = wb.active
+
         # Conditional check for blank cells between rows 10-20
-        sheet = wb.active  # Use the active sheet for analysis
         blank_cells_count = 0
         total_cells_count = 0
 
-        # Check for blank cells in the specified range (rows 10-20)
+        # Check for blank cells in the specified range (rows 10-20) on the active sheet
         for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=sheet.max_column):
             for cell in row:
                 if cell.value is None or str(cell.value).strip() == "":
@@ -183,7 +189,6 @@ elif st.session_state.step == 3:
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
         if st.button("Continue"):
             st.session_state.step = 4
-
 
 # Step 4: Show flagged cells for review
 elif st.session_state.step == 4:
