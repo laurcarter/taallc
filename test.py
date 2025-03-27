@@ -170,32 +170,7 @@ elif st.session_state.step == 3:
 
         # Continue button to move to the next step
         if st.button("Continue"):
-            # Check for collapse condition based on blank cells in rows 10-20 of column A
-            blank_cells_count = 0
-            total_cells_count = 0
-            collapse_needed = False
-
-            # Check for blank cells in column 1 (A) within rows 10-20
-            for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):
-                for cell in row:
-                    if cell.value is None or str(cell.value).strip() == "":
-                        blank_cells_count += 1
-                    total_cells_count += 1
-
-            # If more than 50% of cells in column 1 (A) between rows 10-20 are blank, collapse the sheet
-            if blank_cells_count / total_cells_count > 0.5:
-                collapse_needed = True
-
-            if collapse_needed:
-                # Collapse the sheet if needed
-                collapsed_file = collapse_sheet(file_bytes)  # Call collapse_sheet if needed
-                st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
-            else:
-                # Skip collapsing the sheet
-                st.session_state.excel_bytes = file_bytes  # Keep the original file bytes
-
-            st.session_state.step = 4
-
+            st.session_state.step = 4  # Move to Step 4
 
 # Step 4: Show flagged cells for review
 elif st.session_state.step == 4:
@@ -222,6 +197,35 @@ elif st.session_state.step == 4:
             st.session_state.step = 5
 
 
+# Step to check for collapse condition and trigger collapse if needed
+        if st.button("Continue"):
+            # Check for collapse condition based on blank cells in rows 10-20 of column A
+            blank_cells_count = 0
+            total_cells_count = 0
+            collapse_needed = False
+
+            # Check for blank cells in column 1 (A) within rows 10-20
+            for row in sheet.iter_rows(min_row=10, max_row=20, min_col=1, max_col=1):
+                for cell in row:
+                    if cell.value is None or str(cell.value).strip() == "":
+                        blank_cells_count += 1
+                    total_cells_count += 1
+
+            # If more than 50% of cells in column 1 (A) between rows 10-20 are blank, collapse the sheet
+            if blank_cells_count / total_cells_count > 0.5:
+                collapse_needed = True
+
+            if collapse_needed:
+                # Collapse the sheet if needed
+                collapsed_file = collapse_sheet(st.session_state.excel_bytes)  # Call collapse_sheet if needed
+                st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
+            else:
+                # Skip collapsing the sheet
+                st.session_state.excel_bytes = st.session_state.excel_bytes  # Keep the original file bytes
+
+            st.session_state.step = 5
+
+
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
     st.title("🔧 What type of filing is this?")  # Title for Step 5
@@ -232,6 +236,9 @@ elif st.session_state.step == 5:
         if choice == "Profit & Loss (P&L)":
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
         st.session_state.step = 6
+
+
+
 # Step 6: Download Final Processed File
 elif st.session_state.step == 6:
     st.title("✅ Final Step: Download Processed File")  # Title for Step 6
