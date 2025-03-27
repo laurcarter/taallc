@@ -24,8 +24,9 @@ def collapse_sheet(file_bytes):
 
         # Step 2: Search columns A to N for the first numeric value (balance column)
         for j in range(1, 15):  # Columns A to N (1 to 14)
-            if row[j-1].value is not None and isinstance(row[j-1].value, (int, float)):  # Check for numeric value (balance)
-                balance = row[j-1].value  # First numeric value is the balance
+            cell = row[j-1]  # Get the cell in column j (1-indexed)
+            if cell is not None and cell.value is not None and isinstance(cell.value, (int, float)):  # Check for numeric value (balance)
+                balance = cell.value  # First numeric value is the balance
                 clean_ws.cell(row=i, column=2).value = balance  # Place the balance in column B
                 balance_found = True
                 balance_column = j
@@ -33,9 +34,11 @@ def collapse_sheet(file_bytes):
 
         # Step 3: Populate Account Names in column A
         if balance_found:
+            account_names = ""
             for j in range(1, balance_column):  # Iterate columns from A to the balance column
-                if row[j-1].value is not None and not isinstance(row[j-1].value, (int, float)):  # Check for non-numeric value
-                    account_names += f" {row[j-1].value}"
+                cell = row[j-1]  # Get the cell in column j (1-indexed)
+                if cell is not None and cell.value is not None and not isinstance(cell.value, (int, float)):  # Check for non-numeric value
+                    account_names += f" {cell.value}"
 
             account_names = account_names.strip()  # Remove any leading/trailing spaces
             clean_ws.cell(row=i, column=1).value = account_names  # Place the account names in column A
