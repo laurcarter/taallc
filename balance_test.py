@@ -36,23 +36,18 @@ def balance_focus_grouping(file_bytes):
             # Split the value at the opening parenthesis and store the parts
             parts = str(val).split('(', 1)
             focus_ws.cell(row=row, column=1).value = parts[0].strip()  # First part goes to Column A
-            focus_ws.cell(row=row, column=4).value = parts[1].strip()  # Second part goes to Column D
+            focus_ws.cell(row=row, column=2).value = parts[1].strip()  # Second part goes to Column D
 
     # Step 3: Remove parentheses in Column D (Focus sheet)
     for row in range(1, max_row + 1):
-        val_d = focus_ws.cell(row=row, column=4).value
+        val_d = focus_ws.cell(row=row, column=2).value
         if val_d:
-            focus_ws.cell(row=row, column=4).value = str(val_d).replace("(", "").replace(")", "")
+            focus_ws.cell(row=row, column=2).value = str(val_d).replace("(", "").replace(")", "")
 
     # Step 4: Copy Column B from the original sheet to Column E in Focus sheet
     for row in range(1, max_row + 1):
         original_value = ws.cell(row=row, column=2).value
         focus_ws.cell(row=row, column=5).value = original_value
-
-    # Step 5: Clear Columns C and D (focus_ws) in Focus sheet after moving data
-    for row in range(1, max_row + 1):
-        focus_ws.cell(row=row, column=3).value = None
-        focus_ws.cell(row=row, column=4).value = None
 
     # Step 6: Move Column E to Column D in Focus sheet (after clearing C and D)
     for row in range(1, max_row + 1):
