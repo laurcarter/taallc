@@ -60,33 +60,6 @@ def clean_flagged_totals(file_bytes):
     output_stream.seek(0)
     return output_stream
 
-# Function to handle multiple sheet selection
-def handle_multiple_sheets(file_bytes):
-    wb = load_workbook(filename=BytesIO(file_bytes))
-    sheet_names = wb.sheetnames
-    
-    if len(sheet_names) > 1:
-        # If there are multiple sheets, display options for the user
-        st.warning("Multiple sheets detected. Please choose one sheet to proceed with.")
-        
-        # Display a selectbox for the user to choose a sheet
-        selected_sheet = st.selectbox("Select sheet to proceed with", sheet_names)
-        
-        # Remove all other sheets except the selected one
-        for sheet in sheet_names:
-            if sheet != selected_sheet:
-                del wb[sheet]
-
-        # Now only the selected sheet is left
-        selected_file_bytes = BytesIO()
-        wb.save(selected_file_bytes)
-        selected_file_bytes.seek(0)
-
-        return selected_file_bytes.read()  # Return the file after selection
-    else:
-        # If only one sheet, return the file as-is
-        return file_bytes
-
 
 
 # Function to perform P&L transformation
@@ -159,19 +132,58 @@ elif st.session_state.step == 3:
     if uploaded_file:
         file_bytes = uploaded_file.read()
 
-        # Handle multiple sheets if applicable
-        file_bytes = handle_multiple_sheets(file_bytes)
+        # Load the workbook to check if there are multiple sheets
+        wb = load_workbook(filename=BytesIO(file_bytes))
+        sheet_names = wb.sheetnames  # List of sheet names
+        
+        # If there are multiple sheets, move to Step 3.5 for sheet selection
+        if len(sheet_names) > 1:
+            st.session_state.step = 3.5  # Proceed to Step 3.5 for sheet selection
+            st.session_state.uploaded_file_bytes = file_bytes  # Store file bytes in session state
+        else:
+            # If there's only one sheet, continue with the current logic
+            sheet = wb.active
 
-        # Now highlight and flag totals on the selected sheet
-        highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
-        st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
-        st.session_state.flagged_cells = flagged  # Store the flagged cells
+            # Highlight and flag totals on the selected sheet
+            highlighted_file, flagged = highlight_and_flag_totals(file_bytes)
+            st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
+            st.session_state.flagged_cells = flagged  # Store the flagged cells
 
-        st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
+            st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
+            # Continue button to move to the next step
+            if st.button("Continue"):
+                st.session_state.step = 4  # Move to Step 4
+# Step 3.5: Select a sheet if multiple sheets exist
+elif st.session_state.step == 3.5:
+    st.title("📄 Select Sheet")  # Title for Step 3.5
+    st.write("Please select a sheet to continue.")  # Description for Step 3.5
 
-        # Continue button to move to the next step
-        if st.button("Continue"):
-            st.session_state.step = 4  # Move to Step 4
+    # Load the workbook again from the stored bytes
+    uploaded_file_bytes = st.session_state.uploaded_file_bytes
+    wb = load_workbook(filename=BytesIO(uploaded_file_bytes))
+    sheet_names = wb.sheetnames  # List of sheet names
+    
+    # Display the sheet names in a multi-select option
+    selected_sheet = st.selectbox("Select a sheet:", sheet_names)
+
+    # Button to continue after selection
+    if st.button("Continue"):
+        # Delete all sheets except the selected one
+        for sheet in sheet_names:
+            if sheet != selected_sheet:
+                del wb[sheet]  # Delete unwanted sheets
+
+        # Now only the selected sheet is left, and we can continue processing
+        selected_file_bytes = BytesIO()
+        wb.save(selected_file_bytes)
+        selected_file_bytes.seek(0)
+
+        # Proceed with the selected sheet and store it in session state
+        st.session_state.excel_bytes = selected_file_bytes.read()  # Store the updated Excel file
+
+        # Move to the next step for flagging totals
+        st.session_state.step = 4  # Move to Step 4 for reviewing flagged cells
+
 
 
 
@@ -221,13 +233,6 @@ elif st.session_state.step == 4:
         if st.button("Continue"):
             # Proceed to Step 5 if no flagged cells
             st.session_state.step = 5  # Skip to Step 5 if no flagged cells
-
-
-
-
-
-
-
 
 
 
