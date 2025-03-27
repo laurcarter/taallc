@@ -125,17 +125,16 @@ elif st.session_state.step == 3:
 
         # Step 1: Collapse the sheet before highlighting totals
         collapsed_file = collapse_sheet(file_bytes)  # Call collapse_sheet first
-        st.session_state.excel_bytes = collapsed_file
+        st.session_state.excel_bytes = collapsed_file  # Store the collapsed sheet in session state
 
         # Now highlight and flag totals
         highlighted_file, flagged = highlight_and_flag_totals(st.session_state.excel_bytes)
-        st.session_state.excel_bytes = highlighted_file
-        st.session_state.flagged_cells = flagged
+        st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
+        st.session_state.flagged_cells = flagged  # Store the flagged cells
 
         st.success(f"Found {len(flagged)} potentially incorrect 'Total' cells.")
         if st.button("Continue"):
             st.session_state.step = 4
-
 
 
 # Step 4: Show flagged cells for review
