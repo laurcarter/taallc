@@ -190,14 +190,14 @@ elif st.session_state.step == 3.5:
         st.session_state.step = 4  # Proceed to Step 4 for reviewing flagged cells
 
 
-
-
-
-
 # Step 4: Show flagged cells for review and clean if needed
 elif st.session_state.step == 4:
     st.title("🔍 Review Flagged Cells")  # Title for Step 4
     st.write("Review and clean any flagged cells, or leave them as-is.")  # Description for Step 4
+
+    # Ensure flagged_cells exist in session_state
+    if 'flagged_cells' not in st.session_state:
+        st.session_state.flagged_cells = []
 
     if st.session_state.flagged_cells:
         # Display all the flagged cells with their coordinates
@@ -240,6 +240,7 @@ elif st.session_state.step == 4:
         if st.button("Continue"):
             # Proceed to Step 5 if no flagged cells
             st.session_state.step = 5  # Skip to Step 5 if no flagged cells
+
 
 
 
