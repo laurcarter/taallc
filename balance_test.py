@@ -9,7 +9,7 @@ from openpyxl import load_workbook
 from io import BytesIO
 
 def move_totals_below_group(focus_ws, start_row=8, end_row=100):
-    # Step 1: Iterate through rows from row 8 to row 100 (or end row)
+    # Step 1: Initialize necessary variables
     current_group = None
     last_row_in_group = None
     total_row = None
@@ -18,30 +18,35 @@ def move_totals_below_group(focus_ws, start_row=8, end_row=100):
     for row in range(start_row, end_row + 1):
         c_value = focus_ws.cell(row=row, column=3).value  # Value in Column C
         
-        # If we find a "Total" row, we need to handle it
+        # Skip rows where column C contains "Total" since we need to move them later
         if c_value and "Total" in str(c_value):
-            # Save the "Total" row for later use
-            total_rows.append((row, c_value))
-            
             if current_group is not None:
-                # If we find a "Total" row corresponding to the current group, move it to the last row in the group
-                if row == total_rows[-1][0]:  # If it's the last "Total" row in the group
-                    # Move the "Total" row to the position below the group
-                    focus_ws.cell(row=last_row_in_group + 1, column=3).value = focus_ws.cell(row=row, column=3).value
-                    focus_ws.cell(row=last_row_in_group + 1, column=4).value = focus_ws.cell(row=row, column=4).value
-                    focus_ws.cell(row=last_row_in_group + 1, column=5).value = focus_ws.cell(row=row, column=5).value
-                    
-                    # Clear the current "Total" row
-                    for col in range(1, focus_ws.max_column + 1):
-                        focus_ws.cell(row=row, column=col).value = None
-                    
-                    last_row_in_group = last_row_in_group + 1  # Update the last row in the group
-            current_group = c_value
+                # If we encounter a "Total" row for the current group, store the row
+                total_rows.append(row)
+                # Update the last row of the group
+                last_row_in_group = row
+                continue
         elif c_value and c_value != "Total":
-            # If we find a non-total value, mark the current group and last row
+            # If it's a non-"Total" row, update the group and the last row in the group
             if current_group != c_value:
                 current_group = c_value
             last_row_in_group = row
+
+    # Step 2: Move the last "Total" row for each group below its respective group
+    for row in total_rows:
+        total_value = focus_ws.cell(row=row, column=3).value  # "Total" row value in Column C
+        if total_value:
+            # Move the "Total" row to the next row after the last data row in the group
+            focus_ws.cell(row=last_row_in_group + 1, column=3).value = focus_ws.cell(row=row, column=3).value
+            focus_ws.cell(row=last_row_in_group + 1, column=4).value = focus_ws.cell(row=row, column=4).value
+            focus_ws.cell(row=last_row_in_group + 1, column=5).value = focus_ws.cell(row=row, column=5).value
+            
+            # Clear the current "Total" row
+            for col in range(1, focus_ws.max_column + 1):
+                focus_ws.cell(row=row, column=col).value = None
+            
+            # Update the last row in the group to reflect the newly moved "Total" row
+            last_row_in_group += 1
 
 
 
