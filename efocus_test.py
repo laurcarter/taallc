@@ -1,4 +1,4 @@
-import streamlit as st
+fimport streamlit as st
 from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Font
@@ -28,7 +28,7 @@ if uploaded_file:
     # Store the transformed file in session state
     st.session_state.excel_bytes = transformed_file
 
-    st.success("File processed. The 'Focus' sheet has been created and updated.")
+    st.success("File processed. The eFocus has been created.")
 
     # Provide option to download the transformed file
     st.download_button(
