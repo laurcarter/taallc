@@ -248,7 +248,7 @@ elif st.session_state.step == 5:
     file_bytes = st.session_state.excel_bytes  # The current file in session state
 
     # Load the workbook
-    wb = load_workbook(file_bytes)  # Pass file_bytes as a valid file-like object
+    wb = load_workbook(filename=BytesIO(file_bytes))
     sheet = wb.active
     
 
