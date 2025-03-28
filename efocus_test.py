@@ -1,4 +1,4 @@
-from streamlit as st
+import streamlit as st
 from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Font
