@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
 from io import BytesIO
+import streamlit as st
+import pandas as pd
+from openpyxl import load_workbook
+from io import BytesIO
 
 # Function to implement the logic for the 'eFocus' transformation
 def efocus_focus(file_bytes, client_data_bytes):
@@ -25,9 +29,9 @@ def efocus_focus(file_bytes, client_data_bytes):
         st.warning("No client name entered. Process aborted.")
         return None
     
-    # Search for a partial match in row 1 (client names are in row 1, columns C onward)
+    # Search for a partial match in row 1 (client names are in row 1, columns C onward to DD)
     found_cell = None
-    for col in range(3, client_data.shape[1] + 1):  # Client data columns start from column 3 (C)
+    for col in range(3, 131):  # Columns C (3) to DD (130)
         cell_value = str(client_data.iloc[0, col - 1])  # Row 1 contains client names (adjusted for 0-indexing)
         if client_name.lower() in cell_value.lower():  # Case-insensitive search
             found_cell = col
@@ -69,6 +73,7 @@ def efocus_focus(file_bytes, client_data_bytes):
     
     # Return the transformed file as BytesIO
     return output
+
 
 # Streamlit UI for the file upload and processing
 st.set_page_config(page_title="eFocus Transformation", layout="wide")
