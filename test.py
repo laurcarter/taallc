@@ -236,7 +236,7 @@ elif st.session_state.step == 5:
             st.session_state.excel_bytes = collapsed_file  # Update the session state with the collapsed file
         else:
             st.error("Error: Collapse function did not return a valid file.")  # Handle errors
-            
+
     st.title("🔧 What type of filing is this?")  # Title for Step 5
     st.write("Select the type of filing for this document.")  # Description for Step 5
 
@@ -246,9 +246,21 @@ elif st.session_state.step == 5:
         # Proceed with the transformation depending on the user's selection
         if choice == "Profit & Loss (P&L)":
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
+        
+        elif choice == "Balance Sheet":
+            # Call the balance transformation function from balance.py
+            wb = load_workbook(st.session_state.excel_bytes)
+            focus_ws = wb.active  # Assuming the relevant sheet is active; adjust if necessary
+            total_assets, total_liabilities, total_equity = calculate_totals(focus_ws, start_row=8, end_row=100)
+            calculate_and_insert_totals(focus_ws, total_assets, total_liabilities, total_equity, start_row=8, end_row=100)
+
+            # Save the transformed file and store it back in session state
+            output = BytesIO()
+            wb.save(output)
+            output.seek(0)
+            st.session_state.excel_bytes = output  # Update the session state with the transformed file
 
         st.session_state.step = 6  # Move to the final step for download
-
 
 
 
