@@ -9,6 +9,76 @@ from openpyxl import load_workbook
 from io import BytesIO
 from openpyxl.styles import NamedStyle
 
+def calculate_totals_and_balance(focus_ws, start_row=8, end_row=100):
+    # Step 1: Initialize variables for totals
+    total_assets = 0
+    total_liabilities = 0
+    total_equity = 0
+
+    # Step 2: Loop through each row to sum the amounts for each group (based on numeric codes in Column C)
+    for row in range(start_row, end_row + 1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()  # Value in Column C
+        try:
+            # Extract numeric code, skipping "Total" rows
+            if "Total" in c_value:
+                numeric_code = int(c_value.replace("Total", "").strip())
+            else:
+                numeric_code = int(c_value)
+        except ValueError:
+            numeric_code = None
+        
+        # Step 3: Add amounts to the correct total group
+        if numeric_code is not None:
+            # Assets (200 to 940)
+            if 200 <= numeric_code <= 940:
+                amount = focus_ws.cell(row=row, column=4).value
+                if isinstance(amount, (int, float)):
+                    total_assets += amount
+            # Liabilities (970 to 1760)
+            elif 970 <= numeric_code <= 1760:
+                amount = focus_ws.cell(row=row, column=4).value
+                if isinstance(amount, (int, float)):
+                    total_liabilities += amount
+            # Ownership Equity (1020 or 1770 to 1810)
+            elif numeric_code == 1020 or (1770 <= numeric_code <= 1810):
+                amount = focus_ws.cell(row=row, column=4).value
+                if isinstance(amount, (int, float)):
+                    total_equity += amount
+
+    # Step 4: Calculate the sum of liabilities and equity
+    total_liabilities_and_equity = (total_liabilities / 2) + (total_equity / 2)
+
+    # Step 5: Calculate the balance (Total Assets - Total Liabilities and Equity)
+    balance = (total_assets / 2) - total_liabilities_and_equity
+
+    # Step 6: Find the last row with data in Column E
+    last_data_row = focus_ws.max_row
+    while focus_ws.cell(row=last_data_row, column=5).value is None and last_data_row >= start_row:
+        last_data_row -= 1  # Find the last row with data in column E
+
+    # Step 7: Move 2 rows down from the last data row in column E
+    last_row = last_data_row + 2
+
+    # Step 8: Insert the text in Column E (bold and in all caps)
+    focus_ws.cell(row=last_row, column=5).value = "TOTAL ASSETS"
+    focus_ws.cell(row=last_row, column=5).font = openpyxl.styles.Font(bold=True)
+
+    focus_ws.cell(row=last_row + 1, column=5).value = "TOTAL LIABILITIES AND EQUITY"
+    focus_ws.cell(row=last_row + 1, column=5).font = openpyxl.styles.Font(bold=True)
+
+    focus_ws.cell(row=last_row + 2, column=5).value = "BALANCE"
+    focus_ws.cell(row=last_row + 2, column=5).font = openpyxl.styles.Font(bold=True)
+
+    # Step 9: Insert the corresponding values in Column F
+    focus_ws.cell(row=last_row, column=6).value = total_assets / 2
+    focus_ws.cell(row=last_row, column=6).font = openpyxl.styles.Font(bold=True)
+
+    focus_ws.cell(row=last_row + 1, column=6).value = total_liabilities_and_equity
+    focus_ws.cell(row=last_row + 1, column=6).font = openpyxl.styles.Font(bold=True)
+
+    focus_ws.cell(row=last_row + 2, column=6).value = balance
+    focus_ws.cell(row=last_row + 2, column=6).font = openpyxl.styles.Font(bold=True)
+
 
 def apply_comma_format_no_decimal(focus_ws, start_row=8, end_row=100):
     # Apply the number format for comma separation (no decimals) without removing other styles
@@ -505,6 +575,8 @@ def balance_focus_grouping(file_bytes):
     # After running your totals calculation, apply comma formatting to Column F
     apply_comma_format_no_decimal(focus_ws, start_row=8, end_row=100)
 
+    #test
+    calculate_totals_and_balance(focus_ws, start_row=8, end_row=100)
 
 
     # Save the modified workbook to a BytesIO object
