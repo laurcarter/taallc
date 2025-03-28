@@ -5,6 +5,21 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 from openpyxl.utils import get_column_letter
 
+
+# Path to your locally stored Excel file (update this with your local path)
+local_file_path = "/Users/lauren.carter/Desktop/client_data.xlsx"
+
+def fetch_client_data_locally():
+    # Check if the file exists
+    if os.path.exists(local_file_path):
+        # Load the Excel file into pandas
+        client_data = pd.read_excel(local_file_path)
+        return client_data
+    else:
+        print("Error: Client data file not found.")
+        return None
+
+
 # ---------- eFocus Function Placeholder ----------
 def efocus_focus(file_bytes):
     # Load the workbook from the BytesIO object
