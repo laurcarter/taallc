@@ -45,8 +45,23 @@ def efocus_focus(file_bytes, client_data_bytes):
         client_column = client_names.index(selected_client) * 2 + 3  # Adjust column index for 0-indexing (C is column 3)
         st.write(f"Client Column: {client_column}")  # For debugging purposes
 
-        # You can now use the client_column to fetch client-specific data
-        # After processing, save the workbook to a BytesIO object for download
+        # Create the "FocusTarget" sheet in the original workbook
+        focus_target_ws = wb.create_sheet(title="FocusTarget")
+
+        # Copy column A from the client data file (rows 1 to 275) into "FocusTarget"
+        client_column_a = client_data.iloc[:, 0]  # Column A (no header)
+        for i, value in enumerate(client_column_a, start=1):
+            focus_target_ws.cell(row=i, column=1, value=value)
+
+        # Copy the selected client column from the client data (rows 1 to 275) into "FocusTarget"
+        client_column_data = client_data.iloc[:, client_column - 1]  # Selected column based on the client name
+        for i, value in enumerate(client_column_data, start=1):
+            focus_target_ws.cell(row=i, column=2, value=value)
+
+        # Set header for the new column B
+        focus_target_ws.cell(row=1, column=2, value=selected_client)
+
+        # Save the modified workbook to a BytesIO object
         output = BytesIO()
         wb.save(output)
         output.seek(0)  # Move the cursor to the beginning of the BytesIO object
