@@ -1,55 +1,66 @@
+import pandas as pd
 import streamlit as st
-from io import BytesIO
 from openpyxl import load_workbook
-from openpyxl.styles import PatternFill, Font
-import pandas as pd
+from io import BytesIO
 
-# ---------- eFocus Function Placeholder ----------
-import pandas as pd
-
+# Placeholder eFocus Function
 def efocus_focus(file_bytes, client_data_bytes):
-    # Load the uploaded Excel file
+    # Load the workbook for the uploaded Excel file
     wb = load_workbook(filename=BytesIO(file_bytes))
-    focus_ws = wb['Focus']  # Assuming 'Focus' sheet exists in the uploaded workbook
 
-    # Load the client data from the uploaded client_data.xlsx
-    client_data = pd.read_excel(BytesIO(client_data_bytes))  # Load client data as a DataFrame
+    # Ensure we are working with the correct sheet (Focus sheet)
+    if 'Focus' not in wb.sheetnames:
+        st.error("Focus sheet not found in the uploaded file.")
+        return None  # Exit if Focus sheet is not found
 
-    # Debugging: Print out the column names in client_data
-    print("Client Data Columns:", client_data.columns)
+    focus_ws = wb['Focus']  # Get the Focus sheet
 
-    # Print the first few rows of the client data to inspect its contents
-    print("Client Data Preview:")
-    print(client_data.head())
+    # Debug: Print the sheet names to verify that we are looking at the right one
+    st.write(f"Sheet Names in Workbook: {wb.sheetnames}")
+    
+    # Load the client data from the uploaded client data Excel file
+    client_data = pd.read_excel(BytesIO(client_data_bytes))  # Load client data as DataFrame
 
-    # Get the client names from row 1 (starting from column C onwards)
+    # Debug: Check the columns and preview the first few rows of the client data
+    st.write("Client Data Columns:")
+    st.write(client_data.columns)
+    st.write("First few rows of Client Data:")
+    st.write(client_data.head())
+
+    # Ensure that 'ClientName' column exists (checking for exact matches)
+    if 'ClientName' not in client_data.columns:
+        st.error("'ClientName' column not found in the client data.")
+        return None  # Exit if the column is not found
+
+    # Extract client names from row 1 (starting from column C)
     client_names = []
-    for col in range(3, focus_ws.max_column + 1):  # Starting from column C (column index 3)
+    for col in range(3, focus_ws.max_column + 1):  # Starting from column C (index 3)
         client_name = focus_ws.cell(row=1, column=col).value
-        if client_name:  # If the cell is not empty
+        if client_name:
             client_names.append(client_name)
 
-    # Assume you get the client name from the 'Focus' sheet for which the transformation should apply
-    for client_name in client_names:
-        # Check if the client name exists in the client data
-        # Now we're going to match based on the exact column name found in the DataFrame
-        if 'ClientName' in client_data.columns:
-            client_row = client_data[client_data['ClientName'] == client_name]
-            if not client_row.empty:
-                # Apply client-specific transformations using the data
-                # For example, update a specific cell in the 'Focus' sheet with client-specific info
-                focus_ws.cell(row=2, column=2).value = client_row.iloc[0]['SpecificColumn']  # Example update
-            else:
-                st.error(f"No client data found for {client_name}.")
-        else:
-            st.error("'ClientName' column not found in the client data.")
+    # Debug: Print out the client names from the Focus sheet
+    st.write("Client Names in Focus Sheet:")
+    st.write(client_names)
 
-    # Save the updated workbook to BytesIO and return it
+    # Example of checking if the client names match
+    for client_name in client_names:
+        # Try to find the client data in the client_data (match by 'ClientName')
+        client_row = client_data[client_data['ClientName'] == client_name]
+        
+        if not client_row.empty:
+            # Process the client-specific data (for now just showing it)
+            st.write(f"Processing data for {client_name}")
+            st.write(client_row)
+            # Update Focus sheet based on client-specific data if needed
+        else:
+            st.error(f"No data found for client {client_name}.")
+
+    # Save the workbook and return it
     output = BytesIO()
     wb.save(output)
     output.seek(0)
-
-    return output  # Return the updated file as BytesIO
+    return output  # Return the transformed file as BytesIO
 
 
 
