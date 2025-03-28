@@ -30,10 +30,14 @@ def efocus_focus(file_bytes, client_data_bytes):
         st.error("No valid client names found in the client data.")
         return None
 
-    # Display the valid client names as clickable buttons
+    # Display the valid client names as clickable buttons in columns
     selected_client = None
-    for client in client_names:
-        if st.button(client):
+    columns = st.columns(4)  # Create 4 columns to stack the buttons
+
+    # Loop through client names and place them into columns
+    for idx, client in enumerate(client_names):
+        col_idx = idx % 4  # Determine the column index based on the position
+        if columns[col_idx].button(client):
             selected_client = client  # Store the selected client name when the button is clicked
 
     # If a client has been selected, proceed
@@ -50,7 +54,6 @@ def efocus_focus(file_bytes, client_data_bytes):
     # If no client has been selected yet, inform the user
     st.info("Please select a client name to proceed.")
     return None
-
 
 
 
