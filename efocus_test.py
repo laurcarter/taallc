@@ -147,7 +147,7 @@ if uploaded_file and client_data_file:
         st.session_state.excel_bytes = transformed_file
     
         # Use the selected client's name in the file name
-        file_name = f"efocus_{selected_client}_transformed_file.xlsx"  # Client name added to the file name
+        file_name = f"efocus_{selected_client}.xlsx"  # Client name added to the file name
     
         # Provide option to download the transformed file
         st.download_button(
