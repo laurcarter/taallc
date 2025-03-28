@@ -108,6 +108,9 @@ def efocus_focus(file_bytes, client_data_bytes):
         # Call the function to process Focus and FocusTarget
         match_and_copy_values(focus_ws, focus_target_ws)
 
+        # Rename the FocusTarget sheet
+        focus_target_ws.title = "Filing Items Focus"
+
 
         # Save the modified workbook to a BytesIO object
         output = BytesIO()
