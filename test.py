@@ -251,8 +251,12 @@ elif st.session_state.step == 4:
 elif st.session_state.step == 5:
     file_bytes = st.session_state.excel_bytes  # The current file in session state
 
+    # Ensure the file is wrapped in BytesIO
+    if not isinstance(file_bytes, BytesIO):
+        file_bytes = BytesIO(file_bytes)
+
     # Load the workbook
-    wb = load_workbook(filename=BytesIO(file_bytes))
+    wb = load_workbook(file_bytes)
     focus_ws = wb.active  # Get the active sheet from the loaded workbook
     sheet = wb.active  # Use sheet directly
 
