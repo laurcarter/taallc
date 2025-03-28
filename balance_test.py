@@ -9,6 +9,14 @@ from openpyxl import load_workbook
 from io import BytesIO
 
 
+def apply_comma_format_no_decimal(focus_ws, start_row=8, end_row=100):
+    # Create a style with number format for comma separation (no decimals)
+    comma_style = NamedStyle(name="comma_style", number_format="#,##0")
+
+    # Apply the style to each cell in Column F (from start_row to end_row)
+    for row in range(start_row, end_row + 1):
+        focus_ws.cell(row=row, column=6).style = comma_style  # Column F is column 6
+
 
 def calculate_totals(focus_ws, start_row=8, end_row=100):
     # Step 1: Initialize variables for totals
@@ -58,8 +66,6 @@ def calculate_totals(focus_ws, start_row=8, end_row=100):
         if numeric_code is not None and 200 <= numeric_code <= 940:  # Assets
             focus_ws.cell(row=row, column=6).value = total_assets / 2  # Insert total in Column F
             focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
-            focus_ws.cell(row=row, column=6).number_format = '#,##0.00'
-
             break  # Exit after updating the last row of Assets
 
     # Liabilities: Find the last row of Liabilities and insert the total
@@ -73,7 +79,6 @@ def calculate_totals(focus_ws, start_row=8, end_row=100):
         if numeric_code is not None and 970 <= numeric_code <= 1760:  # Liabilities
             focus_ws.cell(row=row, column=6).value = total_liabilities / 2  # Insert total in Column F
             focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
-            focus_ws.cell(row=row, column=6).number_format = '#,##0.00'
             break  # Exit after updating the last row of Liabilities
 
     # Ownership Equity: Find the last row of Ownership Equity and insert the total
@@ -87,7 +92,6 @@ def calculate_totals(focus_ws, start_row=8, end_row=100):
         if numeric_code is not None and (numeric_code == 1020 or 1770 <= numeric_code <= 1810):  # Ownership Equity
             focus_ws.cell(row=row, column=6).value = total_equity / 2  # Insert total in Column F
             focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
-            focus_ws.cell(row=row, column=6).number_format = '#,##0.00'
             break  # Exit after updating the last row of Ownership Equity
 
 
@@ -498,6 +502,8 @@ def balance_focus_grouping(file_bytes):
     # Assuming `focus_ws` is your worksheet object
     calculate_totals(focus_ws, start_row=8, end_row=100)
     # Call the function to apply the comma format to Column F
+    # After running your totals calculation, apply comma formatting to Column F
+    apply_comma_format_no_decimal(focus_ws, start_row=8, end_row=100)
 
 
 
