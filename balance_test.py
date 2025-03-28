@@ -8,15 +8,35 @@ import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
 
-def delete_blank_rows(focus_ws, start_row=8, end_row=100):
-    # Iterate through rows from the bottom to the top to avoid skipping rows when deleting
+def move_rows_without_gaps(focus_ws, start_row=8, end_row=100):
+    # Step 1: Find the last row with data in Column C
+    last_non_blank_row = None
+    
     for row in range(end_row, start_row - 1, -1):
-        # Get the value in Column C (Column 3) and strip any leading/trailing whitespace
-        cell_value = focus_ws.cell(row=row, column=3).value
-        
-        # Strip spaces and check if the cell is empty
-        if cell_value is None or str(cell_value).strip() == "":
-            focus_ws.delete_rows(row)
+        cell_value = focus_ws.cell(row=row, column=3).value  # Column C value
+        if cell_value not in [None, ""]:  # Check for non-blank cells in Column C
+            last_non_blank_row = row
+            break
+
+    if last_non_blank_row is None:
+        print("No data found in Column C.")
+        return
+    
+    # Step 2: Now move up from the last_non_blank_row to start row 8
+    current_row = last_non_blank_row
+    while current_row > start_row:
+        cell_value = focus_ws.cell(row=current_row, column=3).value
+        if cell_value is None or cell_value == "":  # Found a blank in Column C
+            # Move the row with data just below the last_non_blank_row
+            for row in range(current_row, last_non_blank_row, -1):
+                for col in range(1, focus_ws.max_column + 1):
+                    focus_ws.cell(row=row, column=col).value = focus_ws.cell(row=row-1, column=col).value
+            # Clear the row that we moved from
+            for col in range(1, focus_ws.max_column + 1):
+                focus_ws.cell(row=current_row, column=col).value = None
+
+            last_non_blank_row -= 1  # Update the last non-blank row to the new position
+        current_row -= 1
 
 
 
@@ -350,8 +370,10 @@ def balance_focus_grouping(file_bytes):
     return output.read()  # Return the transformed file as bytes
 
 
-    # After sorting and before other operations
-    delete_blank_rows(focus_ws, start_row=8, end_row=100)
+
+    # Call to move rows without gaps
+    move_rows_without_gaps(focus_ws, start_row=8, end_row=100)
+
 
 
 
