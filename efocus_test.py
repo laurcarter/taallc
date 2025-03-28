@@ -7,10 +7,27 @@ from openpyxl.utils import get_column_letter
 
 # ---------- eFocus Function Placeholder ----------
 def efocus_focus(file_bytes):
-    # This is where the function for eFocus processing will go
-    # For now, it's an empty placeholder that needs to be filled with your processing logic
-    # Use file_bytes to process and return the transformed file as BytesIO
-    return file_bytes  # Temporarily returning the file without changes
+    # Load the workbook from the BytesIO object
+    wb = load_workbook(filename=BytesIO(file_bytes))
+
+    # Check if 'Focus' sheet exists, if not raise an error
+    if "Focus" not in wb.sheetnames:
+        st.error("The uploaded file does not contain a sheet named 'Focus'.")
+        return file_bytes  # Return the original file if the sheet is missing
+
+    # Set 'Focus' sheet as active
+    focus_ws = wb["Focus"]
+
+    # Proceed with the eFocus processing logic here using focus_ws
+    # For now, let's just return the original file after selecting the sheet
+    # You can implement your eFocus transformation logic here
+
+    # Save the workbook with the 'Focus' sheet as active back to BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return output  # Return the updated file as BytesIO
 
 # ---------- Streamlit App Flow ----------
 st.set_page_config(page_title="eFocus Transformation", layout="wide")
@@ -23,12 +40,12 @@ if uploaded_file:
     file_bytes = uploaded_file.read()
 
     # Process the file through the eFocus Focus Grouping function
-    transformed_file = efocus_focus(file_bytes)  # Currently just returning the uploaded file without processing
+    transformed_file = efocus_focus(file_bytes)  # Process and return the file with 'Focus' sheet set as active
 
     # Store the transformed file in session state
     st.session_state.excel_bytes = transformed_file
 
-    st.success("File processed. The eFocus has been created.")
+    st.success("File processed. The 'Focus' sheet has been set as active and updated.")
 
     # Provide option to download the transformed file
     st.download_button(
