@@ -4,6 +4,33 @@ from io import BytesIO
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Font
 
+def match_and_copy_values(focus_ws, focus_target_ws):
+    # Loop through rows 8 to 40 in column I of the Focus sheet
+    for row in range(8, 41):  # Rows 8 to 40 (inclusive)
+        focus_value = focus_ws.cell(row=row, column=9).value  # Value in column I
+        
+        # If the cell has a value
+        if focus_value:
+            # Strip any "I" or leading zeros from the Focus value
+            focus_value_stripped = str(focus_value).lstrip("I0").strip()
+            
+            # Now search for this stripped value in FocusTarget column A
+            match_found = False
+            for target_row in range(1, focus_target_ws.max_row + 1):
+                target_value = str(focus_target_ws.cell(row=target_row, column=1).value).lstrip("I0").strip()
+                
+                # If a match is found, copy the value from column J in Focus sheet to column B in Focus sheet
+                if focus_value_stripped == target_value:
+                    focus_value_j = focus_ws.cell(row=row, column=10).value  # Get value from column J
+                    focus_ws.cell(row=row, column=2, value=focus_value_j)  # Paste it in column B of the same row
+                    match_found = True
+                    break  # Exit loop once a match is found
+
+            # If no match was found, you can optionally handle it (e.g., log a message)
+            if not match_found:
+                print(f"No match found for value: {focus_value} in FocusTarget.")
+
+
 def efocus_focus(file_bytes, client_data_bytes):
     # Load the Focus sheet from the uploaded file (file_bytes)
     wb = load_workbook(filename=BytesIO(file_bytes))
@@ -82,6 +109,9 @@ def efocus_focus(file_bytes, client_data_bytes):
         # Bold all of row 1
         for cell in focus_target_ws[1]:
             cell.font = Font(bold=True)
+
+        # Call the function to process Focus and FocusTarget
+        match_and_copy_values(focus_ws, focus_target_ws)
 
 
         # Save the modified workbook to a BytesIO object
