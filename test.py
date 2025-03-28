@@ -254,6 +254,7 @@ elif st.session_state.step == 5:
     # Load the workbook
     wb = load_workbook(filename=BytesIO(file_bytes))
     focus_ws = wb.active  # Get the active sheet from the loaded workbook
+    sheet = wb.active  # Use sheet directly
 
     
     # Check for empty cells in column A (rows 5-10) and collapse if necessary
