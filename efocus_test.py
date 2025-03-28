@@ -1,13 +1,3 @@
-import streamlit as st
-import pandas as pd
-from openpyxl import load_workbook
-from io import BytesIO
-import streamlit as st
-import pandas as pd
-from openpyxl import load_workbook
-from io import BytesIO
-import pandas as pd
-import streamlit as st
 import pandas as pd
 import streamlit as st
 from io import BytesIO
@@ -21,10 +11,10 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Load the client data from the second uploaded file (client_data_bytes)
     client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)  # Reading client data without headers
 
-    # Check the client data structure
-    st.write("Client Data Loaded", client_data.head())  # Display the first few rows of the client data for debugging
+    # Check the client data structure (for debugging)
+    # st.write("Client Data Loaded", client_data.head())  # Display the first few rows of the client data
 
-    # Initialize list to hold valid client names
+    # Initialize a list to hold valid client names
     client_names = []
 
     # Loop through columns starting from C (column 3), skipping alternate columns (C, E, G, etc.)
@@ -40,19 +30,27 @@ def efocus_focus(file_bytes, client_data_bytes):
         st.error("No valid client names found in the client data.")
         return None
 
-    # Display the valid client names as a list of buttons for selection
-    client_name = st.selectbox("Choose a client name from the list:", client_names)
-    
-    # After client selection, return the column of the selected client name
-    client_column = client_names.index(client_name) * 2 + 3  # Adjust column index for 0-indexed list
-    
-    # Now, you can do something with the client column (e.g., use it to paste data into the FocusTarget sheet)
-    
-    # For debugging purposes, we'll return the selected column for now.
-    st.write(f"Selected Client: {client_name}")
-    st.write(f"Client Column: {client_column}")  # This is the column index in the client data
-    
-    return client_column  # You can use this column index to fetch the data for pasting into FocusTarget
+    # Display the valid client names as clickable buttons
+    selected_client = None
+    for client in client_names:
+        if st.button(client):
+            selected_client = client  # Store the selected client name when the button is clicked
+
+    # If a client has been selected, proceed
+    if selected_client:
+        st.write(f"You selected: {selected_client}")
+
+        # Find the column index of the selected client name in the client data
+        client_column = client_names.index(selected_client) * 2 + 3  # Adjust column index for 0-indexing (C is column 3)
+        st.write(f"Client Column: {client_column}")  # For debugging purposes
+
+        # You can now use the client_column to fetch client-specific data
+        return client_column  # You can return this column index to use for the next processing steps
+
+    # If no client has been selected yet, inform the user
+    st.info("Please select a client name to proceed.")
+    return None
+
 
 
 
