@@ -8,7 +8,6 @@ from openpyxl import load_workbook
 from io import BytesIO
 import pandas as pd
 import streamlit as st
-
 import pandas as pd
 import streamlit as st
 from io import BytesIO
@@ -25,36 +24,36 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Check the client data structure
     st.write("Client Data Loaded", client_data.head())  # Display the first few rows of the client data for debugging
 
-    # Initialize list to hold client names that are valid (skipping blank columns)
+    # Initialize list to hold valid client names
     client_names = []
 
-    # Loop through columns C, E, G, ..., until column 3 + 100 columns
-    for col in range(3, 203, 2):  # 3 for column C, 203 is 3 + (100*2)
-        # Ensure column exists in the client data frame
-        if col - 1 < len(client_data.columns):
-            cell_value = str(client_data.iloc[0, col - 1]).strip()  # Get client name from row 1 (adjusted for 0-indexing)
+    # Loop through columns starting from C (column 3), skipping alternate columns (C, E, G, etc.)
+    for col in range(2, client_data.shape[1], 2):  # Starting from column 2 (C in 0-indexed), increment by 2 (skip alternating)
+        cell_value = str(client_data.iloc[0, col]).strip()  # Get client name from row 1 (adjusted for 0-indexing)
         
-            # Only add to the list if the client name is non-empty and not just a header like 'Unnamed'
-            if cell_value and 'Unnamed' not in cell_value:
-                client_names.append(cell_value)
-        else:
-            st.warning(f"Column {col} is out of range in the client data. Skipping this column.")
-    
-    # If no valid client names were found, show a message
+        # Only add to the list if the cell contains a valid client name (not empty or "Unnamed")
+        if cell_value and 'Unnamed' not in cell_value:
+            client_names.append(cell_value)
+
+    # If no valid client names were found, show a message and exit
     if not client_names:
         st.error("No valid client names found in the client data.")
         return None
 
-    # Show the list of client names as select buttons in Streamlit
+    # Display the valid client names as a list of buttons for selection
     client_name = st.selectbox("Choose a client name from the list:", client_names)
     
     # After client selection, return the column of the selected client name
     client_column = client_names.index(client_name) * 2 + 3  # Adjust column index for 0-indexed list
     
-    # Now do something with the client column (For example: create FocusTarget sheet in the main workbook)
-    # This is where you would process further depending on your logic
+    # Now, you can do something with the client column (e.g., use it to paste data into the FocusTarget sheet)
+    
+    # For debugging purposes, we'll return the selected column for now.
+    st.write(f"Selected Client: {client_name}")
+    st.write(f"Client Column: {client_column}")  # This is the column index in the client data
     
     return client_column  # You can use this column index to fetch the data for pasting into FocusTarget
+
 
 
 
