@@ -10,22 +10,24 @@ from collapse import collapse_sheet
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
 
 def check_and_prompt_for_net_income(focus_ws):
-    # Loop through the sheet to find "Net Income" in column C
-    for row in range(8, focus_ws.max_row + 1):  # Starting from row 8
-        c_value = str(focus_ws.cell(row=row, column=3).value).strip()
-        
-        if "Net Income" in c_value and "(" not in c_value:  # If "Net Income" is found and no parentheses
-            # Ask the user to provide the correct Focus box number via a text box
-            net_income_input = st.text_input("Net Income is not coded. Please enter the correct Focus box number:")
-            
-            # Check if the user input is valid
-            if net_income_input:
-                # Add parentheses and update the "Net Income" cell
-                focus_ws.cell(row=row, column=3).value = f"Net Income ({net_income_input})"
-                st.success(f"Net Income has been updated with Focus box number: {net_income_input}")
-                return True  # Indicating we updated the cell
+    # Loop through the rows in column C starting from row 8
+    for row in range(8, focus_ws.max_row + 1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()  # Value in Column C
 
-    return False  # If no update was made (either not found or already coded)
+        # Check if the value contains "Net Income" and does not contain parentheses
+        if "Net Income" in c_value and "(" not in c_value:
+            # Prompt the user for the missing Focus box number
+            net_income_input = st.text_input(f"Net Income is not coded. Please enter the correct Focus box number for row {row}:")
+
+            # Check if the user provided a valid input
+            if net_income_input:
+                # Format and update the "Net Income" cell with parentheses around the number
+                focus_ws.cell(row=row, column=3).value = f"Net Income ({net_income_input})"
+                st.success(f"Net Income for row {row} has been updated with Focus box number: {net_income_input}")
+                return True  # Return True indicating that the update was made
+
+    return False  # Return False if no updates were made (either "Net Income" was not found or was already coded)
+
 
 
 # Function to highlight flagged totals
@@ -276,13 +278,12 @@ elif st.session_state.step == 5:
             net_income_updated = check_and_prompt_for_net_income(focus_ws)
             
             if net_income_updated:
+                # Proceed with balance sheet transformation
                 st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
             else:
                 st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
         st.session_state.step = 6  # Move to the final step for download
-
-
 
 
             
