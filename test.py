@@ -24,10 +24,9 @@ def check_and_prompt_for_net_income(focus_ws):
                 new_value = f"{a_value} ({net_income_input})"  # Append the input with parentheses
                 focus_ws.cell(row=row, column=1).value = new_value  # Update the value in Column A
                 st.success(f"Net Income for row {row} has been updated with Focus box number: {net_income_input}")
-                return True  # Indicate that the Net Income was updated
+                return True, focus_ws  # Indicate that the Net Income was updated and return the updated sheet
 
-    return False  # If no updates were made, return False
-
+    return False, focus_ws  # If no updates were made, return False and the unchanged sheet
 
 
 
@@ -275,16 +274,20 @@ elif st.session_state.step == 5:
             focus_ws = wb.active  # Assuming the relevant sheet is active; adjust if necessary
             
             # Check and update the "Net Income" if necessary
-            net_income_updated = check_and_prompt_for_net_income(focus_ws)
+            net_income_updated, updated_focus_ws = check_and_prompt_for_net_income(focus_ws)
             
             if net_income_updated:
-                # If Net Income was updated, proceed with balance sheet transformation
-                st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
-            else:
-                # If no update was made, proceed with balance sheet transformation anyway
-                st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
+                # If Net Income was updated, save the updated workbook
+                updated_file = BytesIO()
+                wb.save(updated_file)  # Save the updated workbook
+                updated_file.seek(0)
+                st.session_state.excel_bytes = updated_file  # Update session with the modified file
+            
+            # Now call the balance function with the updated file (if changed)
+            st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
         st.session_state.step = 6  # Move to the final step for download
+
 
 
 
