@@ -177,10 +177,10 @@ def sort_focus_sheet(focus_ws, max_row):
             focus_ws.cell(row=idx, column=col_idx).value = value
 
 def secondary_sort_focus_sheet(focus_ws, max_row):
-    # Create a list to hold rows with their corresponding values from columns C and D
+    # Step 1: Create a list to hold rows with their corresponding values from columns C and D
     rows = []
 
-    # Loop through column C starting from row 8
+    # Loop through column C starting from row 8 to max_row
     for row in range(8, max_row + 1):
         c_value = focus_ws.cell(row=row, column=3).value  # Column C value
         d_value = focus_ws.cell(row=row, column=4).value  # Column D value
@@ -188,7 +188,13 @@ def secondary_sort_focus_sheet(focus_ws, max_row):
         # Skip rows where column C is empty
         if c_value is None or c_value == "":
             continue
-
+        
+        # Convert column C values from text to numbers if possible
+        try:
+            c_value = float(c_value)
+        except ValueError:
+            c_value = float('-inf')  # If conversion fails, treat as the lowest possible value
+        
         # Ensure column D is treated as a numeric value if possible
         if isinstance(d_value, (int, float)):
             d_value = float(d_value)  # Ensure the value is treated as a float
@@ -198,20 +204,21 @@ def secondary_sort_focus_sheet(focus_ws, max_row):
         # Append the entire row along with values from column C and D
         rows.append((row, c_value, d_value, [focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)]))
 
-    # Step 1: Sort rows based on column C (ascending) and column D (descending for same values in C)
-    rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
+    # Step 2: Sort rows based on column C (ascending) and column D (descending for same values in C)
+    rows.sort(key=lambda x: (x[1], -x[2]))  # Sort by Column C ascending, then by Column D descending
 
-    # Step 2: Clear the existing values in the sheet starting from row 8
+    # Step 3: Clear the existing values in the sheet starting from row 8
     for row in range(8, max_row + 1):
         for col in range(1, focus_ws.max_column + 1):
             focus_ws.cell(row=row, column=col).value = None
 
-    # Step 3: Write the sorted rows back into the sheet starting from row 8
+    # Step 4: Write the sorted rows back into the sheet starting from row 8
     new_row_idx = 8
     for _, _, _, row_values in rows:
         for col_idx, value in enumerate(row_values, start=1):
             focus_ws.cell(row=new_row_idx, column=col_idx).value = value
         new_row_idx += 1
+
 
 
 
@@ -306,7 +313,7 @@ def balance_focus_grouping(file_bytes):
     sort_focus_sheet(focus_ws, max_row)
 
     # After sorting by Column C (primary sort)
-    #secondary_sort_focus_sheet(focus_ws, max_row=max_row)
+    secondary_sort_focus_sheet(focus_ws, max_row=max_row)
 
     
 
