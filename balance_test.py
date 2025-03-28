@@ -539,7 +539,9 @@ def balance_focus_grouping(file_bytes):
     apply_color_coding(focus_ws)
 
     # Assuming `focus_ws` is your worksheet object
-    calculate_totals(focus_ws, start_row=8, end_row=100)
+    # Get the calculated totals
+    total_assets, total_liabilities, total_equity = calculate_totals(focus_ws, start_row=8, end_row=100)
+
     # Call the function to apply the comma format to Column F
     # After running your totals calculation, apply comma formatting to Column F
     apply_comma_format_no_decimal(focus_ws, start_row=8, end_row=100)
