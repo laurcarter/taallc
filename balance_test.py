@@ -357,16 +357,15 @@ def balance_focus_grouping(file_bytes):
     apply_subtotals_for_sheet(focus_ws, max_row)
     
         
-    # After sorting and other operations, delete blank rows while keeping "Total" rows intact
     # After sorting and performing other operations, call this function to move the last "Total" row
     move_last_total_below_group(focus_ws, start_row=8, end_row=100)
 
     
-    #create_summary(focus_ws, max_row)
-    #apply_focus_summary_formatting(focus_ws, max_row)
+    create_summary(focus_ws, max_row)
+    apply_focus_summary_formatting(focus_ws, max_row)
 
 
-    #apply_random_formatting(focus_ws, max_row)
+    apply_random_formatting(focus_ws, max_row)
 
 
     # Save the modified workbook to a BytesIO object
