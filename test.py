@@ -10,21 +10,24 @@ from collapse import collapse_sheet
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
 
 def check_and_prompt_for_net_income(focus_ws):
-    # Look through the rows to find "Net Income" not coded with parentheses
+    # Step 1: Iterate through rows starting from row 8 in Column A
     for row in range(8, focus_ws.max_row + 1):
-        c_value = str(focus_ws.cell(row=row, column=3).value).strip()  # Get value in Column C
-        
-        if "Net Income" in c_value and "(" not in c_value:  # If "Net Income" doesn't have parentheses
-            # Show Streamlit prompt to ask the user for the correct Focus box number
-            net_income_input = st.text_input(f"Net Income is not coded. Please enter the correct Focus box number for row {row}:")
-            
-            if net_income_input:  # If the user enters a value
-                # Add parentheses around the entered value
-                focus_ws.cell(row=row, column=3).value = f"Net Income ({net_income_input})"
+        a_value = str(focus_ws.cell(row=row, column=1).value).strip()  # Value in Column A
+
+        # Step 2: Check if "Net Income" is in the cell and if it doesn't have parentheses
+        if "Net Income" in a_value and "(" not in a_value:
+            # Display warning and a text box for the user to input the Focus box number
+            net_income_input = st.text_input(f"Warning: 'Net Income' in row {row} is not coded with parentheses. Please enter the correct Focus box number:")
+
+            if net_income_input:
+                # Add parentheses around the user's input and update the cell in Column A
+                new_value = f"Net Income ({net_income_input})"
+                focus_ws.cell(row=row, column=1).value = new_value  # Update the value in Column A
                 st.success(f"Net Income for row {row} has been updated with Focus box number: {net_income_input}")
-                return True  # Indicate that Net Income was updated
+                return True  # Indicate that the Net Income was updated
 
     return False  # If no updates were made, return False
+
 
 
 
