@@ -16,21 +16,27 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Print the columns to inspect
     print("Client Data Columns:", client_data.columns)
 
-    # Assume the client data has a column 'ClientName' and the 'Focus' sheet contains the client name
-    client_name = focus_ws.cell(row=1, column=1).value  # Example: Getting client name from 'Focus' sheet
+    # Get the client names from row 1 (starting from column C onwards)
+    client_names = []
+    for col in range(3, focus_ws.max_column + 1):  # Starting from column C (column index 3)
+        client_name = focus_ws.cell(row=1, column=col).value
+        if client_name:  # If the cell is not empty
+            client_names.append(client_name)
 
-    # Check if the 'ClientName' column exists
-    if 'ClientName' in client_data.columns:
-        # Find the client data for this client
-        client_row = client_data[client_data['ClientName'] == client_name]
+    # Assume you get the client name from the 'Focus' sheet for which the transformation should apply
+    for client_name in client_names:
+        # Check if the client name exists in the client data
+        if 'ClientName' in client_data.columns:
+            client_row = client_data[client_data['ClientName'] == client_name]
 
-        if not client_row.empty:
-            # Apply client-specific transformations using the data
-            focus_ws.cell(row=2, column=2).value = client_row.iloc[0]['SpecificColumn']  # Example update
+            if not client_row.empty:
+                # Apply client-specific transformations using the data
+                # For example, update a specific cell in the 'Focus' sheet with client-specific info
+                focus_ws.cell(row=2, column=2).value = client_row.iloc[0]['SpecificColumn']  # Example update
+            else:
+                st.error(f"No client data found for {client_name}.")
         else:
-            st.error(f"No client data found for {client_name}.")
-    else:
-        st.error("'ClientName' column not found in the client data.")
+            st.error("'ClientName' column not found in the client data.")
 
     # Save the updated workbook to BytesIO and return it
     output = BytesIO()
@@ -38,6 +44,7 @@ def efocus_focus(file_bytes, client_data_bytes):
     output.seek(0)
 
     return output  # Return the updated file as BytesIO
+
 
 
 # ---------- Streamlit App Flow ----------
