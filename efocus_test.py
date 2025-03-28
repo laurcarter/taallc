@@ -32,13 +32,15 @@ def efocus_focus(file_bytes, client_data_bytes):
     client_names = []
     for col in range(1, len(client_data.columns)):  # Start from column 1 (index 0)
         cell_value = str(client_data.iloc[0, col])  # Check first row, all columns
-        if cell_value.strip() and cell_value.lower() != "nan":  # Exclude empty and 'nan' values
+        if cell_value.strip() and cell_value.lower() != "nan" and "Unnamed" not in cell_value:  # Exclude empty, 'nan', or unnamed columns
             client_names.append(cell_value)
 
     # Display the client names as radio buttons (bubbles)
     if len(client_names) == 0:
         st.error("No valid client names found in the client data.")
         return None
+    
+    st.write("Valid client names:", client_names)  # Show the list of valid client names for debugging
     
     client_name = st.radio("Select a client from the list:", client_names)
 
