@@ -30,12 +30,16 @@ def efocus_focus(file_bytes, client_data_bytes):
 
     # Extract all non-blank client names from row 1 (column 1 onwards)
     client_names = []
-    for col in range(2, len(client_data.columns)):  # Start from column 2 (index 1) to skip first column
+    for col in range(1, len(client_data.columns)):  # Start from column 1 (index 0)
         cell_value = str(client_data.iloc[0, col])  # Check first row, all columns
-        if cell_value.strip():  # Only add non-blank values
+        if cell_value.strip() and cell_value.lower() != "nan":  # Exclude empty and 'nan' values
             client_names.append(cell_value)
 
     # Display the client names as radio buttons (bubbles)
+    if len(client_names) == 0:
+        st.error("No valid client names found in the client data.")
+        return None
+    
     client_name = st.radio("Select a client from the list:", client_names)
 
     # Validate input (ensure the client name is selected)
@@ -45,7 +49,7 @@ def efocus_focus(file_bytes, client_data_bytes):
     
     # Find the column index of the selected client
     found_cell = None
-    for col in range(2, len(client_data.columns)):  # Starting from column 2 (index 1)
+    for col in range(1, len(client_data.columns)):  # Starting from column 1 (index 0)
         cell_value = str(client_data.iloc[0, col])  # Check first row, all columns
         if client_name.lower() == cell_value.lower():  # Case-insensitive match
             found_cell = col
