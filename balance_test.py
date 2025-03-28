@@ -7,20 +7,36 @@ from openpyxl.utils import get_column_letter
 import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
-
-def delete_blank_rows_and_keep_totals(focus_ws, start_row=8, end_row=100):
-    # Iterate from bottom to top to avoid skipping rows when deleting
-    for row in range(end_row, start_row - 1, -1):
-        # Get the value in Column C (Focus column)
-        cell_value = str(focus_ws.cell(row=row, column=3).value).strip()
-
-        # If the cell in Column C is empty and it is not a "Total" row, delete the row
-        if not cell_value or "Total" in cell_value:
-            continue  # Skip rows that contain "Total" in Column C
+def move_totals_below_group(focus_ws, start_row=8, end_row=100):
+    # Step 1: Start from row 8 to row 100 (or max row)
+    current_group = None
+    last_row_in_group = None
+    total_row = None
+    
+    for row in range(start_row, end_row + 1):
+        c_value = focus_ws.cell(row=row, column=3).value  # Value in Column C
         
-        # If it's truly an empty row, delete it
-        if cell_value == "":
-            focus_ws.delete_rows(row)
+        # If we find a "Total" row, we need to handle it
+        if c_value and "Total" in str(c_value):
+            if current_group is not None:
+                # If this "Total" row corresponds to the current group, move it to the last row in the group
+                focus_ws.cell(row=last_row_in_group + 1, column=3).value = focus_ws.cell(row=row, column=3).value
+                focus_ws.cell(row=last_row_in_group + 1, column=4).value = focus_ws.cell(row=row, column=4).value
+                focus_ws.cell(row=last_row_in_group + 1, column=5).value = focus_ws.cell(row=row, column=5).value
+                
+                # Clear the current "Total" row
+                for col in range(1, focus_ws.max_column + 1):
+                    focus_ws.cell(row=row, column=col).value = None
+                
+                # Update the last row in the group
+                last_row_in_group = last_row_in_group + 1
+            current_group = c_value
+            total_row = row
+        elif c_value and c_value != "Total":
+            # If we find a non-total value, mark the current group and last row
+            if current_group != c_value:
+                current_group = c_value
+            last_row_in_group = row
 
 
 
@@ -336,16 +352,15 @@ def balance_focus_grouping(file_bytes):
     #subtotals
     apply_subtotals_for_sheet(focus_ws, max_row)
     
+        
+    # After sorting and other operations, delete blank rows while keeping "Total" rows intact
+    move_totals_below_group(focus_ws, start_row=8, end_row=100)
     
     create_summary(focus_ws, max_row)
     apply_focus_summary_formatting(focus_ws, max_row)
 
 
     apply_random_formatting(focus_ws, max_row)
-
-    # After sorting and other operations, delete blank rows while keeping "Total" rows intact
-    delete_blank_rows_and_keep_totals(focus_ws, start_row=8, end_row=100)
-
 
 
     # Save the modified workbook to a BytesIO object
