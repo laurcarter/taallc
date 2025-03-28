@@ -7,14 +7,19 @@ from openpyxl.utils import get_column_letter
 import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
-def delete_blank_rows(focus_ws, start_row=8, end_row=100):
-    # Iterate from bottom to top to avoid skipping rows
+
+def delete_blank_rows_and_keep_totals(focus_ws, start_row=8, end_row=100):
+    # Iterate from bottom to top to avoid skipping rows when deleting
     for row in range(end_row, start_row - 1, -1):
-        # Get the value from Column C and strip any extra spaces or non-printable characters
+        # Get the value in Column C (Focus column)
         cell_value = str(focus_ws.cell(row=row, column=3).value).strip()
+
+        # If the cell in Column C is empty and it is not a "Total" row, delete the row
+        if not cell_value or "Total" in cell_value:
+            continue  # Skip rows that contain "Total" in Column C
         
-        # If Column C is empty after stripping spaces, delete the row
-        if not cell_value:
+        # If it's truly an empty row, delete it
+        if cell_value == "":
             focus_ws.delete_rows(row)
 
 
@@ -338,6 +343,8 @@ def balance_focus_grouping(file_bytes):
 
     apply_random_formatting(focus_ws, max_row)
 
+    # After sorting and other operations, delete blank rows while keeping "Total" rows intact
+    delete_blank_rows_and_keep_totals(focus_ws, start_row=8, end_row=100)
 
 
 
@@ -346,12 +353,6 @@ def balance_focus_grouping(file_bytes):
     wb.save(output)
     output.seek(0)  # Move cursor to the beginning of the BytesIO object
     return output.read()  # Return the transformed file as bytes
-
-
-
-    # Call to move rows without gaps
-    # Call to delete blank rows in Column C
-    delete_blank_rows(focus_ws, start_row=8, end_row=100)
 
 
 
