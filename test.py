@@ -247,19 +247,19 @@ elif st.session_state.step == 4:
 
 
 
- # Step 5: Choose Transformation Type
+
+
+# Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
     file_bytes = st.session_state.excel_bytes  # The current file in session state
 
-    # Ensure the file is wrapped in BytesIO
+    # Load the workbook
     if not isinstance(file_bytes, BytesIO):
         file_bytes = BytesIO(file_bytes)
 
-    # Load the workbook
     wb = load_workbook(file_bytes)
+    sheet = wb.active  # Use the active sheet from the loaded workbook
     focus_ws = wb.active  # Get the active sheet from the loaded workbook
-    sheet = wb.active  # Use sheet directly
-
     
     # Check for empty cells in column A (rows 5-10) and collapse if necessary
     empty_cell_count = 0
@@ -275,36 +275,38 @@ elif st.session_state.step == 5:
         else:
             st.error("Error: Collapse function did not return a valid file.")
     
+
+
     st.title("🔧 What type of filing is this?")
     st.write("Select the type of filing for this document.")
 
+    # Radio button for selecting filing type
     choice = st.radio("Select your filing type:", ["Profit & Loss (P&L)", "Balance Sheet"], index=0)
 
-    # Handle when "Balance Sheet" is selected
+    # Create a flag to indicate if Net Income needs to be updated (only relevant for Balance Sheet)
+    net_income_updated = False  # Default value for Net Income update status
+
+    # Only check for Net Income when Balance Sheet is selected
     if choice == "Balance Sheet":
-        # Check if Net Income is coded
-        net_income_updated = check_and_prompt_for_net_income(focus_ws)
+        # If Net Income is not coded, prompt the user
+        net_income_updated = check_and_prompt_for_net_income(sheet)
         
-        # If Net Income is not coded, show a separate button for updating it
         if net_income_updated:
-            # Allow the user to apply Net Income after they've entered the value
-            st.session_state.excel_bytes = save_updated_excel(focus_ws)  # Save the updated file in session state
-            st.success("Net Income has been updated!")
-        else:
-            # Show button to update Net Income
-            st.button("Update 'Net Income' to Code It", on_click=lambda: check_and_prompt_for_net_income(focus_ws))
+            st.success("Net Income has been updated!")  # Let the user know the update was made
 
-    # Handle when "Profit & Loss" is selected
-    elif choice == "Profit & Loss (P&L)":
-        if st.button("Run Transformation"):
-            st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
-            st.session_state.step = 6  # Move to the final step for download
-
-    # Show the Run Transformation button for both P&L and Balance Sheet
+    # "Run Transformation" button
     if st.button("Run Transformation"):
-        if choice == "Balance Sheet":
+        # Only run transformations when the button is clicked
+        if choice == "Profit & Loss (P&L)":
+            # Proceed with P&L transformation
+            st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
+        
+        elif choice == "Balance Sheet":
+            # Run balance transformation only after Net Income update (if applicable)
             st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
-        st.session_state.step = 6  # Proceed to the next step for downloading the file
+
+        # Move to the final step for download
+        st.session_state.step = 6
 
 
 
