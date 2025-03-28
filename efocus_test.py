@@ -2,10 +2,6 @@ import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
 from io import BytesIO
-import streamlit as st
-import pandas as pd
-from openpyxl import load_workbook
-from io import BytesIO
 
 # Function to implement the logic for the 'eFocus' transformation
 def efocus_focus(file_bytes, client_data_bytes):
@@ -19,7 +15,14 @@ def efocus_focus(file_bytes, client_data_bytes):
     focus_ws = wb['Focus']  # Get the Focus sheet
     
     # Load the client data into a DataFrame
-    client_data = pd.read_excel(BytesIO(client_data_bytes))  # Load client data as DataFrame
+    try:
+        client_data = pd.read_excel(BytesIO(client_data_bytes))  # Load client data as DataFrame
+    except Exception as e:
+        st.error(f"Error loading client data: {e}")
+        return None  # Exit if client data fails to load
+
+    # Debugging: Check the structure of client data
+    st.write("Client Data Columns:", client_data.columns)
 
     # Ask for client name input (this is the same as the InputBox in the macro)
     client_name = st.text_input("Enter full or partial client name:", "")
@@ -29,10 +32,10 @@ def efocus_focus(file_bytes, client_data_bytes):
         st.warning("No client name entered. Process aborted.")
         return None
     
-    # Search for a partial match in row 1 (client names are in row 1, columns C onward to DD)
+    # Check if client names are in row 1, from columns C onward
     found_cell = None
-    for col in range(3, 131):  # Columns C (3) to DD (130)
-        cell_value = str(client_data.iloc[0, col - 1])  # Row 1 contains client names (adjusted for 0-indexing)
+    for col in range(2, len(client_data.columns)):  # Starting from column 2 (index 1) to skip first column
+        cell_value = str(client_data.iloc[0, col])  # Check first row, all columns
         if client_name.lower() in cell_value.lower():  # Case-insensitive search
             found_cell = col
             break
@@ -53,14 +56,14 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Step 2: Insert new column B in "FocusTarget" for client data
     client_column_data = []
     for row in range(1, 276):  # Get data from rows 2 to 275
-        client_column_data.append(client_data.iloc[row - 1, found_cell - 1])  # Adjust for 0-indexing
+        client_column_data.append(client_data.iloc[row - 1, found_cell])  # Adjust for 0-indexing
 
     # Step 3: Insert client data into the new column B in FocusTarget sheet
     for row, value in enumerate(client_column_data, start=2):
         ws_target.cell(row=row, column=2).value = value
     
     # Set column B header to the full client name found
-    ws_target.cell(row=1, column=2).value = client_data.iloc[0, found_cell - 1]
+    ws_target.cell(row=1, column=2).value = client_data.iloc[0, found_cell]
 
     # Save the transformed workbook to a BytesIO object
     output = BytesIO()
