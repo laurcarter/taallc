@@ -11,9 +11,6 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Load the client data from the second uploaded file (client_data_bytes)
     client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)  # Reading client data without headers
 
-    # Check the client data structure (for debugging)
-    # st.write("Client Data Loaded", client_data.head())  # Display the first few rows of the client data
-
     # Initialize a list to hold valid client names
     client_names = []
 
@@ -49,16 +46,17 @@ def efocus_focus(file_bytes, client_data_bytes):
         st.write(f"Client Column: {client_column}")  # For debugging purposes
 
         # You can now use the client_column to fetch client-specific data
-        return client_column  # You can return this column index to use for the next processing steps
+        # After processing, save the workbook to a BytesIO object for download
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)  # Move the cursor to the beginning of the BytesIO object
+        return output  # Return the updated file as bytes
 
     # If no client has been selected yet, inform the user
     st.info("Please select a client name to proceed.")
     return None
 
 
-
-
-# Streamlit UI for the file upload and processing
 # Streamlit UI for the file upload and processing
 st.set_page_config(page_title="eFocus Transformation", layout="wide")
 
@@ -87,8 +85,3 @@ if uploaded_file and client_data_file:
             file_name="efocus_transformed_file.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-    else:
-        st.error("Error processing the files. Please check the files and try again.")
-
-else:
-    st.info("Please upload both the Focus and Client Data files to proceed.")
