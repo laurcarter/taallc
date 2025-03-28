@@ -324,11 +324,11 @@ def balance_focus_grouping(file_bytes):
     apply_subtotals_for_sheet(focus_ws, max_row)
     
     
-    #create_summary(focus_ws, max_row)
-    #apply_focus_summary_formatting(focus_ws, max_row)
+    create_summary(focus_ws, max_row)
+    apply_focus_summary_formatting(focus_ws, max_row)
 
 
-    #apply_random_formatting(focus_ws, max_row)
+    apply_random_formatting(focus_ws, max_row)
 
 
 
