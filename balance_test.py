@@ -8,6 +8,83 @@ import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
 
+def calculate_totals(focus_ws, start_row=8, end_row=100):
+    # Step 1: Initialize variables for totals
+    total_assets = 0
+    total_liabilities = 0
+    total_equity = 0
+
+    # Step 2: Loop through each row and sum the amounts for each group (based on the numeric code in Column C)
+    for row in range(start_row, end_row + 1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()  # Value in Column C
+        try:
+            # Extract numeric code, skipping "Total" rows
+            if "Total" in c_value:
+                numeric_code = int(c_value.replace("Total", "").strip())
+            else:
+                numeric_code = int(c_value)
+        except ValueError:
+            numeric_code = None
+        
+        # Step 3: Add amounts to the correct total group
+        if numeric_code is not None:
+            # Assets (200 to 940)
+            if 200 <= numeric_code <= 940:
+                amount = focus_ws.cell(row=row, column=4).value
+                if isinstance(amount, (int, float)):
+                    total_assets += amount
+            # Liabilities (970 to 1760)
+            elif 970 <= numeric_code <= 1760:
+                amount = focus_ws.cell(row=row, column=4).value
+                if isinstance(amount, (int, float)):
+                    total_liabilities += amount
+            # Ownership Equity (1020 or 1770 to 1810)
+            elif numeric_code == 1020 or (1770 <= numeric_code <= 1810):
+                amount = focus_ws.cell(row=row, column=4).value
+                if isinstance(amount, (int, float)):
+                    total_equity += amount
+
+    # Step 4: Insert the totals in the last row of each group (in Column F)
+    # Assets: Find the last row of Assets and insert the total
+    for row in range(end_row, start_row - 1, -1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()
+        try:
+            numeric_code = int(c_value.replace("Total", "").strip()) if "Total" in c_value else int(c_value)
+        except ValueError:
+            numeric_code = None
+        
+        if numeric_code is not None and 200 <= numeric_code <= 940:  # Assets
+            focus_ws.cell(row=row, column=6).value = total_assets / 2  # Insert total in Column F
+            focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
+            break  # Exit after updating the last row of Assets
+
+    # Liabilities: Find the last row of Liabilities and insert the total
+    for row in range(end_row, start_row - 1, -1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()
+        try:
+            numeric_code = int(c_value.replace("Total", "").strip()) if "Total" in c_value else int(c_value)
+        except ValueError:
+            numeric_code = None
+        
+        if numeric_code is not None and 970 <= numeric_code <= 1760:  # Liabilities
+            focus_ws.cell(row=row, column=6).value = total_liabilities / 2  # Insert total in Column F
+            focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
+            break  # Exit after updating the last row of Liabilities
+
+    # Ownership Equity: Find the last row of Ownership Equity and insert the total
+    for row in range(end_row, start_row - 1, -1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()
+        try:
+            numeric_code = int(c_value.replace("Total", "").strip()) if "Total" in c_value else int(c_value)
+        except ValueError:
+            numeric_code = None
+        
+        if numeric_code is not None and (numeric_code == 1020 or 1770 <= numeric_code <= 1810):  # Ownership Equity
+            focus_ws.cell(row=row, column=6).value = total_equity / 2  # Insert total in Column F
+            focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
+            break  # Exit after updating the last row of Ownership Equity
+
+
 def apply_color_coding(focus_ws, start_row=8):
     # Step 1: Get the last row with data in Column C
     max_row = focus_ws.max_row
@@ -411,6 +488,10 @@ def balance_focus_grouping(file_bytes):
     # Example usage
     # Assuming `focus_ws` is your worksheet object (from openpyxl)
     apply_color_coding(focus_ws)
+
+    # Assuming `focus_ws` is your worksheet object
+    calculate_totals(focus_ws, start_row=8, end_row=100)
+
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
