@@ -10,38 +10,28 @@ from collapse import collapse_sheet
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
 
 def check_and_prompt_for_net_income(focus_ws):
-    # Step 1: Iterate through rows starting from row 8 in Column A
+    # Look for "Net Income" in column A and check if it's coded with parentheses
     for row in range(8, focus_ws.max_row + 1):
-        a_value = str(focus_ws.cell(row=row, column=1).value).strip()  # Value in Column A
-
-        print(f"Checking row {row}, value in Column A: {a_value}")  # Debugging: See what's in the cell
-        
-        # Step 2: Check if "Net Income" is in the cell and if it doesn't have parentheses
-        if "Net Income" in a_value and "(" not in a_value:
-            print(f"Found 'Net Income' without parentheses at row {row}")  # Debugging: Confirm detection
+        cell_value = str(focus_ws.cell(row=row, column=1).value).strip()
+        if 'Net Income' in cell_value and '(' not in cell_value:
+            # "Net Income" found without parentheses, ask for input
+            net_income_input = st.text_input("Your 'Net Income' is not coded. Please provide the value:", "")
             
-            # Display warning and a text box for the user to input the Focus box number
-            net_income_input = st.text_input(f"Warning: 'Net Income' in row {row} is not coded with parentheses. Please enter the correct Focus box number:")
-
             if net_income_input:
-                # Debugging: Show input value received
-                print(f"User input received: {net_income_input}")
+                # If the user enters a value, update the cell with parentheses
+                updated_value = f"Net Income ({net_income_input})"
+                focus_ws.cell(row=row, column=1).value = updated_value
+                st.session_state.excel_bytes = save_updated_excel(focus_ws)  # Save updated Excel file
+                return True  # Indicates that an update was made
 
-                # Clear the existing cell value and insert "Net Income (user_input)"
-                focus_ws.cell(row=row, column=1).value = f"Net Income ({net_income_input})"  # Insert the updated value with parentheses
-                
-                # Debugging: Check if the cell value is updated correctly
-                print(f"Updated cell at row {row} with value: {focus_ws.cell(row=row, column=1).value}")
+    return False  # No update made
+def save_updated_excel(focus_ws):
+    output = BytesIO()  # Create a new BytesIO object
+    wb = focus_ws.parent  # Get the parent workbook of the active sheet
+    wb.save(output)  # Save the workbook to the BytesIO object
+    output.seek(0)  # Reset the cursor position in the BytesIO object
+    return output  # Return the updated file as BytesIO
 
-                # Save the updated workbook into BytesIO
-                updated_file = BytesIO()
-                focus_ws.parent.save(updated_file)  # Save the updated workbook
-                updated_file.seek(0)
-                st.session_state.excel_bytes = updated_file  # Update session with the modified file
-                
-                return True  # Indicating the value was updated and saved
-
-    return False  # If no updates were made, return False
 
 
 
@@ -260,6 +250,7 @@ elif st.session_state.step == 5:
     # Load the workbook
     wb = load_workbook(file_bytes)  # Pass file_bytes as a valid file-like object
     sheet = wb.active
+    
 
     # Check for empty cells in column A (rows 5-10) and collapse if necessary
     empty_cell_count = 0
@@ -274,6 +265,19 @@ elif st.session_state.step == 5:
             st.session_state.excel_bytes = collapsed_file
         else:
             st.error("Error: Collapse function did not return a valid file.")
+
+    # Check and update Net Income if necessary before proceeding
+    net_income_updated = check_and_prompt_for_net_income(focus_ws)
+    
+    if net_income_updated:
+        # Update was made to "Net Income", now show the transformation options
+        st.title("🔧 What type of filing is this?")
+        st.write("Select the type of filing for this document.")
+    else:
+        # If no update was made, proceed directly to filing type selection
+        st.title("🔧 What type of filing is this?")
+        st.write("Select the type of filing for this document.")
+
             
     st.title("🔧 What type of filing is this?")
     st.write("Select the type of filing for this document.")
@@ -281,24 +285,16 @@ elif st.session_state.step == 5:
     choice = st.radio("Select your filing type:", ["Profit & Loss (P&L)", "Balance Sheet"], index=0)
 
     if st.button("Run Transformation"):
+        # Proceed with the transformation depending on the user's selection
         if choice == "Profit & Loss (P&L)":
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
         
-    # After user clicks "Run Transformation"
-    elif choice == "Balance Sheet":
-        wb = load_workbook(st.session_state.excel_bytes)
-        focus_ws = wb.active  # Assuming the relevant sheet is active; adjust if necessary
-        
-        # Check and update the "Net Income" if necessary
-        net_income_updated = check_and_prompt_for_net_income(focus_ws)  # This will update if needed
-        
-        # If Net Income was updated, the session state will be updated with the new file
-        if net_income_updated:
-            st.session_state.excel_bytes = st.session_state.excel_bytes  # The file is updated already
-            st.success("Net Income has been updated and saved!")  # Confirm update to user
-    
-        # Now call the balance function with the updated file (if changed)
-        st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
+        elif choice == "Balance Sheet":
+            # Now run the balance transformation with the updated file
+            st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
+            
+        st.session_state.step = 6  # Move to the final step for download
+
 
 
 
