@@ -1,14 +1,13 @@
-import streamlit as st
-from io import BytesIO
+import os
+import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.styles import PatternFill, Font
-from openpyxl.utils import column_index_from_string
-from openpyxl.utils import get_column_letter
+from io import BytesIO
+import streamlit as st
 
-
-# Path to your locally stored Excel file (update this with your local path)
+# Path to the locally stored client data Excel file
 local_file_path = "/Users/lauren.carter/Desktop/client_data.xlsx"
 
+# Function to fetch client data from the local Excel file
 def fetch_client_data_locally():
     # Check if the file exists
     if os.path.exists(local_file_path):
@@ -19,25 +18,38 @@ def fetch_client_data_locally():
         print("Error: Client data file not found.")
         return None
 
-
-# ---------- eFocus Function Placeholder ----------
+# Placeholder function for eFocus transformation (this will be where your processing logic goes)
 def efocus_focus(file_bytes):
-    # Load the workbook from the BytesIO object
+    # Load the uploaded Excel file
     wb = load_workbook(filename=BytesIO(file_bytes))
 
-    # Check if 'Focus' sheet exists, if not raise an error
+    # Check if the "Focus" sheet exists
     if "Focus" not in wb.sheetnames:
         st.error("The uploaded file does not contain a sheet named 'Focus'.")
         return file_bytes  # Return the original file if the sheet is missing
 
-    # Set 'Focus' sheet as active
     focus_ws = wb["Focus"]
 
-    # Proceed with the eFocus processing logic here using focus_ws
-    # For now, let's just return the original file after selecting the sheet
-    # You can implement your eFocus transformation logic here
+    # Fetch the client-specific data from the local file
+    client_data = fetch_client_data_locally()
 
-    # Save the workbook with the 'Focus' sheet as active back to BytesIO
+    if client_data is None:
+        st.error("Client data could not be fetched.")
+        return file_bytes  # Return the original file if fetching data fails
+    
+    # Assume the client data has a column 'ClientName' and we want to use this name to look up data
+    client_name = focus_ws.cell(row=1, column=1).value  # Example: Getting client name from 'Focus' sheet
+
+    # Find the client data for this client
+    client_row = client_data[client_data['ClientName'] == client_name]
+
+    if not client_row.empty:
+        # Apply client-specific transformations using the data
+        focus_ws.cell(row=2, column=2).value = client_row.iloc[0]['SpecificColumn']  # Example update
+    else:
+        st.error(f"No client data found for {client_name}.")
+    
+    # Save the updated workbook to BytesIO and return it
     output = BytesIO()
     wb.save(output)
     output.seek(0)
@@ -55,12 +67,12 @@ if uploaded_file:
     file_bytes = uploaded_file.read()
 
     # Process the file through the eFocus Focus Grouping function
-    transformed_file = efocus_focus(file_bytes)  # Process and return the file with 'Focus' sheet set as active
+    transformed_file = efocus_focus(file_bytes)  # Currently just returning the uploaded file without processing
 
     # Store the transformed file in session state
     st.session_state.excel_bytes = transformed_file
 
-    st.success("File processed. The 'Focus' sheet has been set as active and updated.")
+    st.success("File processed. The 'Focus' sheet has been created and updated.")
 
     # Provide option to download the transformed file
     st.download_button(
