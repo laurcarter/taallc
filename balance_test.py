@@ -8,45 +8,38 @@ import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
 
-def move_totals_below_group(focus_ws, start_row=8, end_row=100):
-    # Step 1: Initialize necessary variables
+def move_last_total_below_group(focus_ws, start_row=8, end_row=100):
+    # Step 1: Find the last group of rows and the corresponding "Total" row
     current_group = None
     last_row_in_group = None
     total_row = None
-    total_rows = []
+    last_total_row = None
 
+    # Iterate through rows to find the last group and its corresponding "Total"
     for row in range(start_row, end_row + 1):
         c_value = focus_ws.cell(row=row, column=3).value  # Value in Column C
         
-        # Skip rows where column C contains "Total" since we need to move them later
-        if c_value and "Total" in str(c_value):
-            if current_group is not None:
-                # If we encounter a "Total" row for the current group, store the row
-                total_rows.append(row)
-                # Update the last row of the group
-                last_row_in_group = row
-                continue
+        if c_value and "Total" in str(c_value):  # Found a "Total" row
+            total_row = row  # Track the "Total" row
+            last_total_row = total_row  # Keep updating to the latest "Total" row
         elif c_value and c_value != "Total":
-            # If it's a non-"Total" row, update the group and the last row in the group
-            if current_group != c_value:
-                current_group = c_value
+            # If it's a non-"Total" row, update the group and the last row
+            current_group = c_value
             last_row_in_group = row
 
-    # Step 2: Move the last "Total" row for each group below its respective group
-    for row in total_rows:
-        total_value = focus_ws.cell(row=row, column=3).value  # "Total" row value in Column C
-        if total_value:
-            # Move the "Total" row to the next row after the last data row in the group
-            focus_ws.cell(row=last_row_in_group + 1, column=3).value = focus_ws.cell(row=row, column=3).value
-            focus_ws.cell(row=last_row_in_group + 1, column=4).value = focus_ws.cell(row=row, column=4).value
-            focus_ws.cell(row=last_row_in_group + 1, column=5).value = focus_ws.cell(row=row, column=5).value
-            
-            # Clear the current "Total" row
-            for col in range(1, focus_ws.max_column + 1):
-                focus_ws.cell(row=row, column=col).value = None
-            
-            # Update the last row in the group to reflect the newly moved "Total" row
-            last_row_in_group += 1
+    # Step 2: Move the last "Total" row below its corresponding group
+    if last_total_row is not None:
+        # Move the "Total" row to right below the last non-"Total" row in the group
+        focus_ws.cell(row=last_row_in_group + 1, column=3).value = focus_ws.cell(row=last_total_row, column=3).value
+        focus_ws.cell(row=last_row_in_group + 1, column=4).value = focus_ws.cell(row=last_total_row, column=4).value
+        focus_ws.cell(row=last_row_in_group + 1, column=5).value = focus_ws.cell(row=last_total_row, column=5).value
+        
+        # Clear the current "Total" row
+        for col in range(1, focus_ws.max_column + 1):
+            focus_ws.cell(row=last_total_row, column=col).value = None
+
+        # Update the last row to reflect the moved "Total"
+        last_row_in_group += 1
 
 
 
@@ -365,7 +358,9 @@ def balance_focus_grouping(file_bytes):
     
         
     # After sorting and other operations, delete blank rows while keeping "Total" rows intact
-    move_totals_below_group(focus_ws, start_row=8, end_row=100)
+    # After sorting and performing other operations, call this function to move the last "Total" row
+    move_last_total_below_group(focus_ws, start_row=8, end_row=100)
+
     
     #create_summary(focus_ws, max_row)
     #apply_focus_summary_formatting(focus_ws, max_row)
