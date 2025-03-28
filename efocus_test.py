@@ -97,6 +97,7 @@ def efocus_focus(file_bytes, client_data_bytes):
 
 
 # Streamlit UI for the file upload and processing
+# Streamlit UI for the file upload and processing
 st.set_page_config(page_title="eFocus Transformation", layout="wide")
 
 st.title("📂 Upload Your Excel File for eFocus Transformation")
@@ -124,3 +125,8 @@ if uploaded_file and client_data_file:
             file_name="efocus_transformed_file.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+    else:
+        st.error("Error processing the files. Please check the files and try again.")
+
+else:
+    st.info("Please upload both the Focus and Client Data files to proceed.")
