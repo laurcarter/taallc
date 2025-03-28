@@ -20,8 +20,8 @@ def check_and_prompt_for_net_income(focus_ws):
             net_income_input = st.text_input(f"Warning: 'Net Income' in row {row} is not coded with parentheses. Please enter the correct Focus box number:")
 
             if net_income_input:
-                # Add parentheses around the user's input and update the cell in Column A
-                new_value = f"Net Income ({net_income_input})"
+                # Append parentheses around the user's input and update the cell in Column A
+                new_value = f"{a_value} ({net_income_input})"  # Append the input with parentheses
                 focus_ws.cell(row=row, column=1).value = new_value  # Update the value in Column A
                 st.success(f"Net Income for row {row} has been updated with Focus box number: {net_income_input}")
                 return True  # Indicate that the Net Income was updated
@@ -240,7 +240,6 @@ elif st.session_state.step == 4:
 
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
-    # **Silent Collapse Check**
     file_bytes = st.session_state.excel_bytes  # The current file in session state
 
     # Load the workbook
@@ -286,6 +285,7 @@ elif st.session_state.step == 5:
                 st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
         st.session_state.step = 6  # Move to the final step for download
+
 
 
             
