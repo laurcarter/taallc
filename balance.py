@@ -5,6 +5,211 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import column_index_from_string
 from openpyxl.utils import get_column_letter
 import streamlit as st
+from openpyxl import load_workbook
+from io import BytesIO
+from openpyxl.styles import NamedStyle
+def calculate_and_insert_totals(focus_ws, total_assets, total_liabilities, total_equity, start_row=8, end_row=100):
+    # Step 1: Calculate the sum of liabilities and equity
+    total_liabilities_and_equity = (total_liabilities / 2) + (total_equity / 2)
+
+    # Step 2: Calculate the balance (Total Assets - Total Liabilities and Equity)
+    balance = (total_assets / 2) - total_liabilities_and_equity
+
+    # Step 3: Find the last row with data in column E
+    last_data_row = focus_ws.max_row
+    while focus_ws.cell(row=last_data_row, column=5).value is None and last_data_row >= start_row:
+        last_data_row -= 1  # Find the last row with data in column E
+
+    # Step 4: Move 2 rows down from the last data row in column E
+    last_row = last_data_row + 2
+
+    # Step 5: Insert the text in column E (bold and in all caps)
+    focus_ws.cell(row=last_row, column=5).value = "TOTAL ASSETS"
+    focus_ws.cell(row=last_row, column=5).font = openpyxl.styles.Font(bold=True)
+
+    focus_ws.cell(row=last_row + 1, column=5).value = "TOTAL LIABILITIES AND EQUITY"
+    focus_ws.cell(row=last_row + 1, column=5).font = openpyxl.styles.Font(bold=True)
+
+    focus_ws.cell(row=last_row + 2, column=5).value = "BALANCE"
+    focus_ws.cell(row=last_row + 2, column=5).font = openpyxl.styles.Font(bold=True)
+
+    # Step 6: Insert the corresponding values in column F (bold)
+    focus_ws.cell(row=last_row, column=6).value = total_assets / 2
+    focus_ws.cell(row=last_row, column=6).font = openpyxl.styles.Font(bold=True)
+
+    focus_ws.cell(row=last_row + 1, column=6).value = total_liabilities_and_equity
+    focus_ws.cell(row=last_row + 1, column=6).font = openpyxl.styles.Font(bold=True)
+
+    focus_ws.cell(row=last_row + 2, column=6).value = balance
+    focus_ws.cell(row=last_row + 2, column=6).font = openpyxl.styles.Font(bold=True)
+
+    # Optional: Apply comma formatting to Column F (just like before)
+    for row in range(last_row, last_row + 3):
+        focus_ws.cell(row=row, column=6).number_format = "#,##0"  # No decimals
+
+
+
+def apply_comma_format_no_decimal(focus_ws, start_row=8, end_row=100):
+    # Apply the number format for comma separation (no decimals) without removing other styles
+    for row in range(start_row, end_row + 1):
+        cell = focus_ws.cell(row=row, column=6)  # Column F
+        # Set the number format to comma-separated with no decimals
+        cell.number_format = "#,##0"
+
+
+def calculate_totals(focus_ws, start_row=8, end_row=100):
+    # Step 1: Initialize variables for totals
+    total_assets = 0
+    total_liabilities = 0
+    total_equity = 0
+
+    # Step 2: Loop through each row and sum the amounts for each group (based on the numeric code in Column C)
+    for row in range(start_row, end_row + 1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()  # Value in Column C
+        try:
+            # Extract numeric code, skipping "Total" rows
+            if "Total" in c_value:
+                numeric_code = int(c_value.replace("Total", "").strip())
+            else:
+                numeric_code = int(c_value)
+        except ValueError:
+            numeric_code = None
+        
+        # Step 3: Add amounts to the correct total group
+        if numeric_code is not None:
+            # Assets (200 to 940)
+            if 200 <= numeric_code <= 940:
+                amount = focus_ws.cell(row=row, column=4).value
+                if isinstance(amount, (int, float)):
+                    total_assets += amount
+            # Liabilities (970 to 1760)
+            elif 970 <= numeric_code <= 1760:
+                amount = focus_ws.cell(row=row, column=4).value
+                if isinstance(amount, (int, float)):
+                    total_liabilities += amount
+            # Ownership Equity (1020 or 1770 to 1810)
+            elif numeric_code == 1020 or (1770 <= numeric_code <= 1810):
+                amount = focus_ws.cell(row=row, column=4).value
+                if isinstance(amount, (int, float)):
+                    total_equity += amount
+
+    # Step 4: Insert the totals in the last row of each group (in Column F)
+    # Assets: Find the last row of Assets and insert the total
+    for row in range(end_row, start_row - 1, -1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()
+        try:
+            numeric_code = int(c_value.replace("Total", "").strip()) if "Total" in c_value else int(c_value)
+        except ValueError:
+            numeric_code = None
+        
+        if numeric_code is not None and 200 <= numeric_code <= 940:  # Assets
+            focus_ws.cell(row=row, column=6).value = total_assets / 2  # Insert total in Column F
+            focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
+            break  # Exit after updating the last row of Assets
+
+    # Liabilities: Find the last row of Liabilities and insert the total
+    for row in range(end_row, start_row - 1, -1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()
+        try:
+            numeric_code = int(c_value.replace("Total", "").strip()) if "Total" in c_value else int(c_value)
+        except ValueError:
+            numeric_code = None
+        
+        if numeric_code is not None and 970 <= numeric_code <= 1760:  # Liabilities
+            focus_ws.cell(row=row, column=6).value = total_liabilities / 2  # Insert total in Column F
+            focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
+            break  # Exit after updating the last row of Liabilities
+
+    # Ownership Equity: Find the last row of Ownership Equity and insert the total
+    for row in range(end_row, start_row - 1, -1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()
+        try:
+            numeric_code = int(c_value.replace("Total", "").strip()) if "Total" in c_value else int(c_value)
+        except ValueError:
+            numeric_code = None
+        
+        if numeric_code is not None and (numeric_code == 1020 or 1770 <= numeric_code <= 1810):  # Ownership Equity
+            focus_ws.cell(row=row, column=6).value = total_equity / 2  # Insert total in Column F
+            focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
+            break  # Exit after updating the last row of Ownership Equity
+
+    return total_assets, total_liabilities, total_equity
+
+
+def apply_color_coding(focus_ws, start_row=8):
+    # Step 1: Get the last row with data in Column C
+    max_row = focus_ws.max_row
+    
+    # Initialize color fills for each category
+    green_fill = PatternFill(start_color="C6E0B4", end_color="C6E0B4", fill_type="solid")  # Assets (green)
+    orange_fill = PatternFill(start_color="F8CBAD", end_color="F8CBAD", fill_type="solid")  # Liabilities (orange)
+    blue_fill = PatternFill(start_color="BDD7EE", end_color="BDD7EE", fill_type="solid")  # Ownership Equity (blue)
+    
+    # Step 2: Loop through each row starting from row 8
+    for row in range(start_row, max_row + 1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()  # Value in Column C
+        
+        # Step 3: Check if the cell contains a numeric code or a subtotal
+        try:
+            if c_value.isdigit():  # If it's a pure numeric value
+                numeric_code = int(c_value)
+            elif "Total" in c_value and c_value.replace("Total", "").strip().isdigit():  # Subtotal row
+                numeric_code = int(c_value.replace("Total", "").strip())
+            else:
+                numeric_code = None  # Skip non-numeric and non-subtotal rows
+        except ValueError:
+            numeric_code = None  # If there's an error in conversion, skip that row
+        
+        # Step 4: Apply color-coding based on the numeric codes
+        if numeric_code is not None:
+            if 200 <= numeric_code <= 940:  # Assets
+                fill = green_fill
+            elif 970 <= numeric_code <= 1760:  # Liabilities
+                fill = orange_fill
+            elif numeric_code == 1020 or (1770 <= numeric_code <= 1810):  # Ownership Equity
+                fill = blue_fill
+            else:
+                fill = None  # Default: No color for other codes
+
+            # Step 5: Apply color fill to columns C to F
+            if fill:
+                for col in range(3, 7):  # Columns C to F
+                    focus_ws.cell(row=row, column=col).fill = fill
+
+def move_last_total_below_group(focus_ws, start_row=8, end_row=100):
+    # Step 1: Find the last group of rows and the corresponding "Total" row
+    current_group = None
+    last_row_in_group = None
+    total_row = None
+    last_total_row = None
+
+    # Iterate through rows to find the last group and its corresponding "Total"
+    for row in range(start_row, end_row + 1):
+        c_value = focus_ws.cell(row=row, column=3).value  # Value in Column C
+        
+        if c_value and "Total" in str(c_value):  # Found a "Total" row
+            total_row = row  # Track the "Total" row
+            last_total_row = total_row  # Keep updating to the latest "Total" row
+        elif c_value and c_value != "Total":
+            # If it's a non-"Total" row, update the group and the last row
+            current_group = c_value
+            last_row_in_group = row
+
+    # Step 2: Move the last "Total" row below its corresponding group
+    if last_total_row is not None:
+        # Move the "Total" row to right below the last non-"Total" row in the group
+        focus_ws.cell(row=last_row_in_group + 1, column=3).value = focus_ws.cell(row=last_total_row, column=3).value
+        focus_ws.cell(row=last_row_in_group + 1, column=4).value = focus_ws.cell(row=last_total_row, column=4).value
+        focus_ws.cell(row=last_row_in_group + 1, column=5).value = focus_ws.cell(row=last_total_row, column=5).value
+        
+        # Clear the current "Total" row
+        for col in range(1, focus_ws.max_column + 1):
+            focus_ws.cell(row=last_total_row, column=col).value = None
+
+        # Update the last row to reflect the moved "Total"
+        last_row_in_group += 1
+
+
 
 
 def apply_random_formatting(focus_ws, max_row):
@@ -94,133 +299,6 @@ def create_summary(focus_ws, max_row):
 
 
 
-def apply_income_expense_totals(focus_ws, max_row):
-    # Call the categorize_income_expense function to get the income and expense sums
-    income_sum, expense_sum = categorize_income_expense(focus_ws, max_row)
-
-    # Divide the income and expense sums by 2
-    income_sum /= 2
-    expense_sum /= 2
-
-    # Initialize row trackers for income and expense sections
-    income_rows = []
-    expense_rows = []
-
-    # Loop through the rows again to identify income and expense sections (rows with green and red fills)
-    for row_idx in range(8, max_row + 1):
-        c_value = focus_ws.cell(row=row_idx, column=3).value  # Column C
-        d_value = focus_ws.cell(row=row_idx, column=4).value  # Column D
-
-        # Only consider rows with income or expense values (skip others)
-        if c_value is None or d_value is None:
-            continue
-
-        # Check for income or expense rows based on the value in column C
-        numeric_value = ''.join(filter(str.isdigit, str(c_value)))
-        if numeric_value.isdigit():
-            numeric_value = float(numeric_value)
-
-            # Add the row index to the respective list (income or expense) based on the value in column C
-            if numeric_value < 4000:
-                income_rows.append(row_idx)
-            else:
-                expense_rows.append(row_idx)
-
-    # Insert the income sum into the last row of the income section
-    if income_rows:
-        last_income_row = income_rows[-1]  # Get the last row in the income section
-        focus_ws.cell(row=last_income_row, column=6).value = round(income_sum, 2)  # Insert sum into column F
-        focus_ws.cell(row=last_income_row, column=6).font = Font(bold=True)  # Make it bold
-
-    # Insert the expense sum into the last row of the expense section
-    if expense_rows:
-        last_expense_row = expense_rows[-1]  # Get the last row in the expense section
-        focus_ws.cell(row=last_expense_row, column=6).value = round(expense_sum, 2)  # Insert sum into column F
-        focus_ws.cell(row=last_expense_row, column=6).font = Font(bold=True)  # Make it bold
-
-    # Calculate the result by subtracting expenses from income
-    result = income_sum - expense_sum
-
-    # Find the last used row in column C to determine where to place the "NET INCOME" value
-    last_row = max_row
-    for row in range(max_row, 7, -1):  # Start from max_row and move upwards
-        if focus_ws.cell(row=row, column=3).value is not None:
-            last_row = row
-            break
-
-    # Place the result in the cell below the last used row in column F
-    focus_ws.cell(row=last_row + 1, column=5).value = "NET INCOME"  # Column E for "NET INCOME"
-    focus_ws.cell(row=last_row + 1, column=5).font = Font(bold=True)  # Make the "NET INCOME" bold
-
-    # Place the result in column F
-    focus_ws.cell(row=last_row + 1, column=6).value = round(result, 2)  # Column F for result
-    focus_ws.cell(row=last_row + 1, column=6).font = Font(bold=True)  # Make the result bold
-
-
-
-def categorize_income_expense(focus_ws, max_row):
-    # Define the colors
-    light_green_fill = PatternFill(start_color="D9F2D1", end_color="D9F2D1", fill_type="solid")  # Light green
-    light_red_fill = PatternFill(start_color="F9E2D2", end_color="F9E2D2", fill_type="solid")  # Light red
-
-    income_sum = 0
-    expense_sum = 0
-
-    # Loop through each row starting from row 8
-    for row in range(8, max_row + 1):
-        c_value = focus_ws.cell(row=row, column=3).value  # Value in column C
-        d_value = focus_ws.cell(row=row, column=4).value  # Value in column D
-
-        # If there's no value in column C, skip this row
-        if c_value is None or c_value == "":
-            continue
-
-        # Scrub letters from the value in column C (take only the numeric part)
-        numeric_value = ''.join(filter(str.isdigit, str(c_value)))
-
-        # Ensure the numeric value is treated as a number
-        if numeric_value.isdigit():
-            numeric_value = float(numeric_value)
-
-            # Categorize as income (less than 4000) or expense (greater than or equal to 4000)
-            if numeric_value < 4000:
-                # Apply color for income (light green)
-                for col in range(3, 7):  # Columns C to F
-                    focus_ws.cell(row=row, column=col).fill = light_green_fill
-
-                # Add the value from column D to the income sum
-                if isinstance(d_value, (int, float)):
-                    income_sum += d_value
-            else:
-                # Apply color for expense (light red)
-                for col in range(3, 7):  # Columns C to F
-                    focus_ws.cell(row=row, column=col).fill = light_red_fill
-
-                # Add the value from column D to the expense sum
-                if isinstance(d_value, (int, float)):
-                    expense_sum += d_value
-
-    return income_sum, expense_sum
-
-
-
-
-def delete_blank_rows(ws, max_row):
-    # Start from row 8 and go downwards
-    row_idx = 8
-
-    while row_idx <= max_row:
-        c_value = ws.cell(row=row_idx, column=3).value  # Get the value from column C
-        d_value = ws.cell(row=row_idx, column=4).value  # Get the value from column D
-
-        # If both columns C and D are blank, delete the row
-        if (c_value is None or c_value == "") and (d_value is None or d_value == ""):
-            ws.delete_rows(row_idx)  # Delete the current row
-            max_row -= 1  # Decrease max_row because we just deleted a row
-        else:
-            row_idx += 1  # Move to the next row if not both columns are blank
-
-
 def apply_subtotals_for_sheet(ws, max_row):
     current_value = None  # Tracks the current group in column C
     total_sum = 0  # Tracks the sum of the values in column D for the current group
@@ -299,20 +377,25 @@ def sort_focus_sheet(focus_ws, max_row):
         for col_idx, value in enumerate(row_values, start=1):
             focus_ws.cell(row=idx, column=col_idx).value = value
 
-
 def secondary_sort_focus_sheet(focus_ws, max_row):
-    # Create a list to hold rows with their corresponding values from columns C and D
+    # Step 1: Create a list to hold rows with their corresponding values from columns C and D
     rows = []
 
-    # Loop through column C starting from row 8 (instead of 5)
+    # Loop through column C starting from row 8 to max_row
     for row in range(8, max_row + 1):
-        c_value = focus_ws.cell(row=row, column=3).value
-        d_value = focus_ws.cell(row=row, column=4).value
+        c_value = focus_ws.cell(row=row, column=3).value  # Column C value
+        d_value = focus_ws.cell(row=row, column=4).value  # Column D value
         
         # Skip rows where column C is empty
         if c_value is None or c_value == "":
             continue
-
+        
+        # Convert column C values from text to numbers if possible
+        try:
+            c_value = float(c_value)
+        except ValueError:
+            c_value = float('-inf')  # If conversion fails, treat as the lowest possible value
+        
         # Ensure column D is treated as a numeric value if possible
         if isinstance(d_value, (int, float)):
             d_value = float(d_value)  # Ensure the value is treated as a float
@@ -322,20 +405,24 @@ def secondary_sort_focus_sheet(focus_ws, max_row):
         # Append the entire row along with values from column C and D
         rows.append((row, c_value, d_value, [focus_ws.cell(row=row, column=col).value for col in range(1, focus_ws.max_column + 1)]))
 
-    # Sort rows based on column C (ascending) and column D (descending for same values in C)
-    rows.sort(key=lambda x: (x[1], -x[2]) if x[1] is not None else ("", float('inf')))
+    # Step 2: Sort rows based on column C (ascending) and column D (descending for same values in C)
+    rows.sort(key=lambda x: (x[1], -x[2]))  # Sort by Column C ascending, then by Column D descending
 
-    # Clear the existing values in the sheet starting from row 8
+    # Step 3: Clear the existing values in the sheet starting from row 8
     for row in range(8, max_row + 1):
         for col in range(1, focus_ws.max_column + 1):
             focus_ws.cell(row=row, column=col).value = None
 
-    # Write the sorted rows back into the sheet starting from row 8
+    # Step 4: Write the sorted rows back into the sheet starting from row 8
     new_row_idx = 8
     for _, _, _, row_values in rows:
         for col_idx, value in enumerate(row_values, start=1):
             focus_ws.cell(row=new_row_idx, column=col_idx).value = value
         new_row_idx += 1
+
+
+
+
 
 
 
@@ -356,101 +443,116 @@ def balance_focus_grouping(file_bytes):
     max_row = ws.max_row
     max_col = ws.max_column
 
-        # Step 1: Copy content from original sheet to Focus as plain values
-    for row in ws.iter_rows(min_row=1, max_row=max_row, max_col=max_col):
-        for cell in row:
-            focus_ws.cell(row=cell.row, column=cell.column, value=cell.value)
+    # Step 1: Copy Column A from the original sheet into Focus sheet (Column A in Focus)
+    for row in range(1, max_row + 1):
+        focus_ws.cell(row=row, column=1).value = ws.cell(row=row, column=1).value
 
-    # Step 2: Look for the opening parenthesis in Column A and extract to Column B
+    # Step 2: Split Column A by the opening parenthesis and move to Column B and D
     for row in range(1, max_row + 1):
         val = focus_ws.cell(row=row, column=1).value
         if val and '(' in str(val):
-            # Find the part before the opening parenthesis and paste it in Column B
+            # Split the value at the opening parenthesis and store the parts
             parts = str(val).split('(', 1)
-            focus_ws.cell(row=row, column=2).value = parts[0].strip()
+            focus_ws.cell(row=row, column=1).value = parts[0].strip()  # First part goes to Column A
+            focus_ws.cell(row=row, column=2).value = parts[1].strip()  # Second part goes to Column D
 
-    # Step 3: Copy Column B from original sheet to Column C in Focus sheet
+    # Step 3: Remove parentheses in Column D (Focus sheet)
     for row in range(1, max_row + 1):
-        original_value = ws.cell(row=row, column=2).value
-        focus_ws.cell(row=row, column=3).value = original_value
-
-    # Step 4: Remove parentheses in Column B and Column C for Focus sheet
+        val_d = focus_ws.cell(row=row, column=2).value
+        if val_d:
+            focus_ws.cell(row=row, column=2).value = str(val_d).replace("(", "").replace(")", "")
+    # Step 4: Copy Column B from the original sheet to Column D in Focus sheet (as value only)
     for row in range(1, max_row + 1):
-        # Remove parentheses in Column B
-        val_b = focus_ws.cell(row=row, column=2).value
-        if val_b:
-            focus_ws.cell(row=row, column=2).value = str(val_b).replace("(", "").replace(")", "")
+        # Get the calculated value (not the formula) from Column B in the original sheet
+        original_value = ws.cell(row=row, column=2).value  # Get the value, not the formula
+        focus_ws.cell(row=row, column=4).value = original_value  # Directly paste the value into Column D
 
-    # Move the entire sheet over by two columns in both Focus and SSOI sheets
-    focus_ws.insert_cols(1, 2)  # Insert two columns at the beginning of the Focus sheet
+    # Insert two columns at the beginning of the Focus sheet (Columns A and B become empty)
+    focus_ws.insert_cols(1, 2)
     
-    # Move data in columns starting from row 5 in the Focus sheet
+    # Shift data from columns starting from row 5 (move the data from columns C, D, F)
     for row in range(5, max_row + 1):
-        focus_ws.cell(row=row, column=3).offset(0, 2).value = focus_ws.cell(row=row, column=3).value
+        # Move data in Column C to Column E
+        focus_ws.cell(row=row, column=5).value = focus_ws.cell(row=row, column=3).value
         focus_ws.cell(row=row, column=3).value = None  # Clear original cell
     
-        focus_ws.cell(row=row, column=4).offset(0, -1).value = focus_ws.cell(row=row, column=4).value
+        # Move data in Column D to Column C
+        focus_ws.cell(row=row, column=3).value = focus_ws.cell(row=row, column=4).value
         focus_ws.cell(row=row, column=4).value = None  # Clear original cell
     
-        focus_ws.cell(row=row, column=6).offset(0, -2).value = focus_ws.cell(row=row, column=6).value
+        # Move data in Column F to Column D
+        focus_ws.cell(row=row, column=4).value = focus_ws.cell(row=row, column=6).value
         focus_ws.cell(row=row, column=6).value = None  # Clear original cell
     
-
-# new
-    # Add column titles in row 4
+    # Add column titles in row 4 (ensure this is done after the rows are shifted)
     focus_ws["C4"] = "Focus"
     focus_ws["D4"] = "Amount"
     focus_ws["E4"] = "Description"
     focus_ws["F4"] = "Totals"
-
     
-    # Shift everything below row 4 down by 3 rows in both sheets
+    # Shift everything below row 4 down by 3 rows in Focus sheet
     focus_ws.insert_rows(4, amount=3)  # Insert 3 rows at row 4 in focus_ws
-
-
-    # Call the sort_focus_sheet function after the rest of the operations in the macro
-    #sort_focus_sheet(focus_ws, max_row)
-
-    # After sorting column C (done by previous functions), call this function for secondary sorting
-    #secondary_sort_focus_sheet(focus_ws, max_row)
-
+    
     # Define fill color (black) and font color (white)
     black_fill = PatternFill(start_color="000000", end_color="000000", fill_type="solid")
     white_font = Font(color="FFFFFF")
-
+    
     # Fill columns C to F in row 7 with black and change the text color to white in the Focus sheet
     for col in ["C", "D", "E", "F"]:
         focus_ws[f"{col}7"].fill = black_fill
         focus_ws[f"{col}7"].font = white_font
-
-
+    
     # Format column D and F in the Focus sheet to show numbers with thousand commas
     for row in range(1, max_row + 1):
         focus_ws.cell(row=row, column=4).number_format = "#,##0"  # Column D
         focus_ws.cell(row=row, column=6).number_format = "#,##0"  # Column F
-
-
+    
     # Increase the width of column E to double the default width in the Focus sheet
     focus_ws.column_dimensions["E"].width = focus_ws.column_dimensions["E"].width * 2.5
+    
+    # Call the sort_focus_sheet function after the rest of the operations in the macro
+    sort_focus_sheet(focus_ws, max_row)
+
+    # After sorting by Column C (primary sort)
+    secondary_sort_focus_sheet(focus_ws, max_row=max_row)
+
+    
+
+
 
 
     #subtotals
-    #apply_subtotals_for_sheet(focus_ws, max_row)
+    apply_subtotals_for_sheet(focus_ws, max_row)
     
-    # Call this function for both sheets
-    #delete_blank_rows(focus_ws, max_row)  # For Focus sheet
+        
+    # After sorting and performing other operations, call this function to move the last "Total" row
+    move_last_total_below_group(focus_ws, start_row=8, end_row=100)
+
     
-    
-
-    # You can now use income_sum and expense_sum in your further calculations
-    #apply_income_expense_totals(focus_ws, max_row)
+    create_summary(focus_ws, max_row)
+    apply_focus_summary_formatting(focus_ws, max_row)
 
 
-    #create_summary(focus_ws, max_row)
-    #apply_focus_summary_formatting(focus_ws, max_row)
+    apply_random_formatting(focus_ws, max_row)
 
 
-    #apply_random_formatting(focus_ws, max_row)
+    # Example usage
+    # Assuming `focus_ws` is your worksheet object (from openpyxl)
+    apply_color_coding(focus_ws)
+
+    # Assuming `focus_ws` is your worksheet object
+    # Get the calculated totals
+    total_assets, total_liabilities, total_equity = calculate_totals(focus_ws, start_row=8, end_row=100)
+
+    # Call the function to apply the comma format to Column F
+    # After running your totals calculation, apply comma formatting to Column F
+    apply_comma_format_no_decimal(focus_ws, start_row=8, end_row=100)
+
+    #test
+    # Example usage:
+    calculate_and_insert_totals(focus_ws, total_assets, total_liabilities, total_equity, start_row=8, end_row=100)
+
+
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
@@ -459,25 +561,3 @@ def balance_focus_grouping(file_bytes):
     return output.read()  # Return the transformed file as bytes
 
 
-# Step 1: Upload the file
-st.title("📂 Upload Your Excel File for Balance Sheet Transformation")
-uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
-
-if uploaded_file:
-    file_bytes = uploaded_file.read()
-
-    # Process the file through the Balance Focus Grouping function
-    transformed_file = balance_focus_grouping(file_bytes)
-
-    # Store the transformed file in session state
-    st.session_state.excel_bytes = transformed_file
-
-    st.success("File processed. The 'Focus' sheet has been created and updated.")
-
-    # Provide option to download the transformed file
-    st.download_button(
-        label="Download Transformed File",
-        data=st.session_state.excel_bytes,
-        file_name="balance_transformed_file.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
