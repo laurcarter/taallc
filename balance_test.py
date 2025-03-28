@@ -7,6 +7,7 @@ from openpyxl.utils import get_column_letter
 import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
+from openpyxl.styles import NamedStyle
 
 
 def apply_comma_format_no_decimal(focus_ws, start_row=8, end_row=100):
