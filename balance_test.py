@@ -133,6 +133,8 @@ def calculate_totals(focus_ws, start_row=8, end_row=100):
             focus_ws.cell(row=row, column=6).font = openpyxl.styles.Font(bold=True)  # Bold the total
             break  # Exit after updating the last row of Ownership Equity
 
+    return total_assets, total_liabilities, total_equity
+
 
 def apply_color_coding(focus_ws, start_row=8):
     # Step 1: Get the last row with data in Column C
