@@ -8,6 +8,46 @@ import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
 
+def apply_color_coding(focus_ws, start_row=8):
+    # Step 1: Get the last row with data in Column C
+    max_row = focus_ws.max_row
+    
+    # Initialize color fills for each category
+    green_fill = PatternFill(start_color="C6E0B4", end_color="C6E0B4", fill_type="solid")  # Assets (green)
+    orange_fill = PatternFill(start_color="F8CBAD", end_color="F8CBAD", fill_type="solid")  # Liabilities (orange)
+    blue_fill = PatternFill(start_color="BDD7EE", end_color="BDD7EE", fill_type="solid")  # Ownership Equity (blue)
+    
+    # Step 2: Loop through each row starting from row 8
+    for row in range(start_row, max_row + 1):
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()  # Value in Column C
+        
+        # Step 3: Check if the cell contains a numeric code or a subtotal
+        try:
+            if c_value.isdigit():  # If it's a pure numeric value
+                numeric_code = int(c_value)
+            elif "Total" in c_value and c_value.replace("Total", "").strip().isdigit():  # Subtotal row
+                numeric_code = int(c_value.replace("Total", "").strip())
+            else:
+                numeric_code = None  # Skip non-numeric and non-subtotal rows
+        except ValueError:
+            numeric_code = None  # If there's an error in conversion, skip that row
+        
+        # Step 4: Apply color-coding based on the numeric codes
+        if numeric_code is not None:
+            if 200 <= numeric_code <= 940:  # Assets
+                fill = green_fill
+            elif 970 <= numeric_code <= 1760:  # Liabilities
+                fill = orange_fill
+            elif numeric_code == 1020 or (1770 <= numeric_code <= 1810):  # Ownership Equity
+                fill = blue_fill
+            else:
+                fill = None  # Default: No color for other codes
+
+            # Step 5: Apply color fill to columns C to F
+            if fill:
+                for col in range(3, 7):  # Columns C to F
+                    focus_ws.cell(row=row, column=col).fill = fill
+
 def move_last_total_below_group(focus_ws, start_row=8, end_row=100):
     # Step 1: Find the last group of rows and the corresponding "Total" row
     current_group = None
@@ -367,6 +407,10 @@ def balance_focus_grouping(file_bytes):
 
     apply_random_formatting(focus_ws, max_row)
 
+
+    # Example usage
+    # Assuming `focus_ws` is your worksheet object (from openpyxl)
+    apply_color_coding(focus_ws)
 
     # Save the modified workbook to a BytesIO object
     output = BytesIO()
