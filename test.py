@@ -20,13 +20,20 @@ def check_and_prompt_for_net_income(focus_ws):
             net_income_input = st.text_input(f"Warning: 'Net Income' in row {row} is not coded with parentheses. Please enter the correct Focus box number:")
 
             if net_income_input:
-                # Append parentheses around the user's input and update the cell in Column A
-                new_value = f"{a_value} ({net_income_input})"  # Append the input with parentheses
-                focus_ws.cell(row=row, column=1).value = new_value  # Update the value in Column A
+                # Clear the existing cell value and insert "Net Income (user_input)"
+                focus_ws.cell(row=row, column=1).value = f"Net Income ({net_income_input})"  # Insert the updated value with parentheses
                 st.success(f"Net Income for row {row} has been updated with Focus box number: {net_income_input}")
-                return True, focus_ws  # Indicate that the Net Income was updated and return the updated sheet
+                
+                # Save the updated workbook into BytesIO
+                updated_file = BytesIO()
+                focus_ws.parent.save(updated_file)  # Save the updated workbook
+                updated_file.seek(0)
+                st.session_state.excel_bytes = updated_file  # Update session with the modified file
+                
+                return True  # Indicating the value was updated and saved
 
-    return False, focus_ws  # If no updates were made, return False and the unchanged sheet
+    return False  # If no updates were made, return False
+
 
 
 
@@ -274,19 +281,17 @@ elif st.session_state.step == 5:
             focus_ws = wb.active  # Assuming the relevant sheet is active; adjust if necessary
             
             # Check and update the "Net Income" if necessary
-            net_income_updated, updated_focus_ws = check_and_prompt_for_net_income(focus_ws)
+            net_income_updated = check_and_prompt_for_net_income(focus_ws)  # This will update if needed
             
+            # If Net Income was updated, the session state will be updated with the new file
             if net_income_updated:
-                # If Net Income was updated, save the updated workbook
-                updated_file = BytesIO()
-                wb.save(updated_file)  # Save the updated workbook
-                updated_file.seek(0)
-                st.session_state.excel_bytes = updated_file  # Update session with the modified file
-            
+                st.session_state.excel_bytes = st.session_state.excel_bytes  # The file is updated already
+
             # Now call the balance function with the updated file (if changed)
             st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
         st.session_state.step = 6  # Move to the final step for download
+
 
 
 
