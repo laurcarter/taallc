@@ -10,23 +10,21 @@ from collapse import collapse_sheet
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
 
 def check_and_prompt_for_net_income(focus_ws):
-    # Loop through the rows in column C starting from row 8
+    # Look through the rows to find "Net Income" not coded with parentheses
     for row in range(8, focus_ws.max_row + 1):
-        c_value = str(focus_ws.cell(row=row, column=3).value).strip()  # Value in Column C
-
-        # Check if the value contains "Net Income" and does not contain parentheses
-        if "Net Income" in c_value and "(" not in c_value:
-            # Prompt the user for the missing Focus box number
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()  # Get value in Column C
+        
+        if "Net Income" in c_value and "(" not in c_value:  # If "Net Income" doesn't have parentheses
+            # Show Streamlit prompt to ask the user for the correct Focus box number
             net_income_input = st.text_input(f"Net Income is not coded. Please enter the correct Focus box number for row {row}:")
-
-            # Check if the user provided a valid input
-            if net_income_input:
-                # Format and update the "Net Income" cell with parentheses around the number
+            
+            if net_income_input:  # If the user enters a value
+                # Add parentheses around the entered value
                 focus_ws.cell(row=row, column=3).value = f"Net Income ({net_income_input})"
                 st.success(f"Net Income for row {row} has been updated with Focus box number: {net_income_input}")
-                return True  # Return True indicating that the update was made
+                return True  # Indicate that Net Income was updated
 
-    return False  # Return False if no updates were made (either "Net Income" was not found or was already coded)
+    return False  # If no updates were made, return False
 
 
 
@@ -278,9 +276,10 @@ elif st.session_state.step == 5:
             net_income_updated = check_and_prompt_for_net_income(focus_ws)
             
             if net_income_updated:
-                # Proceed with balance sheet transformation
+                # If Net Income was updated, proceed with balance sheet transformation
                 st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
             else:
+                # If no update was made, proceed with balance sheet transformation anyway
                 st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
         st.session_state.step = 6  # Move to the final step for download
