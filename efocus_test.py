@@ -13,17 +13,24 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Load the client data from the uploaded client_data.xlsx
     client_data = pd.read_excel(BytesIO(client_data_bytes))  # Load client data as a DataFrame
 
+    # Print the columns to inspect
+    print("Client Data Columns:", client_data.columns)
+
     # Assume the client data has a column 'ClientName' and the 'Focus' sheet contains the client name
     client_name = focus_ws.cell(row=1, column=1).value  # Example: Getting client name from 'Focus' sheet
 
-    # Find the client data for this client
-    client_row = client_data[client_data['ClientName'] == client_name]
+    # Check if the 'ClientName' column exists
+    if 'ClientName' in client_data.columns:
+        # Find the client data for this client
+        client_row = client_data[client_data['ClientName'] == client_name]
 
-    if not client_row.empty:
-        # Apply client-specific transformations using the data
-        focus_ws.cell(row=2, column=2).value = client_row.iloc[0]['SpecificColumn']  # Example update
+        if not client_row.empty:
+            # Apply client-specific transformations using the data
+            focus_ws.cell(row=2, column=2).value = client_row.iloc[0]['SpecificColumn']  # Example update
+        else:
+            st.error(f"No client data found for {client_name}.")
     else:
-        st.error(f"No client data found for {client_name}.")
+        st.error("'ClientName' column not found in the client data.")
 
     # Save the updated workbook to BytesIO and return it
     output = BytesIO()
@@ -31,6 +38,7 @@ def efocus_focus(file_bytes, client_data_bytes):
     output.seek(0)
 
     return output  # Return the updated file as BytesIO
+
 
 # ---------- Streamlit App Flow ----------
 st.set_page_config(page_title="eFocus Transformation", layout="wide")
