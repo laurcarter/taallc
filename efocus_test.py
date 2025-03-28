@@ -139,15 +139,19 @@ if uploaded_file and client_data_file:
 
     # Process the files with the efocus_focus function
     transformed_file = efocus_focus(file_bytes, client_data_bytes)
-
+    # Provide option to download the transformed file with the client name in the file name
     if transformed_file:
         # Store the transformed file in session state
         st.session_state.excel_bytes = transformed_file
-
+    
+        # Use the selected client's name in the file name
+        file_name = f"efocus_{selected_client}_transformed_file.xlsx"  # Client name added to the file name
+    
         # Provide option to download the transformed file
         st.download_button(
             label="Download Transformed File",
             data=st.session_state.excel_bytes,
-            file_name="efocus_transformed_file.xlsx",
+            file_name=file_name,  # Use the dynamic file name here
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+    
