@@ -5,6 +5,8 @@ from openpyxl.styles import PatternFill, Font
 import pandas as pd
 
 # ---------- eFocus Function Placeholder ----------
+import pandas as pd
+
 def efocus_focus(file_bytes, client_data_bytes):
     # Load the uploaded Excel file
     wb = load_workbook(filename=BytesIO(file_bytes))
@@ -13,8 +15,12 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Load the client data from the uploaded client_data.xlsx
     client_data = pd.read_excel(BytesIO(client_data_bytes))  # Load client data as a DataFrame
 
-    # Print the columns to inspect
+    # Debugging: Print out the column names in client_data
     print("Client Data Columns:", client_data.columns)
+
+    # Print the first few rows of the client data to inspect its contents
+    print("Client Data Preview:")
+    print(client_data.head())
 
     # Get the client names from row 1 (starting from column C onwards)
     client_names = []
@@ -26,9 +32,9 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Assume you get the client name from the 'Focus' sheet for which the transformation should apply
     for client_name in client_names:
         # Check if the client name exists in the client data
+        # Now we're going to match based on the exact column name found in the DataFrame
         if 'ClientName' in client_data.columns:
             client_row = client_data[client_data['ClientName'] == client_name]
-
             if not client_row.empty:
                 # Apply client-specific transformations using the data
                 # For example, update a specific cell in the 'Focus' sheet with client-specific info
