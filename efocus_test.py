@@ -81,7 +81,7 @@ def efocus_focus(file_bytes, client_data_bytes):
 
         # Bold all of row 1
         for cell in focus_target_ws[1]:
-        cell.font = Font(bold=True)
+            cell.font = Font(bold=True)
 
 
         # Save the modified workbook to a BytesIO object
