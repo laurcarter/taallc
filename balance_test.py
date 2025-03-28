@@ -498,7 +498,6 @@ def balance_focus_grouping(file_bytes):
     # Assuming `focus_ws` is your worksheet object
     calculate_totals(focus_ws, start_row=8, end_row=100)
     # Call the function to apply the comma format to Column F
-    apply_comma_format(focus_ws, start_row=8, end_row=100)
 
 
 
