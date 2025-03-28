@@ -5,13 +5,13 @@ from io import BytesIO
 
 # Function to implement the logic for the 'eFocus' transformation
 def efocus_focus(file_bytes, client_data_bytes):
-    # Load the uploaded Excel workbook
+    # Load the uploaded Excel workbook with the "Focus" sheet
     wb = load_workbook(filename=BytesIO(file_bytes))
     
-    # Get the Focus sheet
     if 'Focus' not in wb.sheetnames:
         st.error("Focus sheet not found in the uploaded file.")
         return None  # Exit if Focus sheet is not found
+    
     focus_ws = wb['Focus']  # Get the Focus sheet
     
     # Load the client data into a DataFrame
@@ -25,10 +25,10 @@ def efocus_focus(file_bytes, client_data_bytes):
         st.warning("No client name entered. Process aborted.")
         return None
     
-    # Search for a partial match in row 1 (client names are in row 1)
+    # Search for a partial match in row 1 (client names are in row 1, columns C onward)
     found_cell = None
-    for col in range(3, focus_ws.max_column + 1):  # Columns start from 3 (Column C)
-        cell_value = str(focus_ws.cell(row=1, column=col).value)
+    for col in range(3, client_data.shape[1] + 1):  # Client data columns start from column 3 (C)
+        cell_value = str(client_data.iloc[0, col - 1])  # Row 1 contains client names (adjusted for 0-indexing)
         if client_name.lower() in cell_value.lower():  # Case-insensitive search
             found_cell = col
             break
@@ -37,26 +37,26 @@ def efocus_focus(file_bytes, client_data_bytes):
     if found_cell is None:
         st.error(f"No client found containing '{client_name}'.")
         return None
-    
-    # Create a new sheet called "FocusTarget"
+
+    # Create a new sheet called "FocusTarget" in the Focus workbook
     ws_target = wb.create_sheet(title="FocusTarget")
 
-    # Step 1: Copy columns A and B from rows 1-275 (Focus sheet to FocusTarget)
+    # Step 1: Copy columns A and B from rows 1-275 from the Focus sheet to the FocusTarget sheet
     for row in range(1, 276):  # Rows 1 to 275
         ws_target.cell(row=row, column=1).value = focus_ws.cell(row=row, column=1).value  # Column A
         ws_target.cell(row=row, column=2).value = focus_ws.cell(row=row, column=2).value  # Column B
 
     # Step 2: Insert new column B in "FocusTarget" for client data
     client_column_data = []
-    for row in range(2, 276):  # Data starts from row 2 to 275
-        client_column_data.append(focus_ws.cell(row=row, column=found_cell).value)
+    for row in range(1, 276):  # Get data from rows 2 to 275
+        client_column_data.append(client_data.iloc[row - 1, found_cell - 1])  # Adjust for 0-indexing
 
-    # Step 3: Insert client data into the new column B
+    # Step 3: Insert client data into the new column B in FocusTarget sheet
     for row, value in enumerate(client_column_data, start=2):
         ws_target.cell(row=row, column=2).value = value
     
     # Set column B header to the full client name found
-    ws_target.cell(row=1, column=2).value = focus_ws.cell(row=1, column=found_cell).value
+    ws_target.cell(row=1, column=2).value = client_data.iloc[0, found_cell - 1]
 
     # Save the transformed workbook to a BytesIO object
     output = BytesIO()
