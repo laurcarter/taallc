@@ -9,6 +9,11 @@ from io import BytesIO
 import pandas as pd
 import streamlit as st
 
+import pandas as pd
+import streamlit as st
+from io import BytesIO
+from openpyxl import load_workbook
+
 def efocus_focus(file_bytes, client_data_bytes):
     # Load the Focus sheet from the uploaded file (file_bytes)
     wb = load_workbook(filename=BytesIO(file_bytes))
@@ -17,17 +22,24 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Load the client data from the second uploaded file (client_data_bytes)
     client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)  # Reading client data without headers
 
+    # Check the client data structure
+    st.write("Client Data Loaded", client_data.head())  # Display the first few rows of the client data for debugging
+
     # Initialize list to hold client names that are valid (skipping blank columns)
     client_names = []
 
     # Loop through columns C, E, G, ..., until column 3 + 100 columns
     for col in range(3, 203, 2):  # 3 for column C, 203 is 3 + (100*2)
-        cell_value = str(client_data.iloc[0, col - 1]).strip()  # Get client name from row 1 (adjusted for 0-indexing)
+        # Ensure column exists in the client data frame
+        if col - 1 < len(client_data.columns):
+            cell_value = str(client_data.iloc[0, col - 1]).strip()  # Get client name from row 1 (adjusted for 0-indexing)
         
-        # Only add to the list if the client name is non-empty and not just a header like 'Unnamed'
-        if cell_value and 'Unnamed' not in cell_value:
-            client_names.append(cell_value)
-
+            # Only add to the list if the client name is non-empty and not just a header like 'Unnamed'
+            if cell_value and 'Unnamed' not in cell_value:
+                client_names.append(cell_value)
+        else:
+            st.warning(f"Column {col} is out of range in the client data. Skipping this column.")
+    
     # If no valid client names were found, show a message
     if not client_names:
         st.error("No valid client names found in the client data.")
@@ -43,8 +55,6 @@ def efocus_focus(file_bytes, client_data_bytes):
     # This is where you would process further depending on your logic
     
     return client_column  # You can use this column index to fetch the data for pasting into FocusTarget
-
-
 
 
 
