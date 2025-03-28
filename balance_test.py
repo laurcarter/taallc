@@ -8,6 +8,17 @@ import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
 
+from openpyxl.styles import NamedStyle
+
+def apply_comma_format(focus_ws, start_row=8, end_row=100):
+    # Create a style with number format: comma-separated with two decimal places
+    comma_style = NamedStyle(name="comma_style", number_format="#,##0.00")
+
+    # Apply the style to Column F for the range of rows
+    for row in range(start_row, end_row + 1):
+        focus_ws.cell(row=row, column=6).style = comma_style
+
+
 def calculate_totals(focus_ws, start_row=8, end_row=100):
     # Step 1: Initialize variables for totals
     total_assets = 0
@@ -491,6 +502,9 @@ def balance_focus_grouping(file_bytes):
 
     # Assuming `focus_ws` is your worksheet object
     calculate_totals(focus_ws, start_row=8, end_row=100)
+    # Call the function to apply the comma format to Column F
+    apply_comma_format(focus_ws, start_row=8, end_row=100)
+
 
 
     # Save the modified workbook to a BytesIO object
