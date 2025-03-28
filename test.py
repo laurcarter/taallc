@@ -9,6 +9,24 @@ from collapse import collapse_sheet
 # ---------- Utility Functions ----------
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
 
+def check_and_prompt_for_net_income(focus_ws):
+    # Loop through the sheet to find "Net Income" in column C
+    for row in range(8, focus_ws.max_row + 1):  # Starting from row 8
+        c_value = str(focus_ws.cell(row=row, column=3).value).strip()
+        
+        if "Net Income" in c_value and "(" not in c_value:  # If "Net Income" is found and no parentheses
+            # Ask the user to provide the correct Focus box number via a text box
+            net_income_input = st.text_input("Net Income is not coded. Please enter the correct Focus box number:")
+            
+            # Check if the user input is valid
+            if net_income_input:
+                # Add parentheses and update the "Net Income" cell
+                focus_ws.cell(row=row, column=3).value = f"Net Income ({net_income_input})"
+                st.success(f"Net Income has been updated with Focus box number: {net_income_input}")
+                return True  # Indicating we updated the cell
+
+    return False  # If no update was made (either not found or already coded)
+
 
 # Function to highlight flagged totals
 def highlight_and_flag_totals(file_bytes):
@@ -220,41 +238,48 @@ elif st.session_state.step == 4:
 # Step 5: Choose Transformation Type
 elif st.session_state.step == 5:
     # **Silent Collapse Check**
-    # Get the file to check for empty cells in column A (rows 5-10)
     file_bytes = st.session_state.excel_bytes  # The current file in session state
 
-    # No need to wrap file_bytes in BytesIO here since it's handled in collapse.py
-    wb = load_workbook(file_bytes)  # Directly pass the file_bytes as a valid file-like object
+    # Load the workbook
+    wb = load_workbook(file_bytes)  # Pass file_bytes as a valid file-like object
     sheet = wb.active
+
+    # Check for empty cells in column A (rows 5-10) and collapse if necessary
     empty_cell_count = 0
     total_cells_to_check = 6  # Checking rows 5 to 10 (6 rows total)
-
-    # Check if all cells in column A (rows 5-10) are empty
     for row in range(5, 11):  # Rows 5 to 10 in column A
         cell = sheet.cell(row=row, column=1)
         if cell.value is None or str(cell.value).strip() == "":
             empty_cell_count += 1
-
-    # If all the cells between rows 5-10 in column A are empty, collapse the file
     if empty_cell_count == total_cells_to_check:
-        collapsed_file = collapse_sheet(file_bytes)  # Call the collapse function
+        collapsed_file = collapse_sheet(file_bytes)
         if isinstance(collapsed_file, BytesIO):  # Ensure it returns BytesIO
-            st.session_state.excel_bytes = collapsed_file  # Update the session state with the collapsed file
+            st.session_state.excel_bytes = collapsed_file
         else:
-            st.error("Error: Collapse function did not return a valid file.")  # Handle errors
-
-    st.title("🔧 What type of filing is this?")  # Title for Step 5
-    st.write("Select the type of filing for this document.")  # Description for Step 5
+            st.error("Error: Collapse function did not return a valid file.")
+            
+    st.title("🔧 What type of filing is this?")
+    st.write("Select the type of filing for this document.")
 
     choice = st.radio("Select your filing type:", ["Profit & Loss (P&L)", "Balance Sheet"], index=0)
 
     if st.button("Run Transformation"):
-        # Proceed with the transformation depending on the user's selection
         if choice == "Profit & Loss (P&L)":
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
         
         elif choice == "Balance Sheet":
-           st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
+            # Before transforming balance sheet, check and possibly update "Net Income"
+            wb = load_workbook(st.session_state.excel_bytes)
+            focus_ws = wb.active  # Assuming the relevant sheet is active; adjust if necessary
+            
+            # Check and update the "Net Income" if necessary
+            net_income_updated = check_and_prompt_for_net_income(focus_ws)
+            
+            if net_income_updated:
+                st.session_state.excel_bytes = balance_focus_grouping(st.session_state.excel_bytes)
+            else:
+                st.session_state.excel_bytes = balance_focus_grouping(st.session_state.excel_bytes)
+
         st.session_state.step = 6  # Move to the final step for download
 
 
