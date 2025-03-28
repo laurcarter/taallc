@@ -48,7 +48,7 @@ def efocus_focus(file_bytes, client_data_bytes):
     # If no valid client names were found, show a message and exit
     if not client_names:
         st.error("No valid client names found in the client data.")
-        return None
+        return None, None  # Return None for both if no client names are found
 
     # Display the valid client names as clickable buttons in columns
     selected_client = None
@@ -116,11 +116,13 @@ def efocus_focus(file_bytes, client_data_bytes):
         output = BytesIO()
         wb.save(output)
         output.seek(0)  # Move the cursor to the beginning of the BytesIO object
-        return output  # Return the updated file as bytes
+
+        # Return both the transformed file and selected client
+        return output, selected_client
 
     # If no client has been selected yet, inform the user
     st.info("Please select a client name to proceed.")
-    return None
+    return None, None  # Return None if no client is selected
 
 
 # Streamlit UI for the file upload and processing
@@ -137,9 +139,9 @@ if uploaded_file and client_data_file:
     file_bytes = uploaded_file.read()
     client_data_bytes = client_data_file.read()
 
-    # Process the files with the efocus_focus function
-    transformed_file = efocus_focus(file_bytes, client_data_bytes)
-    # Provide option to download the transformed file with the client name in the file name
+    # Process the files with the efocus_focus function and capture selected client
+    transformed_file, selected_client = efocus_focus(file_bytes, client_data_bytes)
+
     if transformed_file:
         # Store the transformed file in session state
         st.session_state.excel_bytes = transformed_file
@@ -154,4 +156,3 @@ if uploaded_file and client_data_file:
             file_name=file_name,  # Use the dynamic file name here
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-    
