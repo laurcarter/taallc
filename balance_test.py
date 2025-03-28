@@ -321,7 +321,7 @@ def balance_focus_grouping(file_bytes):
 
 
     #subtotals
-    #apply_subtotals_for_sheet(focus_ws, max_row)
+    apply_subtotals_for_sheet(focus_ws, max_row)
     
     
     #create_summary(focus_ws, max_row)
