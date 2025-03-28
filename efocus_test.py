@@ -76,6 +76,14 @@ def efocus_focus(file_bytes, client_data_bytes):
         focus_target_ws.cell(row=4, column=5).font = Font(bold=True)  # Make cell in column E bold
         focus_target_ws.cell(row=4, column=7).font = Font(bold=True)  # Make cell in column G bold
 
+        # Add "Item Value" in row 1, column B
+        focus_target_ws.cell(row=1, column=2, value="Item Value")
+
+        # Bold all of row 1
+        for cell in focus_target_ws[1]:
+        cell.font = Font(bold=True)
+
+
         # Save the modified workbook to a BytesIO object
         output = BytesIO()
         wb.save(output)
