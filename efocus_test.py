@@ -67,8 +67,8 @@ def efocus_focus(file_bytes, client_data_bytes):
         for i, value in enumerate(client_column_b, start=1):
             focus_target_ws.cell(row=i, column=3, value=value)
 
-        # Now, copy the cell from Row 1, Column B in the client data into Row 4, Column E in FocusTarget
-        client_data_b1 = client_data.iloc[0, 1]  # Cell in Row 1, Column B from client data
+        # Now, copy the cell from Row 1, Column B into Row 4, Column E in FocusTarget
+        client_data_b1 = focus_target_ws.cell(row=1, column=2).value  # Get the value from Row 1, Column B of FocusTarget
         focus_target_ws.cell(row=4, column=5, value=client_data_b1)  # Paste it into Row 4, Column E of FocusTarget
 
         # Insert "FOCUS" into row 4, column G in all caps and make it bold
