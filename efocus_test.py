@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
 from io import BytesIO
+import streamlit as st
+import pandas as pd
+from openpyxl import load_workbook
+from io import BytesIO
 
 # Function to implement the logic for the 'eFocus' transformation
 def efocus_focus(file_bytes, client_data_bytes):
@@ -24,25 +28,32 @@ def efocus_focus(file_bytes, client_data_bytes):
     # Debugging: Check the structure of client data
     st.write("Client Data Columns:", client_data.columns)
 
-    # Ask for client name input (this is the same as the InputBox in the macro)
-    client_name = st.text_input("Enter full or partial client name:", "")
+    # Extract all non-blank client names from row 1 (column 1 onwards)
+    client_names = []
+    for col in range(2, len(client_data.columns)):  # Start from column 2 (index 1) to skip first column
+        cell_value = str(client_data.iloc[0, col])  # Check first row, all columns
+        if cell_value.strip():  # Only add non-blank values
+            client_names.append(cell_value)
 
-    # Validate input (ensure the client name is provided)
+    # Display the client names as radio buttons (bubbles)
+    client_name = st.radio("Select a client from the list:", client_names)
+
+    # Validate input (ensure the client name is selected)
     if not client_name:
-        st.warning("No client name entered. Process aborted.")
+        st.warning("No client selected. Process aborted.")
         return None
     
-    # Check if client names are in row 1, from columns C onward
+    # Find the column index of the selected client
     found_cell = None
-    for col in range(2, len(client_data.columns)):  # Starting from column 2 (index 1) to skip first column
+    for col in range(2, len(client_data.columns)):  # Starting from column 2 (index 1)
         cell_value = str(client_data.iloc[0, col])  # Check first row, all columns
-        if client_name.lower() in cell_value.lower():  # Case-insensitive search
+        if client_name.lower() == cell_value.lower():  # Case-insensitive match
             found_cell = col
             break
 
     # If client name is not found, exit
     if found_cell is None:
-        st.error(f"No client found containing '{client_name}'.")
+        st.error(f"No client found matching '{client_name}'.")
         return None
 
     # Create a new sheet called "FocusTarget" in the Focus workbook
@@ -63,7 +74,7 @@ def efocus_focus(file_bytes, client_data_bytes):
         ws_target.cell(row=row, column=2).value = value
     
     # Set column B header to the full client name found
-    ws_target.cell(row=1, column=2).value = client_data.iloc[0, found_cell]
+    ws_target.cell(row=1, column=2).value = client_name
 
     # Save the transformed workbook to a BytesIO object
     output = BytesIO()
@@ -76,6 +87,7 @@ def efocus_focus(file_bytes, client_data_bytes):
     
     # Return the transformed file as BytesIO
     return output
+
 
 
 # Streamlit UI for the file upload and processing
