@@ -276,9 +276,9 @@ elif st.session_state.step == 5:
             net_income_updated = check_and_prompt_for_net_income(focus_ws)
             
             if net_income_updated:
-                st.session_state.excel_bytes = balance_focus_grouping(st.session_state.excel_bytes)
+                st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
             else:
-                st.session_state.excel_bytes = balance_focus_grouping(st.session_state.excel_bytes)
+                st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
         st.session_state.step = 6  # Move to the final step for download
 
