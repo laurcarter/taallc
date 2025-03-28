@@ -11,12 +11,11 @@ from openpyxl.styles import NamedStyle
 
 
 def apply_comma_format_no_decimal(focus_ws, start_row=8, end_row=100):
-    # Create a style with number format for comma separation (no decimals)
-    comma_style = NamedStyle(name="comma_style", number_format="#,##0")
-
-    # Apply the style to each cell in Column F (from start_row to end_row)
+    # Apply the number format for comma separation (no decimals) without removing other styles
     for row in range(start_row, end_row + 1):
-        focus_ws.cell(row=row, column=6).style = comma_style  # Column F is column 6
+        cell = focus_ws.cell(row=row, column=6)  # Column F
+        # Set the number format to comma-separated with no decimals
+        cell.number_format = "#,##0"
 
 
 def calculate_totals(focus_ws, start_row=8, end_row=100):
