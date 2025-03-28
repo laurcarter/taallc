@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 from io import BytesIO
 from openpyxl import load_workbook
+from openpyxl.styles import PatternFill, Font
 
 def efocus_focus(file_bytes, client_data_bytes):
     # Load the Focus sheet from the uploaded file (file_bytes)
@@ -60,6 +61,20 @@ def efocus_focus(file_bytes, client_data_bytes):
 
         # Set header for the new column B
         focus_target_ws.cell(row=1, column=2, value=selected_client)
+
+        # Paste column B from client data into "FocusTarget" column C
+        client_column_b = client_data.iloc[:, 1]  # Column B
+        for i, value in enumerate(client_column_b, start=1):
+            focus_target_ws.cell(row=i, column=3, value=value)
+
+        # Copy the cell in Row 1, Column B (client_data) into Row 4, Column E of FocusTarget
+        client_data_b1 = client_data.iloc[0, 1]  # Cell in Row 1, Column B
+        focus_target_ws.cell(row=4, column=5, value=client_data_b1)  # Paste it into Row 4, Column E
+
+        # In the same row (row 4), column G, put "FOCUS" in all caps and make it bold
+        focus_target_ws.cell(row=4, column=7, value="FOCUS")  # Insert "FOCUS" into column G
+        focus_target_ws.cell(row=4, column=5).font = Font(bold=True)  # Make cell in column E bold
+        focus_target_ws.cell(row=4, column=7).font = Font(bold=True)  # Make cell in column G bold
 
         # Save the modified workbook to a BytesIO object
         output = BytesIO()
