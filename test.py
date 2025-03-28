@@ -67,6 +67,12 @@ def perform_pnl_transformation(file_bytes):
     from pnl_macro_translation import run_full_pl_macro
     return run_full_pl_macro(file_bytes)
 
+
+# Function to perform Balance transformation
+def perform_balance_transformation(file_bytes):
+    from balance import balance_focus_grouping 
+    return balance_focus_grouping(file_bytes)
+
 # ---------- Streamlit App Flow ----------
 st.set_page_config(page_title="Personal Information Collection", layout="wide")
 
@@ -248,18 +254,7 @@ elif st.session_state.step == 5:
             st.session_state.excel_bytes = perform_pnl_transformation(st.session_state.excel_bytes)
         
         elif choice == "Balance Sheet":
-            # Call the balance transformation function from balance.py
-            wb = load_workbook(st.session_state.excel_bytes)
-            focus_ws = wb.active  # Assuming the relevant sheet is active; adjust if necessary
-            total_assets, total_liabilities, total_equity = calculate_totals(focus_ws, start_row=8, end_row=100)
-            calculate_and_insert_totals(focus_ws, total_assets, total_liabilities, total_equity, start_row=8, end_row=100)
-
-            # Save the transformed file and store it back in session state
-            output = BytesIO()
-            wb.save(output)
-            output.seek(0)
-            st.session_state.excel_bytes = output  # Update the session state with the transformed file
-
+           st.session_state.excel_bytes = perform_balance_transformatio(st.session_state.excel_bytes)
         st.session_state.step = 6  # Move to the final step for download
 
 
