@@ -8,16 +8,16 @@ import streamlit as st
 from openpyxl import load_workbook
 from io import BytesIO
 
-
 def delete_blank_rows(focus_ws, start_row=8, end_row=100):
     # Iterate through rows from the bottom to the top to avoid skipping rows when deleting
     for row in range(end_row, start_row - 1, -1):
-        # Get the value in Column C (Column 3)
+        # Get the value in Column C (Column 3) and strip any leading/trailing whitespace
         cell_value = focus_ws.cell(row=row, column=3).value
         
-        # If Column C is empty (None or an empty string), delete the row
-        if cell_value is None or cell_value == "":
+        # Strip spaces and check if the cell is empty
+        if cell_value is None or str(cell_value).strip() == "":
             focus_ws.delete_rows(row)
+
 
 
 
