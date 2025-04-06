@@ -332,7 +332,7 @@ elif st.session_state.step == 6:
 
 
 # Step 7: eFocus Creation (Upload Client Data and Select Client)
-if st.session_state.step == 7:
+elif st.session_state.step == 7:
     st.title("📂 eFocus Creation")  # Title for Step 7
     st.write("Upload the Client Data file and select the client.")  # Description for Step 7
 
