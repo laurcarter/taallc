@@ -28,7 +28,6 @@ def match_and_copy_values(focus_ws, focus_target_ws):
 
 def efocus_focus(file_bytes, client_data_bytes):
     # Wrap both file bytes into BytesIO objects if they're not already
-    file_bytes_io = BytesIO(file_bytes)  # Wrap Focus file as BytesIO
     client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file as BytesIO
     
     # Load the Focus sheet from the uploaded file (file_bytes)
