@@ -195,7 +195,7 @@ elif st.session_state.step == 3:
 
 
 # Step 4: Show flagged cells for review and clean if needed
-elif st.session_state.step == 4:
+if st.session_state.step == 4:
     st.title("🔍 Review Flagged Cells")  # Title for Step 4
     st.write("Review and clean any flagged cells, or leave them as-is.")  # Description for Step 4
 
@@ -224,6 +224,7 @@ elif st.session_state.step == 4:
 
                 # Proceed to Step 5 after cleaning
                 st.session_state.step = 5  
+                st.experimental_rerun()  # Rerun to transition to Step 5
 
         # Button for leaving the flagged totals as-is (just keep them highlighted)
         with col2:
@@ -237,13 +238,14 @@ elif st.session_state.step == 4:
 
                 # Proceed to Step 5 without cleaning
                 st.session_state.step = 5  
-
+                st.experimental_rerun()  # Rerun to transition to Step 5
     else:
         # If no flagged cells, display a message
         st.info("No problematic 'Total' cells found. Skipping ahead.")
         if st.button("Continue"):
             # Proceed to Step 5 if no flagged cells
             st.session_state.step = 5  # Skip to Step 5 if no flagged cells
+            st.experimental_rerun()  # Rerun to transition to Step 5
 
 
 
@@ -311,9 +313,7 @@ if st.session_state.step == 5:
 
 
 
-
 from efocus import efocus_focus  # Import the efocus logic
-
 
 # Step 6: Final Processed File Download
 if st.session_state.step == 6:
@@ -338,6 +338,7 @@ if st.session_state.step == 6:
         # Reset session state to start from Step 1
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
+
 
 # Step 7: eFocus Creation (Upload Client Data and Select Client)
 if st.session_state.step == 7:
