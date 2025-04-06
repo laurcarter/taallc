@@ -316,7 +316,6 @@ elif st.session_state.step == 5:
 
 from efocus import efocus_focus  # Import the efocus logic
 
-from efocus import efocus_focus  # Import the efocus logic
 
 # Step 6: Final Processed File Download
 if st.session_state.step == 6:
@@ -334,11 +333,12 @@ if st.session_state.step == 6:
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
 
-    # New step to continue to eFocus creation
+    # New step to continue to eFocus creation (move to Step 7)
     if st.button("Continue to eFocus creation"):
         # Move to Step 7 (a new page)
         st.session_state.step = 7
         st.experimental_rerun()  # Re-run the app to display Step 7
+
 
 
 # Step 7: eFocus Creation (Upload Client Data and Select Client)
