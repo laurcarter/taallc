@@ -315,7 +315,11 @@ elif st.session_state.step == 5:
 
 
             
-# Step 6: Download Final Processed File
+from efocus import efocus_focus  # Import the efocus logic
+#Step 6
+# Add a new step for continuing to eFocus creation
+
+# After the final processed file download, add an option to continue to eFocus creation
 elif st.session_state.step == 6:
     st.title("✅ Final Step: Download Processed File")  # Title for Step 6
     st.write("Download the final processed file.")  # Description for Step 6
@@ -329,4 +333,29 @@ elif st.session_state.step == 6:
     if st.button("Start Over"):
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
+    
+    # New step to continue to eFocus creation
+    if st.button("Continue to eFocus creation"):
+        # The file for eFocus is the one already processed, so we retrieve it from session state
+        file_bytes = st.session_state.excel_bytes
+        client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])  # Get client data file
 
+        if client_data_file:
+            client_data_bytes = client_data_file.read()
+            # Call the efocus_focus function with the processed file and client data
+            transformed_file, selected_client = efocus_focus(file_bytes, client_data_bytes)
+
+            if transformed_file:
+                # Store the transformed file in session state
+                st.session_state.excel_bytes = transformed_file
+
+                # Use the selected client's name in the file name
+                file_name = f"efocus_{selected_client}.xlsx"
+                
+                # Provide option to download the transformed file
+                st.download_button(
+                    label="Download Transformed File",
+                    data=st.session_state.excel_bytes,
+                    file_name=file_name,  # Use the dynamic file name here
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
