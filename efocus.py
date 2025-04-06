@@ -123,35 +123,3 @@ def efocus_focus(file_bytes, client_data_bytes):
     st.info("Please select a client name to proceed.")
     return None, None  # Return None if no client is selected
 
-
-# Streamlit UI for the file upload and processing
-st.set_page_config(page_title="eFocus Transformation", layout="wide")
-
-st.title("📂 Upload Your Excel File for eFocus Transformation")
-
-# File uploader for the main Excel file and the client data
-uploaded_file = st.file_uploader("Upload the Focus Excel file", type=["xlsx"])
-client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
-
-if uploaded_file and client_data_file:
-    # Read the files as bytes
-    file_bytes = uploaded_file.read()
-    client_data_bytes = client_data_file.read()
-
-    # Process the files with the efocus_focus function and capture selected client
-    transformed_file, selected_client = efocus_focus(file_bytes, client_data_bytes)
-
-    if transformed_file:
-        # Store the transformed file in session state
-        st.session_state.excel_bytes = transformed_file
-    
-        # Use the selected client's name in the file name
-        file_name = f"efocus_{selected_client}.xlsx"  # Client name added to the file name
-    
-        # Provide option to download the transformed file
-        st.download_button(
-            label="Download Transformed File",
-            data=st.session_state.excel_bytes,
-            file_name=file_name,  # Use the dynamic file name here
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
