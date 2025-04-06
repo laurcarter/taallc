@@ -352,6 +352,9 @@ elif st.session_state.step == 7:
             # Store the transformed file in session state
             st.session_state.excel_bytes = transformed_file
         
+            # Reset the BytesIO object to the beginning before download
+            st.session_state.excel_bytes.seek(0)
+        
             # Use the selected client's name in the file name
             file_name = f"efocus_{selected_client}.xlsx"  # Client name added to the file name
         
