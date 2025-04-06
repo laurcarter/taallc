@@ -349,7 +349,7 @@ elif st.session_state.step == 7:
                 client_data_bytes = client_data_file.read()
 
                 # Ensure client_data_bytes is wrapped in BytesIO (only if it isn't already a BytesIO object)
-                client_data_bytes_io = BytesIO(client_data_bytes)
+                client_data_bytes_io = client_data_bytes
 
                 # Load the client data from the second uploaded file (client_data_bytes wrapped in BytesIO)
                 client_data = pd.read_excel(client_data_bytes_io, header=None)
