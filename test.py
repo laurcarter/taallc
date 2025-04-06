@@ -315,20 +315,24 @@ elif st.session_state.step == 6:
     st.title("✅ Final Step: Download Processed File")  # Title for Step 6
     st.write("Download the final processed file.")  # Description for Step 6
 
+    # Provide download button for the processed file
     st.download_button(
         label="Download Final Excel",
         data=st.session_state.excel_bytes,
         file_name="final_filing.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+    # Button to start over and reset session state
     if st.button("Start Over"):
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
 
-    # New step to continue to eFocus creation
+    # Button to continue to eFocus creation (Step 7)
     if st.button("Continue to eFocus creation"):
         # Move to Step 7
         st.session_state.step = 7
+
 
 
 # Step 7: eFocus Creation (Upload Client Data and Select Client)
