@@ -395,11 +395,10 @@ elif st.session_state.step == 7:
                     else:
                         st.error("No valid client names found in the client data.")
 
+            else:
+                st.info("Please upload the Client Data file to proceed.")  # This 'else' is inside the correct context now
+
         except Exception as e:
             # Catch any errors while processing the file and display the error message
             st.error(f"Error reading the Excel file: {e}")
-    else:
-        st.info("Please upload the Client Data file to proceed.")
-
-
 
