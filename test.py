@@ -331,6 +331,7 @@ elif st.session_state.step == 6:
 
 # Step 7: eFocus Creation (Use the file from Step 6)
 elif st.session_state.step == 7:
+    file_bytes = st.session_state.excel_bytes  # The current file in session state
     st.title("📂 eFocus Creation")  # Title for Step 7
     st.write("Continue to create eFocus using the uploaded Focus file and select the client.")  # Description for Step 7
 
@@ -338,12 +339,10 @@ elif st.session_state.step == 7:
  
     
     # File uploader for the main Excel file and the client data
-    uploaded_file = st.session_state.excel_bytes
     client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
     
     if uploaded_file and client_data_file:
         # Read the files as bytes
-        file_bytes = uploaded_file.read()
         client_data_bytes = client_data_file.read()
     
         # Process the files with the efocus_focus function and capture selected client
