@@ -334,7 +334,7 @@ elif st.session_state.step == 7:
     st.title("📂 eFocus Creation")  # Title for Step 7
     st.write("Continue to create eFocus using the uploaded Focus file and select the client.")  # Description for Step 7
 
-    # Check if the Excel file exists in session state
+    # Check if the Focus Excel file exists in session state (from Step 6)
     if "excel_bytes" not in st.session_state:
         st.error("No Focus file found. Please go back to Step 6 to process the file first.")
     else:
@@ -346,18 +346,16 @@ elif st.session_state.step == 7:
             client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
 
             if client_data_file:
-                # Read the client data file as bytes
                 client_data_bytes = client_data_file.read()
 
-                # Wrap both the Focus and client data in BytesIO
-                file_bytes_io = BytesIO(file_bytes)  # Wrap Focus file
-                client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file in BytesIO
+                # Ensure client_data_bytes is wrapped in BytesIO
+                client_data_bytes_io = BytesIO(client_data_bytes)
 
                 # Check if the byte stream is empty
                 if not client_data_bytes:
                     st.error("The uploaded client data file is empty. Please upload a valid file.")
                 else:
-                    # Now load the client data using the wrapped client_data_bytes_io
+                    # Load the client data from the second uploaded file (client_data_bytes wrapped in BytesIO)
                     client_data = pd.read_excel(client_data_bytes_io, header=None)
 
                     # Initialize a list to hold valid client names
@@ -383,7 +381,7 @@ elif st.session_state.step == 7:
                             st.write(f"You selected: {selected_client}")
 
                             # Call the efocus_focus function to process the Focus file and client data
-                            transformed_file, _ = efocus_focus(file_bytes_io, client_data_bytes_io)
+                            transformed_file, _ = efocus_focus(file_bytes, client_data_bytes)
 
                             if transformed_file:
                                 # Store the transformed file in session state
