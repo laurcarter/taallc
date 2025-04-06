@@ -338,7 +338,7 @@ elif st.session_state.step == 7:
  
     
     # File uploader for the main Excel file and the client data
-    uploaded_file = st.file_uploader("Upload the Focus Excel file", type=["xlsx"])
+    uploaded_file = st.session_state.excel_bytes
     client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
     
     if uploaded_file and client_data_file:
