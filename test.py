@@ -339,7 +339,7 @@ elif st.session_state.step == 7:
         st.error("No Focus file found. Please go back to Step 6 to process the file first.")
     else:
         try:
-            # Use the already uploaded file from Step 6 (stored in session state)
+            # Use the already uploaded Focus file from Step 6 (stored in session state)
             file_bytes = st.session_state.excel_bytes
 
             # File uploader for the Client Data file
@@ -380,8 +380,12 @@ elif st.session_state.step == 7:
                         if selected_client:
                             st.write(f"You selected: {selected_client}")
 
+                            # Now ensure that both files are passed into efocus_focus correctly (as BytesIO)
+                            file_bytes_io = BytesIO(file_bytes)  # Wrap Focus file as BytesIO
+                            client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file as BytesIO
+
                             # Call the efocus_focus function to process the Focus file and client data
-                            transformed_file, _ = efocus_focus(file_bytes, client_data_bytes)
+                            transformed_file, _ = efocus_focus(file_bytes_io, client_data_bytes_io)
 
                             if transformed_file:
                                 # Store the transformed file in session state
@@ -406,6 +410,5 @@ elif st.session_state.step == 7:
         except Exception as e:
             # Catch any errors while processing the file and display the error message
             st.error(f"Error reading the Excel file: {e}")
-
 
 
