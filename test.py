@@ -4,7 +4,7 @@ from openpyxl import load_workbook, Workbook
 from openpyxl.styles import PatternFill, Font
 import re
 from collapse import collapse_sheet
-
+from efocus import efocus_focus  # Import the efocus logic
 
 # ---------- Utility Functions ----------
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
@@ -300,15 +300,7 @@ elif st.session_state.step == 5:
         elif choice == "Balance Sheet":
             # Run balance transformation only after Net Income update (if applicable)
             st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
-    st.session_state.step = 6
-
-
-
-
-
-
-
-from efocus import efocus_focus  # Import the efocus logic
+        st.session_state.step = 6
 
 # Step 6: Final Processed File Download
 elif st.session_state.step == 6:
