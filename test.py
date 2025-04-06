@@ -329,17 +329,17 @@ if st.session_state.step == 6:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
+    # When the "Continue to eFocus creation" button is clicked, it moves to Step 7
+    if st.button("Continue to eFocus creation"):
+        # Move to Step 7 (which is the eFocus creation step)
+        st.session_state.step = 7
+        st.experimental_rerun()  # Re-run the app to transition to Step 7 (new page)
+
+    # Button for "Start Over"
     if st.button("Start Over"):
+        # Reset session state to start from Step 1
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
-
-    # New step to continue to eFocus creation (move to Step 7)
-    if st.button("Continue to eFocus creation"):
-        # Move to Step 7 (a new page)
-        st.session_state.step = 7
-        st.experimental_rerun()  # Re-run the app to display Step 7
-
-
 
 # Step 7: eFocus Creation (Upload Client Data and Select Client)
 if st.session_state.step == 7:
@@ -399,5 +399,6 @@ if st.session_state.step == 7:
             st.error("No valid client names found in the client data.")
     else:
         st.info("Please upload the Client Data file to proceed.")
+
 
 
