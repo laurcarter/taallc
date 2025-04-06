@@ -334,7 +334,7 @@ elif st.session_state.step == 7:
     st.title("📂 eFocus Creation")  # Title for Step 7
     st.write("Continue to create eFocus using the uploaded Focus file and select the client.")  # Description for Step 7
 
-    # Check if the Excel file exists in session state
+    # Check if the Excel file exists in session state (from Step 6)
     if "excel_bytes" not in st.session_state:
         st.error("No Focus file found. Please go back to Step 6 to process the file first.")
     else:
@@ -342,7 +342,7 @@ elif st.session_state.step == 7:
             # Use the already uploaded file from Step 6 (stored in session state)
             file_bytes = st.session_state.excel_bytes
 
-            # Read the client data file
+            # Remove the file uploader for the client data file, we’ll assume it's passed in correctly
             client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
 
             if client_data_file:
