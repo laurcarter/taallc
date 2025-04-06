@@ -356,7 +356,6 @@ elif st.session_state.step == 7:
                     if cell_value and 'Unnamed' not in cell_value:
                         client_names.append(cell_value)
 
-                # If valid client names are found, display buttons to select a client
                 if client_names:
                     selected_client = None
                     columns = st.columns(4)  # Create 4 columns to stack the buttons
@@ -367,34 +366,29 @@ elif st.session_state.step == 7:
                         if columns[col_idx].button(client):
                             selected_client = client  # Store the selected client name when the button is clicked
 
-                    # If a client is selected, process further
                     if selected_client:
                         st.write(f"You selected: {selected_client}")
 
-                        # Ensure the Focus file is in session state
-                        if 'excel_bytes' not in st.session_state:
-                            st.error("The Focus file is missing. Please go back and upload it.")
-                        else:
-                            # Retrieve the previously uploaded Focus file from session state
-                            file_bytes = st.session_state.excel_bytes
+                        # Retrieve the previously uploaded Focus file from session state
+                        file_bytes = st.session_state.excel_bytes
 
-                            # Call the efocus_focus function to process the Focus file and client data
-                            transformed_file, _ = efocus_focus(file_bytes, client_data_bytes)
+                        # Call the efocus_focus function to process the Focus file and client data
+                        transformed_file, _ = efocus_focus(file_bytes, client_data_bytes)
 
-                            if transformed_file:
-                                # Store the transformed file in session state
-                                st.session_state.excel_bytes = transformed_file
+                        if transformed_file:
+                            # Store the transformed file in session state
+                            st.session_state.excel_bytes = transformed_file
 
-                                # Use the selected client's name in the file name
-                                file_name = f"efocus_{selected_client}.xlsx"  # Client name added to the file name
+                            # Use the selected client's name in the file name
+                            file_name = f"efocus_{selected_client}.xlsx"  # Client name added to the file name
 
-                                # Provide option to download the transformed file
-                                st.download_button(
-                                    label="Download Transformed File",
-                                    data=st.session_state.excel_bytes,
-                                    file_name=file_name,  # Use the dynamic file name here
-                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                )
+                            # Provide option to download the transformed file
+                            st.download_button(
+                                label="Download Transformed File",
+                                data=st.session_state.excel_bytes,
+                                file_name=file_name,  # Use the dynamic file name here
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            )
                 else:
                     st.error("No valid client names found in the client data.")
 
@@ -403,6 +397,7 @@ elif st.session_state.step == 7:
             st.error(f"Error reading the Excel file: {e}")
     else:
         st.info("Please upload the Client Data file to proceed.")
+
 
 
 
