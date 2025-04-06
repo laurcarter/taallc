@@ -24,12 +24,16 @@ def match_and_copy_values(focus_ws, focus_target_ws):
                     break  # Exit loop once a match is found
 
 def efocus_focus(file_bytes, client_data_bytes):
+    # Wrap both files in BytesIO if they aren't already wrapped
+    file_bytes_io = BytesIO(file_bytes)  # Focus file
+    client_data_bytes_io = BytesIO(client_data_bytes)  # Client data file
+    
     # Load the Focus sheet from the uploaded file (file_bytes)
-    wb = load_workbook(filename=BytesIO(file_bytes))
+    wb = load_workbook(filename=file_bytes_io)
     focus_ws = wb['Focus']  # Assuming the Focus sheet is already available
 
     # Load the client data from the second uploaded file (client_data_bytes)
-    client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)  # Reading client data without headers
+    client_data = pd.read_excel(client_data_bytes_io, header=None)  # Reading client data without headers
 
     client_names = []
     for col in range(2, client_data.shape[1], 2):
@@ -70,4 +74,3 @@ def efocus_focus(file_bytes, client_data_bytes):
     output.seek(0)
 
     return output, selected_client
-
