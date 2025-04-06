@@ -312,7 +312,7 @@ elif st.session_state.step == 5:
 from efocus import efocus_focus  # Import the efocus logic
 
 # Step 6: Final Processed File Download
-if st.session_state.step == 6:
+elif st.session_state.step == 6:
     st.title("✅ Final Step: Download Processed File")  # Title for Step 6
     st.write("Download the final processed file.")  # Description for Step 6
 
