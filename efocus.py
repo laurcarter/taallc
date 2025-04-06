@@ -24,7 +24,7 @@ def match_and_copy_values(focus_ws, focus_target_ws):
                     break  # Exit loop once a match is found
 
 def efocus_focus(file_bytes, client_data_bytes):
-    # Wrap both files in BytesIO if they aren't already wrapped
+    # Ensure both files are wrapped in BytesIO if they aren't already wrapped
     file_bytes_io = BytesIO(file_bytes)  # Focus file
     client_data_bytes_io = BytesIO(client_data_bytes)  # Client data file
     
