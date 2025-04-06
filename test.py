@@ -5,6 +5,8 @@ from openpyxl.styles import PatternFill, Font
 import re
 from collapse import collapse_sheet
 from efocus import efocus_focus  # Import the efocus logic
+import pandas as pd
+
 
 # ---------- Utility Functions ----------
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
