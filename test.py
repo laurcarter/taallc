@@ -195,7 +195,7 @@ elif st.session_state.step == 3:
 
 
 # Step 4: Show flagged cells for review and clean if needed
-if st.session_state.step == 4:
+elif st.session_state.step == 4:
     st.title("🔍 Review Flagged Cells")  # Title for Step 4
     st.write("Review and clean any flagged cells, or leave them as-is.")  # Description for Step 4
 
@@ -206,7 +206,7 @@ if st.session_state.step == 4:
     if st.session_state.flagged_cells:
         # Display all the flagged cells with their coordinates
         for sheet, coord, val in st.session_state.flagged_cells:
-            st.write(f"- **{sheet}**!{coord} → `{val}`")
+            st.write(f"- **{sheet}**!{coord} → {val}")
 
         col1, col2 = st.columns(2)
 
@@ -223,8 +223,7 @@ if st.session_state.step == 4:
                 st.session_state.excel_bytes = cleaned_file  # Store the cleaned file in session state
 
                 # Proceed to Step 5 after cleaning
-                st.session_state.step = 5  
-                st.experimental_rerun()  # Rerun to transition to Step 5
+                st.session_state.step = 5  # Move to Step 5 (next step)
 
         # Button for leaving the flagged totals as-is (just keep them highlighted)
         with col2:
@@ -237,22 +236,19 @@ if st.session_state.step == 4:
                 st.session_state.excel_bytes = highlighted_file  # Store the highlighted file in session state
 
                 # Proceed to Step 5 without cleaning
-                st.session_state.step = 5  
-                st.experimental_rerun()  # Rerun to transition to Step 5
+                st.session_state.step = 5  # Move to Step 5 (next step)
+
     else:
         # If no flagged cells, display a message
         st.info("No problematic 'Total' cells found. Skipping ahead.")
         if st.button("Continue"):
             # Proceed to Step 5 if no flagged cells
             st.session_state.step = 5  # Skip to Step 5 if no flagged cells
-            st.experimental_rerun()  # Rerun to transition to Step 5
-
-
 
 
 
 # Step 5: Choose Transformation Type
-if st.session_state.step == 5:
+elif st.session_state.step == 5:
     file_bytes = st.session_state.excel_bytes  # The current file in session state
 
     # Load the workbook
@@ -305,9 +301,9 @@ if st.session_state.step == 5:
             # Run balance transformation only after Net Income update (if applicable)
             st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
-        # Move to Step 6 (Download page) and trigger rerun
-        st.session_state.step = 6
-        st.experimental_rerun()  # Re-run the app to transition to Step 6
+        # Move to the final step for download (Step 6)
+        st.session_state.step = 6  # Update to Step 6
+        # No need to rerun here, the app will naturally show Step 6 after Step 5 completion
 
 
 
@@ -326,18 +322,14 @@ if st.session_state.step == 6:
         file_name="final_filing.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
-    # When the "Continue to eFocus creation" button is clicked, it moves to Step 7
-    if st.button("Continue to eFocus creation"):
-        # Move to Step 7 (which is the eFocus creation step)
-        st.session_state.step = 7
-        st.experimental_rerun()  # Re-run the app to transition to Step 7 (new page)
-
-    # Button for "Start Over"
     if st.button("Start Over"):
-        # Reset session state to start from Step 1
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
+
+    # New step to continue to eFocus creation
+    if st.button("Continue to eFocus creation"):
+        # Move to Step 7
+        st.session_state.step = 7
 
 
 # Step 7: eFocus Creation (Upload Client Data and Select Client)
@@ -350,11 +342,11 @@ if st.session_state.step == 7:
 
     if client_data_file:
         client_data_bytes = client_data_file.read()
-
+        
         # Load the client data to get the client names
         client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)
         client_names = []
-
+        
         # Extract valid client names
         for col in range(2, client_data.shape[1], 2):  # Starting from column C (index 2), skipping alternate columns
             cell_value = str(client_data.iloc[0, col]).strip()  # Get client name from row 1
@@ -394,10 +386,10 @@ if st.session_state.step == 7:
                         file_name=file_name,  # Use the dynamic file name here
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     )
+
         else:
             st.error("No valid client names found in the client data.")
     else:
         st.info("Please upload the Client Data file to proceed.")
-
 
 
