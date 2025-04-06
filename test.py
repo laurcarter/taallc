@@ -316,6 +316,8 @@ elif st.session_state.step == 5:
 
 from efocus import efocus_focus  # Import the efocus logic
 
+from efocus import efocus_focus  # Import the efocus logic
+
 # Step 6: Final Processed File Download
 if st.session_state.step == 6:
     st.title("✅ Final Step: Download Processed File")  # Title for Step 6
@@ -327,14 +329,16 @@ if st.session_state.step == 6:
         file_name="final_filing.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
     if st.button("Start Over"):
         for key in ["step", "excel_bytes", "flagged_cells"]:
             st.session_state.pop(key, None)
 
     # New step to continue to eFocus creation
     if st.button("Continue to eFocus creation"):
-        # Move to Step 7
+        # Move to Step 7 (a new page)
         st.session_state.step = 7
+        st.experimental_rerun()  # Re-run the app to display Step 7
 
 
 # Step 7: eFocus Creation (Upload Client Data and Select Client)
@@ -347,11 +351,11 @@ if st.session_state.step == 7:
 
     if client_data_file:
         client_data_bytes = client_data_file.read()
-        
+
         # Load the client data to get the client names
         client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)
         client_names = []
-        
+
         # Extract valid client names
         for col in range(2, client_data.shape[1], 2):  # Starting from column C (index 2), skipping alternate columns
             cell_value = str(client_data.iloc[0, col]).strip()  # Get client name from row 1
@@ -391,7 +395,6 @@ if st.session_state.step == 7:
                         file_name=file_name,  # Use the dynamic file name here
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     )
-
         else:
             st.error("No valid client names found in the client data.")
     else:
