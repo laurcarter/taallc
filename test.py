@@ -250,7 +250,7 @@ elif st.session_state.step == 4:
 
 
 # Step 5: Choose Transformation Type
-elif st.session_state.step == 5:
+if st.session_state.step == 5:
     file_bytes = st.session_state.excel_bytes  # The current file in session state
 
     # Load the workbook
@@ -275,8 +275,6 @@ elif st.session_state.step == 5:
         else:
             st.error("Error: Collapse function did not return a valid file.")
     
-
-
     st.title("🔧 What type of filing is this?")
     st.write("Select the type of filing for this document.")
 
@@ -306,9 +304,8 @@ elif st.session_state.step == 5:
             st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
         # Move to the final step for download
-        st.session_state.step = 6
-
-
+        st.session_state.step = 6  # Update the step to move to the next "page"
+        st.experimental_rerun()  # Re-run the app to transition to Step 6
 
 
 
