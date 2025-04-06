@@ -31,7 +31,7 @@ def efocus_focus(file_bytes, client_data_bytes):
     client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file as BytesIO
     
     # Load the Focus sheet from the uploaded file (file_bytes)
-    wb = load_workbook(filename=file_bytes_io)
+    wb = load_workbook(filename=file_bytes)
     focus_ws = wb['Focus']  # Assuming the Focus sheet is already available
 
     # Load the client data from the second uploaded file (client_data_bytes)
