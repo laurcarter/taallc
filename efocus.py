@@ -27,12 +27,26 @@ def match_and_copy_values(focus_ws, focus_target_ws):
 
 
 def efocus_focus(file_bytes, client_data_bytes):
-    # Wrap both file bytes into BytesIO objects if they're not already
-    client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file as BytesIO
-    
+    # Ensure the Focus file bytes are wrapped in BytesIO if not already
+    if not isinstance(file_bytes, BytesIO):
+        file_bytes = BytesIO(file_bytes)  # Wrap Focus file as BytesIO if not already
+
+    # Reset the file stream to the start before passing to openpyxl
+    file_bytes.seek(0)
+
     # Load the Focus sheet from the uploaded file (file_bytes)
-    wb = load_workbook(filename=file_bytes)
-    focus_ws = wb['Focus']  # Assuming the Focus sheet is already available
+    try:
+        wb = load_workbook(filename=file_bytes)
+        focus_ws = wb['Focus']  # Assuming the Focus sheet is already available
+    except Exception as e:
+        # Handle potential errors related to loading the workbook
+        print(f"Error loading Excel file: {e}")
+        st.error(f"Error loading Excel file: {e}")
+        return None, None
+
+    # Handle the Client Data bytes, wrap in BytesIO if necessary
+    client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file as BytesIO if not already
+    client_data_bytes_io.seek(0)  # Reset the stream to the start
 
     # Load the client data from the second uploaded file (client_data_bytes)
     client_data = pd.read_excel(client_data_bytes_io, header=None)  # Reading client data without headers
@@ -109,7 +123,6 @@ def efocus_focus(file_bytes, client_data_bytes):
         # Rename the FocusTarget sheet
         focus_target_ws.title = "Filing Items Focus"
 
-
         # Save the modified workbook to a BytesIO object
         output = BytesIO()
         wb.save(output)
@@ -121,4 +134,3 @@ def efocus_focus(file_bytes, client_data_bytes):
     # If no client has been selected yet, inform the user
     st.info("Please select a client name to proceed.")
     return None, None  # Return None if no client is selected
-
