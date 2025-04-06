@@ -248,7 +248,7 @@ elif st.session_state.step == 4:
 
 
 # Step 5: Choose Transformation Type
-if st.session_state.step == 5:
+elif st.session_state.step == 5:
     file_bytes = st.session_state.excel_bytes  # The current file in session state
 
     # Load the workbook
@@ -301,9 +301,9 @@ if st.session_state.step == 5:
             # Run balance transformation only after Net Income update (if applicable)
             st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
-        # Move to the final step for download (Step 6)
-        st.session_state.step = 6  # Update to Step 6
-        # No need to rerun here, the app will naturally show Step 6 after Step 5 completion
+        # Proceed to Step 6 (Final Step)
+        st.session_state.step = 6  # Move to Step 6
+
 
 
 
