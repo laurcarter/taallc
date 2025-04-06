@@ -27,21 +27,20 @@ def match_and_copy_values(focus_ws, focus_target_ws):
 
 
 def efocus_focus(file_bytes, client_data_bytes):
+    # Wrap both file bytes into BytesIO objects if they're not already
+    file_bytes_io = BytesIO(file_bytes)  # Wrap Focus file as BytesIO
+    client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file as BytesIO
+    
     # Load the Focus sheet from the uploaded file (file_bytes)
-    wb = load_workbook(filename=BytesIO(file_bytes))
+    wb = load_workbook(filename=file_bytes_io)
     focus_ws = wb['Focus']  # Assuming the Focus sheet is already available
 
     # Load the client data from the second uploaded file (client_data_bytes)
-    client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)  # Reading client data without headers
+    client_data = pd.read_excel(client_data_bytes_io, header=None)  # Reading client data without headers
 
-    # Initialize a list to hold valid client names
     client_names = []
-
-    # Loop through columns starting from C (column 3), skipping alternate columns (C, E, G, etc.)
-    for col in range(2, client_data.shape[1], 2):  # Starting from column 2 (C in 0-indexed), increment by 2 (skip alternating)
-        cell_value = str(client_data.iloc[0, col]).strip()  # Get client name from row 1 (adjusted for 0-indexing)
-        
-        # Only add to the list if the cell contains a valid client name (not empty or "Unnamed")
+    for col in range(2, client_data.shape[1], 2):
+        cell_value = str(client_data.iloc[0, col]).strip()
         if cell_value and 'Unnamed' not in cell_value:
             client_names.append(cell_value)
 
