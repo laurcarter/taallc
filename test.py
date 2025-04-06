@@ -303,8 +303,8 @@ if st.session_state.step == 5:
             # Run balance transformation only after Net Income update (if applicable)
             st.session_state.excel_bytes = perform_balance_transformation(st.session_state.excel_bytes)
 
-        # Move to the final step for download
-        st.session_state.step = 6  # Update the step to move to the next "page"
+        # Move to Step 6 (Download page)
+        st.session_state.step = 6
         st.experimental_rerun()  # Re-run the app to transition to Step 6
 
 
