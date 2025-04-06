@@ -348,12 +348,15 @@ elif st.session_state.step == 7:
             if client_data_file:
                 client_data_bytes = client_data_file.read()
 
+                # Ensure client_data_bytes is wrapped in BytesIO
+                client_data_bytes_io = BytesIO(client_data_bytes)
+
                 # Check if the byte stream is empty
                 if not client_data_bytes:
                     st.error("The uploaded client data file is empty. Please upload a valid file.")
                 else:
-                    # Extract client names from the uploaded client data
-                    client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)  # Reading client data without headers
+                    # Load the client data from the second uploaded file (client_data_bytes wrapped in BytesIO)
+                    client_data = pd.read_excel(client_data_bytes_io, header=None)
 
                     # Initialize a list to hold valid client names
                     client_names = []
@@ -394,8 +397,6 @@ elif st.session_state.step == 7:
                                     file_name=file_name,  # Use the dynamic file name here
                                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                                 )
-                        else:
-                            st.error("No valid client names found in the client data.")
                     else:
                         st.error("No valid client names found in the client data.")
 
