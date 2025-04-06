@@ -347,7 +347,7 @@ elif st.session_state.step == 7:
                 st.error("The uploaded file is empty. Please upload a valid file.")
             else:
                 # Load the client data to get the client names
-                client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)
+                client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)  # Fixing here
                 client_names = []
 
                 # Extract valid client names
@@ -397,6 +397,7 @@ elif st.session_state.step == 7:
             st.error(f"Error reading the Excel file: {e}")
     else:
         st.info("Please upload the Client Data file to proceed.")
+
 
 
 
