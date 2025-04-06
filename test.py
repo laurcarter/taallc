@@ -341,7 +341,7 @@ elif st.session_state.step == 7:
     # File uploader for the main Excel file and the client data
     client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
     
-    if uploaded_file and client_data_file:
+    if client_data_file:
         # Read the files as bytes
         client_data_bytes = client_data_file.read()
     
