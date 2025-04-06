@@ -348,7 +348,7 @@ elif st.session_state.step == 7:
             if client_data_file:
                 client_data_bytes = client_data_file.read()
 
-                # Ensure client_data_bytes is wrapped in BytesIO
+                # Ensure client_data_bytes is wrapped in BytesIO (only if it isn't already a BytesIO object)
                 client_data_bytes_io = BytesIO(client_data_bytes)
 
                 # Load the client data from the second uploaded file (client_data_bytes wrapped in BytesIO)
@@ -377,9 +377,12 @@ elif st.session_state.step == 7:
                     if selected_client:
                         st.write(f"You selected: {selected_client}")
 
-                        # Now ensure that both files are passed into efocus_focus correctly (as BytesIO)
-                        file_bytes_io = BytesIO(file_bytes)  # Wrap Focus file as BytesIO
-                        client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file as BytesIO
+                        # Ensure that both files are passed into efocus_focus correctly (as BytesIO)
+                        # If file_bytes is already a BytesIO object, we don't need to wrap it again
+                        if not isinstance(file_bytes, BytesIO):
+                            file_bytes_io = BytesIO(file_bytes)  # Wrap Focus file as BytesIO
+                        else:
+                            file_bytes_io = file_bytes  # Focus file is already in BytesIO
 
                         # Call the efocus_focus function to process the Focus file and client data
                         transformed_file, _ = efocus_focus(file_bytes_io, client_data_bytes_io)
