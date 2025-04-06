@@ -336,54 +336,64 @@ elif st.session_state.step == 7:
     client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
 
     if client_data_file:
-        client_data_bytes = client_data_file.read()
+        try:
+            # Read the uploaded file as bytes
+            client_data_bytes = client_data_file.read()
+
+            # Check if the byte stream is empty
+            if not client_data_bytes:
+                st.error("The uploaded file is empty. Please upload a valid file.")
+            else:
+                # Load the client data to get the client names
+                client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)
+                client_names = []
         
-        # Load the client data to get the client names
-        client_data = pd.read_excel(BytesIO(client_data_bytes), header=None)
-        client_names = []
-        
-        # Extract valid client names
-        for col in range(2, client_data.shape[1], 2):  # Starting from column C (index 2), skipping alternate columns
-            cell_value = str(client_data.iloc[0, col]).strip()  # Get client name from row 1
-            if cell_value and 'Unnamed' not in cell_value:
-                client_names.append(cell_value)
+            # Extract valid client names
+            for col in range(2, client_data.shape[1], 2):  # Starting from column C (index 2), skipping alternate columns
+                cell_value = str(client_data.iloc[0, col]).strip()  # Get client name from row 1
+                if cell_value and 'Unnamed' not in cell_value:
+                    client_names.append(cell_value)
+    
+            if client_names:
+                selected_client = None
+                columns = st.columns(4)  # Create 4 columns to stack the buttons
+    
+                # Loop through client names and place them into columns
+                for idx, client in enumerate(client_names):
+                    col_idx = idx % 4  # Determine the column index based on the position
+                    if columns[col_idx].button(client):
+                        selected_client = client  # Store the selected client name when the button is clicked
+    
+                if selected_client:
+                    st.write(f"You selected: {selected_client}")
+    
+                    # Retrieve the previously uploaded Focus file from session state
+                    file_bytes = st.session_state.excel_bytes
+    
+                    # Call the efocus_focus function to process the Focus file and client data
+                    transformed_file, _ = efocus_focus(file_bytes, client_data_bytes)
+    
+                    if transformed_file:
+                        # Store the transformed file in session state
+                        st.session_state.excel_bytes = transformed_file
+    
+                        # Use the selected client's name in the file name
+                        file_name = f"efocus_{selected_client}.xlsx"  # Client name added to the file name
+    
+                        # Provide option to download the transformed file
+                        st.download_button(
+                            label="Download Transformed File",
+                            data=st.session_state.excel_bytes,
+                            file_name=file_name,  # Use the dynamic file name here
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
 
-        if client_names:
-            selected_client = None
-            columns = st.columns(4)  # Create 4 columns to stack the buttons
+            else:
+                st.error("No valid client names found in the client data.")
 
-            # Loop through client names and place them into columns
-            for idx, client in enumerate(client_names):
-                col_idx = idx % 4  # Determine the column index based on the position
-                if columns[col_idx].button(client):
-                    selected_client = client  # Store the selected client name when the button is clicked
-
-            if selected_client:
-                st.write(f"You selected: {selected_client}")
-
-                # Retrieve the previously uploaded Focus file from session state
-                file_bytes = st.session_state.excel_bytes
-
-                # Call the efocus_focus function to process the Focus file and client data
-                transformed_file, _ = efocus_focus(file_bytes, client_data_bytes)
-
-                if transformed_file:
-                    # Store the transformed file in session state
-                    st.session_state.excel_bytes = transformed_file
-
-                    # Use the selected client's name in the file name
-                    file_name = f"efocus_{selected_client}.xlsx"  # Client name added to the file name
-
-                    # Provide option to download the transformed file
-                    st.download_button(
-                        label="Download Transformed File",
-                        data=st.session_state.excel_bytes,
-                        file_name=file_name,  # Use the dynamic file name here
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-
-        else:
-            st.error("No valid client names found in the client data.")
+        except Exception as e:
+            # Catch any errors while processing the file and display the error message
+            st.error(f"Error reading the Excel file: {e}")
     else:
         st.info("Please upload the Client Data file to proceed.")
 
