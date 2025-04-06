@@ -346,17 +346,18 @@ elif st.session_state.step == 7:
             client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
 
             if client_data_file:
+                # Read the client data file as bytes
                 client_data_bytes = client_data_file.read()
 
                 # Wrap both the Focus and client data in BytesIO
                 file_bytes_io = BytesIO(file_bytes)  # Wrap Focus file
-                client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file
+                client_data_bytes_io = BytesIO(client_data_bytes)  # Wrap Client Data file in BytesIO
 
                 # Check if the byte stream is empty
                 if not client_data_bytes:
                     st.error("The uploaded client data file is empty. Please upload a valid file.")
                 else:
-                    # Now load the client data using the correct wrapped object
+                    # Now load the client data using the wrapped client_data_bytes_io
                     client_data = pd.read_excel(client_data_bytes_io, header=None)
 
                     # Initialize a list to hold valid client names
@@ -407,5 +408,6 @@ elif st.session_state.step == 7:
         except Exception as e:
             # Catch any errors while processing the file and display the error message
             st.error(f"Error reading the Excel file: {e}")
+
 
 
