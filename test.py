@@ -433,15 +433,18 @@ elif st.session_state.step == 9:
     ending_equity_balance = st.number_input("Enter the ending equity balance:", min_value=0.0, step=1000.0)
     
     # Save the value in session state
-    st.session_state.ending_equity_balance = ending_equity_balance  # Assign to session_state variable
+    if ending_equity_balance != 0.0:  # Only update if a non-zero value is entered
+        st.session_state.ending_equity_balance = ending_equity_balance  # Assign to session_state variable
 
     # Show a confirmation message with the entered value
-    st.write(f"You entered: ${ending_equity_balance:.2f}")
+    st.write(f"You entered: ${st.session_state.ending_equity_balance:.2f}" if 'ending_equity_balance' in st.session_state else "Please enter a valid ending equity balance.")
 
     # Continue to next step (if needed)
     if st.button("Continue to Next Step"):
-        # Proceed to the next step after answering the question
-        st.session_state.step = 10  # Move to Step 10 (or whatever comes next)
+        if 'ending_equity_balance' in st.session_state and st.session_state.ending_equity_balance != 0.0:
+            st.session_state.step = 10  # Move to Step 10 (or whatever comes next)
+        else:
+            st.warning("Please enter a valid ending equity balance before proceeding.")
 
 
 
