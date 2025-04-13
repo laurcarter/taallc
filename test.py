@@ -595,19 +595,3 @@ elif st.session_state.step == 11:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     
-    # Create a container to hold the Restart buttons
-    with st.container():
-        st.markdown("---")  # Add a horizontal line to visually separate sections
-    # Reset button to clear session state and restart the app
-    if st.button("Restart from Scratch"):
-        # Clear all keys in session state
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]  # Remove each key from session state
-        
-        # Optionally, reset to the first step (Step 1)
-        st.session_state.step = 1  # Set to Step 1 to start over
-    
-        # Now the app will automatically re-render, starting at Step 1 without using rerun
-        st.write("The app has been reset. Please refresh the page to continue.")
-
-
