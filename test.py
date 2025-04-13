@@ -470,11 +470,13 @@ elif st.session_state.step == 11:
     # Get the current value in row 165, column B (Filing Frequency)
     current_value = focus_ws.cell(row=165, column=2).value
 
-    # If the value in the cell is different, override it and highlight the cell
+    # Check if the value in the cell differs from the user's input
     if current_value != filing_value:
         focus_ws.cell(row=165, column=2, value=filing_value)
+        
+        # Apply red highlight (only if the value differs)
         red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
-        focus_ws.cell(row=165, column=2).fill = red_fill  # Highlight the changed cell
+        focus_ws.cell(row=165, column=2).fill = red_fill  # Highlight in red if different
 
     # Save the updated workbook to st.session_state.excel_bytes
     output = BytesIO()
