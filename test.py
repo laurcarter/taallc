@@ -581,10 +581,10 @@ elif st.session_state.step == 11:
     output = BytesIO()
     wb.save(output)
     output.seek(0)  # Reset the cursor position to the beginning
-
+    
     # Store the updated Excel file in session_state
     st.session_state.excel_bytes = output
-
+    
     # Provide the download button for the updated file
     st.download_button(
         label="Download Updated Filing Items Focus",
@@ -592,4 +592,19 @@ elif st.session_state.step == 11:
         file_name="updated_filing_items_focus.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+    
+    # Add buttons for restarting either eFocus or the entire filing process
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("Restart eFocus"):
+            # Reset to Step 7 for eFocus re-upload and processing
+            st.session_state.step = 7
+            st.experimental_rerun()  # Force a re-run to move to Step 7
+    
+    with col2:
+        if st.button("Restart Entire Filing"):
+            # Reset to Step 2 for restarting the entire filing process
+            st.session_state.step = 2
+            st.experimental_rerun()  # Force a re-run to move to Step 2
 
