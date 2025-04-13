@@ -356,6 +356,7 @@ elif st.session_state.step == 7:
     # Streamlit UI for the file upload and processing
     client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
 
+    # If a file is uploaded
     if client_data_file:
         # Read the files as bytes
         client_data_bytes = client_data_file.read()
@@ -377,11 +378,16 @@ elif st.session_state.step == 7:
             st.session_state.step = 8  # Move to Step 8 (with client questions)
 
         else:
+            # If the transformation fails, show the message once
             st.info("Please select a client name to proceed.")
-    
-    # "Continue" button for moving to Step 8
-    if st.button("Continue to Step 8"):
-        st.session_state.step = 8  # Proceed to Step 8
+
+    # Only show the "Continue to Step 8" button if file processing was successful
+    if st.button("Continue"):
+        if not transformed_file:  # Only allow proceeding if the file was properly processed
+            st.info("Please upload and process the client data file first.")  # Inform user to upload the file
+        else:
+            st.session_state.step = 8  # Proceed to Step 8
+
 
 
 
