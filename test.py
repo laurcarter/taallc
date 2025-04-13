@@ -473,7 +473,7 @@ elif st.session_state.step == 11:
     # If the value in the cell is different, override it and highlight the cell
     if current_value != filing_value:
         focus_ws.cell(row=165, column=2, value=filing_value)
-        focus_ws.cell(row=165, column=2).fill = yellow_fill  # Highlight the changed cell
+        focus_ws.cell(row=165, column=2).fill = red_fill  # Highlight the changed cell
 
     # Save the updated workbook to st.session_state.excel_bytes
     output = BytesIO()
