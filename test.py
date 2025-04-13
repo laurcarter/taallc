@@ -454,7 +454,7 @@ elif st.session_state.step == 11:
     st.title("📥 Download Updated Filing Items Focus")  # Title for Step 11
     st.write("Click the button below to download the updated Excel file.")  # Description for Step 11
 
-    # Load the current Excel file (stored in session_state.excel_bytes)
+    # Load the current Excel file from st.session_state.excel_bytes
     file_bytes = st.session_state.excel_bytes
 
     # Load the workbook and the 'Filing Items Focus' sheet
@@ -475,17 +475,19 @@ elif st.session_state.step == 11:
         focus_ws.cell(row=165, column=2, value=filing_value)
         focus_ws.cell(row=165, column=2).fill = yellow_fill  # Highlight the changed cell
 
-    # Save the updated workbook to a BytesIO object
+    # Save the updated workbook to st.session_state.excel_bytes
     output = BytesIO()
     wb.save(output)
     output.seek(0)  # Reset the cursor position to the beginning
 
+    # Store the updated Excel file in session_state
+    st.session_state.excel_bytes = output
+
     # Provide the download button for the updated file
     st.download_button(
         label="Download Updated Filing Items Focus",
-        data=output,
+        data=st.session_state.excel_bytes,
         file_name="updated_filing_items_focus.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
 
