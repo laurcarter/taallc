@@ -474,10 +474,39 @@ elif st.session_state.step == 10:
         exempted_securities_haircut = st.number_input("Enter Exempted Securities Haircut:", min_value=0.0, step=0.01)
         st.session_state.exempted_securities_haircut = exempted_securities_haircut  # Store in session state
 
-    # Continue to next step
-    if st.button("Continue to Next Step"):
-        # Proceed to the next step after answering the question
-        st.session_state.step = 11  # Move to Step 11 (or whatever comes next)
+    # Check if any of the haircut values are blank (or zero if not required)
+    if has_haircuts == "Yes":
+        missing_fields = []
+        if st.session_state.fidelity_bond_haircut == 0.0:
+            missing_fields.append("Fidelity Bond Haircut")
+        if st.session_state.undue_concentration_haircut == 0.0:
+            missing_fields.append("Undue Concentration Haircut")
+        if st.session_state.debt_securities_haircut == 0.0:
+            missing_fields.append("Debt Securities Haircut")
+        if st.session_state.other_securities_haircut == 0.0:
+            missing_fields.append("Other Securities Haircut")
+        if st.session_state.exempted_securities_haircut == 0.0:
+            missing_fields.append("Exempted Securities Haircut")
+        
+        # Show warning if any fields are missing
+        if missing_fields:
+            st.warning(f"Please fill in the following fields: {', '.join(missing_fields)}")
+
+    # Button to continue to next step, only enabled if the values are entered correctly
+    if st.button("Continue to Step 11"):
+        # Check if all required fields have valid values
+        if has_haircuts == "Yes" and (
+            st.session_state.fidelity_bond_haircut == 0.0 or 
+            st.session_state.undue_concentration_haircut == 0.0 or 
+            st.session_state.debt_securities_haircut == 0.0 or 
+            st.session_state.other_securities_haircut == 0.0 or 
+            st.session_state.exempted_securities_haircut == 0.0):
+            # Do not proceed if any required fields are missing
+            st.warning("Please enter all required haircut values before proceeding.")
+        else:
+            # Proceed to next step
+            st.session_state.step = 11  # Move to Step 11 (or whatever comes next)
+
 
 # Step 11: Download and Update the File with Client Data
 elif st.session_state.step == 11:
