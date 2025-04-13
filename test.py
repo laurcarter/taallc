@@ -472,7 +472,7 @@ elif st.session_state.step == 10:
     if st.button("Continue to Next Step"):
         # Proceed to the next step after answering the question
         st.session_state.step = 11  # Move to Step 11 (or whatever comes next)
-    create_back_button()
+
 # Step 11: Download and Update the File with Client Data
 elif st.session_state.step == 11:
     st.title("📥 Download Updated Filing Items Focus")  # Title for Step 11
@@ -557,4 +557,3 @@ elif st.session_state.step == 11:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    create_back_button()
