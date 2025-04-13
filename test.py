@@ -13,13 +13,14 @@ yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="s
 
 # Function to create a back button for all steps
 def create_back_button():
+    # Check if the "Back" button is pressed
     if st.button("Back"):
-        # Decrease the step number by 1 to go to the previous step
+        # Decrease the step number by 1, ensuring it doesn't go below 1
         if st.session_state.step > 1:
             st.session_state.step -= 1
-            # Trigger an update to reflect the new step
-            st.session_state.step_updated = True  # Set a flag to indicate step has been updated
-            st.experimental_rerun()  # Optional: will force a rerun, use only if needed
+            st.session_state.step_updated = True  # This flag ensures the state is updated
+        # Don't need st.experimental_rerun() anymore; Streamlit will auto-refresh the UI
+
 
 
 def check_and_prompt_for_net_income(focus_ws):
@@ -443,8 +444,6 @@ elif st.session_state.step == 10:
     st.title("💼 Client Haircuts")  # Title for Step 10
     st.write("Are there haircuts for this client?")  # Description for Step 10
 
-    create_back_button()
-
     # Ask if there are haircuts for the client
     has_haircuts = st.radio("Are there haircuts for this client?", ["Yes", "No"])
 
@@ -470,6 +469,7 @@ elif st.session_state.step == 10:
     if st.button("Continue to Next Step"):
         # Proceed to the next step after answering the question
         st.session_state.step = 11  # Move to Step 11 (or whatever comes next)
+    create_back_button()
 # Step 11: Download and Update the File with Client Data
 elif st.session_state.step == 11:
     st.title("📥 Download Updated Filing Items Focus")  # Title for Step 11
