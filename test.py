@@ -603,8 +603,11 @@ elif st.session_state.step == 11:
         # Clear all keys in session state
         for key in list(st.session_state.keys()):
             del st.session_state[key]  # Remove each key from session state
-    
-        # Optionally, reset to the first step
+        
+        # Optionally, reset to the first step (Step 1)
         st.session_state.step = 1  # Set to Step 1 to start over
-        st.experimental_rerun()  # This forces the app to rerun with the initial state
+    
+        # Now the app will automatically re-render, starting at Step 1 without using rerun
+        st.write("The app has been reset. Please refresh the page to continue.")
+
 
