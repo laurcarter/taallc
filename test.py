@@ -336,18 +336,15 @@ elif st.session_state.step == 7:
     st.write("Continue to create eFocus using the uploaded Focus file and select the client.")  # Description for Step 7
 
     # Streamlit UI for the file upload and processing
- 
-    
-    # File uploader for the main Excel file and the client data
     client_data_file = st.file_uploader("Upload the Client Data file", type=["xlsx"])
-    
+
     if client_data_file:
         # Read the files as bytes
         client_data_bytes = client_data_file.read()
-    
+
         # Process the files with the efocus_focus function and capture selected client
         transformed_file, selected_client = efocus_focus(file_bytes, client_data_bytes)
-    
+
         if transformed_file:
             # Store the transformed file in session state
             st.session_state.excel_bytes = transformed_file
@@ -357,13 +354,44 @@ elif st.session_state.step == 7:
         
             # Use the selected client's name in the file name
             file_name = f"efocus_{selected_client}.xlsx"  # Client name added to the file name
-        
-            # Provide option to download the transformed file
-            st.download_button(
-                label="Download Transformed File",
-                data=st.session_state.excel_bytes,
-                file_name=file_name,  # Use the dynamic file name here
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+
+            # Here we will replace the download button with the Continue button
+            st.session_state.step = 8  # Move to Step 8
+
+        else:
+            st.info("Please select a client name to proceed.")
+    
+    # "Continue" button for moving to Step 8
+    if st.button("Continue to Step 8"):
+        st.session_state.step = 8  # Proceed to Step 8
 
 
+# Step 8: Client Information and Questions (New step after eFocus creation)
+elif st.session_state.step == 8:
+    st.title("📝 Client Information and Questions")  # Title for Step 8
+    st.write("Please answer the following questions to proceed with the next steps.")  # Description for Step 8
+
+    # Question 1: Ask about a key piece of client info (This will later relate to cells in the Excel file)
+    client_question_1 = st.text_input("What is the primary concern for this client?")
+
+    # Question 2: Ask for another piece of information related to the data
+    client_question_2 = st.text_input("Please provide a secondary detail or note for this client.")
+
+    # Question 3: Ask for further clarification about the client data
+    client_question_3 = st.text_input("Any other relevant details we should know about this client?")
+
+    # Placeholder for additional questions if necessary
+    client_question_4 = st.text_input("Is there anything else to consider regarding the client's financial situation?")
+
+    # After answering, the user can click "Continue" to move on to the next step
+    if st.button("Continue to Next Step"):
+        # Store answers in session state or handle the responses as needed
+        st.session_state.client_answers = {
+            "primary_concern": client_question_1,
+            "secondary_detail": client_question_2,
+            "additional_info": client_question_3,
+            "financial_situation": client_question_4
+        }
+
+        # Proceed to the next step after answering questions (can adjust the step as needed)
+        st.session_state.step = 9  # Move to Step 9 (or whatever comes next)
