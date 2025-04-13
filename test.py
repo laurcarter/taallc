@@ -173,8 +173,14 @@ elif st.session_state.step == 2:
         if st.button("Continue"):
             st.session_state.step = 3  # Proceed to Step 3
 
-    # Create the Back button at the bottom of the page
-    create_back_button()  # Add the back button functionality here
+    # Place the "Edit" button at the bottom
+    if st.button("Edit"):
+        # When "Edit" is clicked, navigate back to Step 1
+        st.session_state.step = 1  # Go back to Step 1
+
+        # Rerun the app to reflect the step change
+        st.experimental_rerun()  # This will rerun the script, and the step will be set to 1
+
 
 
 # Step 3: Upload Excel File
