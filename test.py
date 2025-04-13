@@ -449,3 +449,43 @@ elif st.session_state.step == 10:
         # Proceed to the next step after answering the question
         st.session_state.step = 11  # Move to Step 11 (or whatever comes next)
 
+# Step 11: Download and Update the File with Client Data
+elif st.session_state.step == 11:
+    st.title("📥 Download Updated Filing Items Focus")  # Title for Step 11
+    st.write("Click the button below to download the updated Excel file.")  # Description for Step 11
+
+    # Load the current Excel file (stored in session_state.excel_bytes)
+    file_bytes = st.session_state.excel_bytes
+
+    # Load the workbook and the 'Filing Items Focus' sheet
+    wb = load_workbook(filename=BytesIO(file_bytes))
+    focus_ws = wb["Filing Items Focus"]  # Assuming the sheet is named "Filing Items Focus"
+    
+    # Assign variables from session state
+    filing_frequency = st.session_state.filing_frequency
+
+    # Mapping filing_frequency: "Monthly" = 1, "Quarterly" = 3
+    filing_value = 1 if filing_frequency == "Monthly" else 3
+    
+    # Get the current value in row 165, column B (Filing Frequency)
+    current_value = focus_ws.cell(row=165, column=2).value
+
+    # If the value in the cell is different, override it and highlight the cell
+    if current_value != filing_value:
+        focus_ws.cell(row=165, column=2, value=filing_value)
+        focus_ws.cell(row=165, column=2).fill = yellow_fill  # Highlight the changed cell
+
+    # Save the updated workbook to a BytesIO object
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)  # Reset the cursor position to the beginning
+
+    # Provide the download button for the updated file
+    st.download_button(
+        label="Download Updated Filing Items Focus",
+        data=output,
+        file_name="updated_filing_items_focus.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+
