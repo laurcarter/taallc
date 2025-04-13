@@ -372,27 +372,31 @@ elif st.session_state.step == 8:
     st.title("📝 Client Information and Questions")  # Title for Step 8
     st.write("Please answer the following questions to proceed with the next steps.")  # Description for Step 8
 
-    # Question 1: Ask about a key piece of client info (This will later relate to cells in the Excel file)
-    client_question_1 = st.text_input("What is the primary concern for this client?")
+    # Question 1: Ask if it's a monthly or quarterly filing
+    filing_frequency = st.radio("Is this a monthly or quarterly filing?", ["Monthly", "Quarterly"])
 
-    # Question 2: Ask for another piece of information related to the data
-    client_question_2 = st.text_input("Please provide a secondary detail or note for this client.")
+    # Conditionally display further questions based on the filing frequency
+    if filing_frequency == "Monthly":
+        # Ask if this is a P&L for monthly income purposes
+        is_pnl = st.radio("For monthly income purposes: Is this filing from a P&L?", ["Yes", "No"])
+        
+        # If the answer is Yes, ask for the monthly income amount
+        if is_pnl == "Yes":
+            monthly_income = st.number_input("Please enter the monthly income amount:", min_value=0, step=1000)
+            # You can store the answer to use later if needed
+            st.session_state.monthly_income = monthly_income
+    
+    # Other questions can go here if needed
 
-    # Question 3: Ask for further clarification about the client data
-    client_question_3 = st.text_input("Any other relevant details we should know about this client?")
-
-    # Placeholder for additional questions if necessary
-    client_question_4 = st.text_input("Is there anything else to consider regarding the client's financial situation?")
-
-    # After answering, the user can click "Continue" to move on to the next step
+    # Button to continue to next step after answering
     if st.button("Continue to Next Step"):
-        # Store answers in session state or handle the responses as needed
+        # Store answers in session state
         st.session_state.client_answers = {
-            "primary_concern": client_question_1,
-            "secondary_detail": client_question_2,
-            "additional_info": client_question_3,
-            "financial_situation": client_question_4
+            "filing_frequency": filing_frequency,
+            "is_pnl": is_pnl if 'is_pnl' in locals() else None,  # Protect from potential error if not defined
+            "monthly_income": monthly_income if 'monthly_income' in locals() else None
         }
 
         # Proceed to the next step after answering questions (can adjust the step as needed)
         st.session_state.step = 9  # Move to Step 9 (or whatever comes next)
+
