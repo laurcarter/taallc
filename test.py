@@ -454,6 +454,10 @@ elif st.session_state.step == 11:
     st.title("📥 Download Updated Filing Items Focus")  # Title for Step 11
     st.write("Click the button below to download the updated Excel file.")  # Description for Step 11
 
+    # Debugging: Print the session state to see the variables
+    st.write("Current Session State:")
+    st.write(st.session_state)  # Print out the session state
+
     # Load the current Excel file from st.session_state.excel_bytes
     file_bytes = st.session_state.excel_bytes
 
@@ -470,6 +474,17 @@ elif st.session_state.step == 11:
     debt_securities_haircut = st.session_state.debt_securities_haircut
     other_securities_haircut = st.session_state.other_securities_haircut
     exempted_securities_haircut = st.session_state.exempted_securities_haircut
+
+    # Debugging: Check if the variables have been assigned correctly
+    st.write("Test Variables:")
+    st.write(f"filing_frequency: {filing_frequency}")
+    st.write(f"monthly_income: {monthly_income}")
+    st.write(f"ending_equity_balance: {ending_equity_balance}")
+    st.write(f"fidelity_bond_haircut: {fidelity_bond_haircut}")
+    st.write(f"undue_concentration_haircut: {undue_concentration_haircut}")
+    st.write(f"debt_securities_haircut: {debt_securities_haircut}")
+    st.write(f"other_securities_haircut: {other_securities_haircut}")
+    st.write(f"exempted_securities_haircut: {exempted_securities_haircut}")
 
     # Mapping filing_frequency: "Monthly" = 1, "Quarterly" = 3
     filing_value = 1 if filing_frequency == "Monthly" else 3
