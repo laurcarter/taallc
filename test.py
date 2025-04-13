@@ -407,24 +407,25 @@ elif st.session_state.step == 9:
 
     # Ask for the ending equity balance
     ending_equity_balance = st.number_input("Enter the ending equity balance:", min_value=0.0, step=1000.0)
-    
-    # Save the value in session state
-    st.session_state.ending_equity_balance = ending_equity_balance  # Assign to session_state variable
 
     # Debugging: Check if value is saved in session state
-    st.write(f"Current Ending Equity Balance in session_state: {st.session_state.ending_equity_balance}")
+    st.write(f"Current Ending Equity Balance in session_state: {ending_equity_balance}")
 
     # Show a confirmation message with the entered value
     st.write(f"You entered: ${ending_equity_balance:.2f}")
 
-    # Continue to next step (if needed)
+    # Store the value in session state only when the user clicks the "Continue to Next Step" button
     if st.button("Continue to Next Step"):
-        # Debugging: Print session state on button click
+        # Save the value in session state when the button is clicked
+        st.session_state.ending_equity_balance = ending_equity_balance  # Assign to session_state variable
+
+        # Debugging: Check session state before moving to the next step
         st.write("Session State before moving to next step:")
         st.write(st.session_state)
 
         # Proceed to the next step after answering the question
         st.session_state.step = 10  # Move to Step 10 (or whatever comes next)
+
 
 
 # Step 10: Haircuts (Ask if there are haircuts and gather details if Yes)
