@@ -375,28 +375,30 @@ elif st.session_state.step == 8:
     # Question 1: Ask if it's a monthly or quarterly filing
     filing_frequency = st.radio("Is this a monthly or quarterly filing?", ["Monthly", "Quarterly"])
 
+    # Store the filing frequency directly in session state
+    st.session_state.filing_frequency = filing_frequency  # Assign directly to session_state variable
+
     # Conditionally display further questions based on the filing frequency
     if filing_frequency == "Monthly":
         # Ask if this is a P&L for monthly income purposes
         is_pnl = st.radio("For monthly income purposes: Is this filing from a P&L?", ["Yes", "No"])
+        st.session_state.is_pnl = is_pnl  # Save the P&L response in session state
         
         # If the answer is Yes, ask for the monthly income amount
         if is_pnl == "Yes":
             monthly_income = st.number_input("Please enter the monthly income amount:", min_value=0, step=1000)
-            # You can store the answer to use later if needed
-            st.session_state.monthly_income = monthly_income
-    
-    # Other questions can go here if needed
+            st.session_state.monthly_income = monthly_income  # Save the income amount
 
-    # Button to continue to next step after answering
+    # After answering, the user can click "Continue" to move on to the next step
     if st.button("Continue to Next Step"):
-        # Store answers in session state
+        # Store answers to all questions in session state (as shown above)
         st.session_state.client_answers = {
-            "filing_frequency": filing_frequency,
-            "is_pnl": is_pnl if 'is_pnl' in locals() else None,  # Protect from potential error if not defined
-            "monthly_income": monthly_income if 'monthly_income' in locals() else None
+            "filing_frequency": st.session_state.filing_frequency,
+            "is_pnl": st.session_state.is_pnl,
+            "monthly_income": st.session_state.monthly_income if 'monthly_income' in st.session_state else None
         }
 
-        # Proceed to the next step after answering questions (can adjust the step as needed)
+        # Proceed to the next step after answering questions (adjust step as needed)
         st.session_state.step = 9  # Move to Step 9 (or whatever comes next)
+
 
