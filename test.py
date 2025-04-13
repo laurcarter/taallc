@@ -17,7 +17,10 @@ def create_back_button():
         # Decrease the step number by 1 to go to the previous step
         if st.session_state.step > 1:
             st.session_state.step -= 1
-            st.experimental_rerun()  # Rerun the script to reflect the step change
+            # Trigger an update to reflect the new step
+            st.session_state.step_updated = True  # Set a flag to indicate step has been updated
+            st.experimental_rerun()  # Optional: will force a rerun, use only if needed
+
 
 def check_and_prompt_for_net_income(focus_ws):
     # Look for "Net Income" in column A and check if it's coded with parentheses
