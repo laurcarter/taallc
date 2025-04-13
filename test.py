@@ -400,5 +400,22 @@ elif st.session_state.step == 8:
 
         # Proceed to the next step after answering questions (adjust step as needed)
         st.session_state.step = 9  # Move to Step 9 (or whatever comes next)
+# Step 9: Ending Equity Balance (Ask for the ending equity balance)
+elif st.session_state.step == 9:
+    st.title("💰 Ending Equity Balance")  # Title for Step 9
+    st.write("Please enter the ending equity balance from the previous filing period.")  # Description
 
+    # Ask for the ending equity balance
+    ending_equity_balance = st.number_input("Enter the ending equity balance:", min_value=0.0, step=1000.0)
+    
+    # Save the value in session state
+    st.session_state.ending_equity_balance = ending_equity_balance  # Assign to session_state variable
+
+    # Show a confirmation message with the entered value
+    st.write(f"You entered: ${ending_equity_balance:.2f}")
+
+    # Continue to next step (if needed)
+    if st.button("Continue to Next Step"):
+        # Proceed to the next step after answering the question
+        st.session_state.step = 10  # Move to Step 10 (or whatever comes next)
 
