@@ -457,8 +457,8 @@ elif st.session_state.step == 11:
     # Load the current Excel file from st.session_state.excel_bytes
     file_bytes = st.session_state.excel_bytes
 
-    # Load the workbook and the 'Filing Items Focus' sheet
-    wb = load_workbook(filename=BytesIO(file_bytes))
+    # Correct way to load the workbook from the BytesIO object
+    wb = load_workbook(BytesIO(file_bytes))  # Pass BytesIO directly to load_workbook
     focus_ws = wb["Filing Items Focus"]  # Assuming the sheet is named "Filing Items Focus"
     
     # Assign variables from session state
