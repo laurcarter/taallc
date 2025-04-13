@@ -11,6 +11,13 @@ import pandas as pd
 # ---------- Utility Functions ----------
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
 
+# Function to create a back button for all steps
+def create_back_button():
+    if st.button("Back"):
+        # Decrease the step number by 1 to go to the previous step
+        if st.session_state.step > 1:
+            st.session_state.step -= 1
+            st.experimental_rerun()  # Rerun the script to reflect the step change
 
 def check_and_prompt_for_net_income(focus_ws):
     # Look for "Net Income" in column A and check if it's coded with parentheses
@@ -432,6 +439,8 @@ elif st.session_state.step == 9:
 elif st.session_state.step == 10:
     st.title("💼 Client Haircuts")  # Title for Step 10
     st.write("Are there haircuts for this client?")  # Description for Step 10
+
+    create_back_button()
 
     # Ask if there are haircuts for the client
     has_haircuts = st.radio("Are there haircuts for this client?", ["Yes", "No"])
