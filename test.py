@@ -598,8 +598,13 @@ elif st.session_state.step == 11:
     # Create a container to hold the Restart buttons
     with st.container():
         st.markdown("---")  # Add a horizontal line to visually separate sections
+    # Reset button to clear session state and restart the app
+    if st.button("Restart from Scratch"):
+        # Clear all keys in session state
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]  # Remove each key from session state
     
-        if st.button("Restart Entire Filing"):
-            # Reset to Step 2 for restarting the entire filing process
-            st.session_state.step = 2
+        # Optionally, reset to the first step
+        st.session_state.step = 1  # Set to Step 1 to start over
+        st.experimental_rerun()  # This forces the app to rerun with the initial state
 
