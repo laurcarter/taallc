@@ -178,10 +178,6 @@ elif st.session_state.step == 2:
         # When "Edit" is clicked, navigate back to Step 1
         st.session_state.step = 1  # Go back to Step 1
 
-        # Rerun the app to reflect the step change
-        st.experimental_rerun()  # This will rerun the script, and the step will be set to 1
-
-
 
 # Step 3: Upload Excel File
 elif st.session_state.step == 3:
