@@ -577,6 +577,8 @@ elif st.session_state.step == 11:
     # Apply exempted securities haircut to row 148, column B (only if the value exists)
     if exempted_securities_haircut is not None:
         focus_ws.cell(row=148, column=2, value=exempted_securities_haircut)
+
+
     # Save the updated workbook to st.session_state.excel_bytes
     output = BytesIO()
     wb.save(output)
@@ -593,16 +595,18 @@ elif st.session_state.step == 11:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     
-    # Add buttons for restarting either eFocus or the entire filing process
-    col1, col2 = st.columns(2)
+    # Create a container to hold the Restart buttons
+    with st.container():
+        st.markdown("---")  # Add a horizontal line to visually separate sections
     
-    with col1:
+        st.subheader("Restart Options")  # Add a subheader for the restart section
+    
+        # Stack buttons vertically in separate rows
         if st.button("Restart eFocus"):
             # Reset to Step 7 for eFocus re-upload and processing
             st.session_state.step = 7
             st.experimental_rerun()  # Force a re-run to move to Step 7
     
-    with col2:
         if st.button("Restart Entire Filing"):
             # Reset to Step 2 for restarting the entire filing process
             st.session_state.step = 2
