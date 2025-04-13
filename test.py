@@ -418,4 +418,34 @@ elif st.session_state.step == 9:
     if st.button("Continue to Next Step"):
         # Proceed to the next step after answering the question
         st.session_state.step = 10  # Move to Step 10 (or whatever comes next)
+# Step 10: Haircuts (Ask if there are haircuts and gather details if Yes)
+elif st.session_state.step == 10:
+    st.title("💼 Client Haircuts")  # Title for Step 10
+    st.write("Are there haircuts for this client?")  # Description for Step 10
+
+    # Ask if there are haircuts for the client
+    has_haircuts = st.radio("Are there haircuts for this client?", ["Yes", "No"])
+
+    # If the answer is "Yes", ask for the specific haircut values
+    if has_haircuts == "Yes":
+        # Ask for each haircut value and store them in session state
+        fidelity_bond_haircut = st.number_input("Enter Fidelity Bond Haircut:", min_value=0.0, step=0.01)
+        st.session_state.fidelity_bond_haircut = fidelity_bond_haircut  # Store in session state
+
+        undue_concentration_haircut = st.number_input("Enter Undue Concentration Haircut:", min_value=0.0, step=0.01)
+        st.session_state.undue_concentration_haircut = undue_concentration_haircut  # Store in session state
+
+        debt_securities_haircut = st.number_input("Enter Debt Securities Haircut:", min_value=0.0, step=0.01)
+        st.session_state.debt_securities_haircut = debt_securities_haircut  # Store in session state
+
+        other_securities_haircut = st.number_input("Enter Other Securities Haircut:", min_value=0.0, step=0.01)
+        st.session_state.other_securities_haircut = other_securities_haircut  # Store in session state
+
+        exempted_securities_haircut = st.number_input("Enter Exempted Securities Haircut:", min_value=0.0, step=0.01)
+        st.session_state.exempted_securities_haircut = exempted_securities_haircut  # Store in session state
+
+    # Continue to next step
+    if st.button("Continue to Next Step"):
+        # Proceed to the next step after answering the question
+        st.session_state.step = 11  # Move to Step 11 (or whatever comes next)
 
