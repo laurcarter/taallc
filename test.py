@@ -355,8 +355,8 @@ elif st.session_state.step == 7:
             # Use the selected client's name in the file name
             file_name = f"efocus_{selected_client}.xlsx"  # Client name added to the file name
 
-            # Here we will replace the download button with the Continue button
-            st.session_state.step = 8  # Move to Step 8
+            # Move to Step 8 after processing the file and client selection
+            st.session_state.step = 8  # Move to Step 8 (with client questions)
 
         else:
             st.info("Please select a client name to proceed.")
@@ -364,6 +364,7 @@ elif st.session_state.step == 7:
     # "Continue" button for moving to Step 8
     if st.button("Continue to Step 8"):
         st.session_state.step = 8  # Proceed to Step 8
+
 
 
 # Step 8: Client Information and Questions (New step after eFocus creation)
