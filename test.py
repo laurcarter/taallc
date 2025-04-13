@@ -169,10 +169,13 @@ elif st.session_state.step == 2:
         st.write(f"**Date of Birth:** {st.session_state.personal_info['dob'].strftime('%m/%d/%Y')}")
         st.write(f"**Phone Number:** {st.session_state.personal_info['phone_number']}")
 
+        # "Continue" button for the next step
         if st.button("Continue"):
-            st.session_state.step = 3
+            st.session_state.step = 3  # Proceed to Step 3
 
-    create_back_button()
+    # Create the Back button at the bottom of the page
+    create_back_button()  # Add the back button functionality here
+
 
 # Step 3: Upload Excel File
 elif st.session_state.step == 3:
