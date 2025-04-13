@@ -453,9 +453,6 @@ elif st.session_state.step == 11:
     st.title("📥 Download Updated Filing Items Focus")  # Title for Step 11
     st.write("Click the button below to download the updated Excel file.")  # Description for Step 11
 
-    # Debugging: Print the session state to see the variables
-    st.write("Current Session State:")
-    st.write(st.session_state)  # Print out the session state
 
     # Load the current Excel file from st.session_state.excel_bytes
     file_bytes = st.session_state.excel_bytes
