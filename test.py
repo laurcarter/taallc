@@ -448,7 +448,6 @@ elif st.session_state.step == 10:
     if st.button("Continue to Next Step"):
         # Proceed to the next step after answering the question
         st.session_state.step = 11  # Move to Step 11 (or whatever comes next)
-
 # Step 11: Download and Update the File with Client Data
 elif st.session_state.step == 11:
     st.title("📥 Download Updated Filing Items Focus")  # Title for Step 11
@@ -503,30 +502,37 @@ elif st.session_state.step == 11:
     # Apply monthly income to row 191, column B (only if the value exists)
     if monthly_income is not None:
         focus_ws.cell(row=191, column=2, value=monthly_income)
+        st.write(f"Updated Monthly Income at Row 191: {monthly_income}")  # Debugging line to confirm update
 
     # Apply ending equity balance to row 199, column B (only if the value exists)
     if ending_equity_balance is not None:
         focus_ws.cell(row=199, column=2, value=ending_equity_balance)
+        st.write(f"Updated Ending Equity Balance at Row 199: {ending_equity_balance}")  # Debugging line to confirm update
 
     # Apply fidelity bond haircut to row 138, column B (only if the value exists)
     if fidelity_bond_haircut is not None:
         focus_ws.cell(row=138, column=2, value=fidelity_bond_haircut)
+        st.write(f"Updated Fidelity Bond Haircut at Row 138: {fidelity_bond_haircut}")  # Debugging line to confirm update
 
     # Apply undue concentration haircut to row 142, column B (only if the value exists)
     if undue_concentration_haircut is not None:
         focus_ws.cell(row=142, column=2, value=undue_concentration_haircut)
+        st.write(f"Updated Undue Concentration Haircut at Row 142: {undue_concentration_haircut}")  # Debugging line to confirm update
 
     # Apply debt securities haircut to row 146, column B (only if the value exists)
     if debt_securities_haircut is not None:
         focus_ws.cell(row=146, column=2, value=debt_securities_haircut)
+        st.write(f"Updated Debt Securities Haircut at Row 146: {debt_securities_haircut}")  # Debugging line to confirm update
 
     # Apply other securities haircut to row 147, column B (only if the value exists)
     if other_securities_haircut is not None:
         focus_ws.cell(row=147, column=2, value=other_securities_haircut)
+        st.write(f"Updated Other Securities Haircut at Row 147: {other_securities_haircut}")  # Debugging line to confirm update
 
     # Apply exempted securities haircut to row 148, column B (only if the value exists)
     if exempted_securities_haircut is not None:
         focus_ws.cell(row=148, column=2, value=exempted_securities_haircut)
+        st.write(f"Updated Exempted Securities Haircut at Row 148: {exempted_securities_haircut}")  # Debugging line to confirm update
 
     # Save the updated workbook to st.session_state.excel_bytes
     output = BytesIO()
@@ -543,5 +549,4 @@ elif st.session_state.step == 11:
         file_name="updated_filing_items_focus.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
 
