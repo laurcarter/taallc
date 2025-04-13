@@ -475,8 +475,6 @@ elif st.session_state.step == 11:
     st.title("📥 Download Updated Filing Items Focus")  # Title for Step 11
     st.write("Click the button below to download the updated Excel file.")  # Description for Step 11
 
-    create_back_button()
-
     # Load the current Excel file from st.session_state.excel_bytes
     file_bytes = st.session_state.excel_bytes
 
@@ -556,3 +554,4 @@ elif st.session_state.step == 11:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
+    create_back_button()
