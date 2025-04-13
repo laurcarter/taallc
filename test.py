@@ -463,6 +463,13 @@ elif st.session_state.step == 11:
     
     # Assign variables from session state
     filing_frequency = st.session_state.filing_frequency
+    monthly_income = st.session_state.monthly_income if 'monthly_income' in st.session_state else None
+    ending_equity_balance = st.session_state.ending_equity_balance
+    fidelity_bond_haircut = st.session_state.fidelity_bond_haircut
+    undue_concentration_haircut = st.session_state.undue_concentration_haircut
+    debt_securities_haircut = st.session_state.debt_securities_haircut
+    other_securities_haircut = st.session_state.other_securities_haircut
+    exempted_securities_haircut = st.session_state.exempted_securities_haircut
 
     # Mapping filing_frequency: "Monthly" = 1, "Quarterly" = 3
     filing_value = 1 if filing_frequency == "Monthly" else 3
@@ -477,6 +484,34 @@ elif st.session_state.step == 11:
         # Apply red highlight (only if the value differs)
         red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
         focus_ws.cell(row=165, column=2).fill = red_fill  # Highlight in red if different
+
+    # Apply monthly income to row 191, column B (only if the value exists)
+    if monthly_income is not None:
+        focus_ws.cell(row=191, column=2, value=monthly_income)
+
+    # Apply ending equity balance to row 199, column B (only if the value exists)
+    if ending_equity_balance is not None:
+        focus_ws.cell(row=199, column=2, value=ending_equity_balance)
+
+    # Apply fidelity bond haircut to row 138, column B (only if the value exists)
+    if fidelity_bond_haircut is not None:
+        focus_ws.cell(row=138, column=2, value=fidelity_bond_haircut)
+
+    # Apply undue concentration haircut to row 142, column B (only if the value exists)
+    if undue_concentration_haircut is not None:
+        focus_ws.cell(row=142, column=2, value=undue_concentration_haircut)
+
+    # Apply debt securities haircut to row 146, column B (only if the value exists)
+    if debt_securities_haircut is not None:
+        focus_ws.cell(row=146, column=2, value=debt_securities_haircut)
+
+    # Apply other securities haircut to row 147, column B (only if the value exists)
+    if other_securities_haircut is not None:
+        focus_ws.cell(row=147, column=2, value=other_securities_haircut)
+
+    # Apply exempted securities haircut to row 148, column B (only if the value exists)
+    if exempted_securities_haircut is not None:
+        focus_ws.cell(row=148, column=2, value=exempted_securities_haircut)
 
     # Save the updated workbook to st.session_state.excel_bytes
     output = BytesIO()
@@ -493,4 +528,5 @@ elif st.session_state.step == 11:
         file_name="updated_filing_items_focus.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
 
