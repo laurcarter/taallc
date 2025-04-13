@@ -599,13 +599,6 @@ elif st.session_state.step == 11:
     with st.container():
         st.markdown("---")  # Add a horizontal line to visually separate sections
     
-        st.subheader("Restart Options")  # Add a subheader for the restart section
-    
-        # Stack buttons vertically in separate rows
-        if st.button("Restart eFocus"):
-            # Reset to Step 7 for eFocus re-upload and processing
-            st.session_state.step = 7
-    
         if st.button("Restart Entire Filing"):
             # Reset to Step 2 for restarting the entire filing process
             st.session_state.step = 2
