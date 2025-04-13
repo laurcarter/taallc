@@ -172,6 +172,8 @@ elif st.session_state.step == 2:
         if st.button("Continue"):
             st.session_state.step = 3
 
+    create_back_button()
+
 # Step 3: Upload Excel File
 elif st.session_state.step == 3:
     st.title("📂 Upload Your Excel File")  # Title for Step 3
@@ -203,7 +205,7 @@ elif st.session_state.step == 3:
             if st.button("Continue"):
                     st.session_state.step = 4  # Move to Step 4
 
-
+    create_back_button()
 
 
 
